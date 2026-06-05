@@ -14,12 +14,12 @@ namespace DeliveryExpress
         public static AdministradorJuego Instance { get; private set; }
 
         [Header("Configuración de Vidas y Tiempo")]
-        [SerializeField] private int startingLives = 3;
-        [SerializeField] private float baseLevelDuration = 90f; // Duración base en segundos por jornada
+        [SerializeField] private int startingLives = 99; // 99 vidas para poder probar el escenario tranquilo
+        [SerializeField] private float baseLevelDuration = 60f; // Duración base en segundos por jornada
 
         [Header("Configuración de Jornadas")]
         [SerializeField] private int currentDay = 1;
-        [SerializeField] private int baseOrdersToDeliver = 3; // Jornada 1: 3 pedidos
+        [SerializeField] private int baseOrdersToDeliver = 2; // Jornada 1: 2 pedidos (porque hay 2 NPCs estáticos)
 
         // Variables de juego en tiempo real
         private int currentLives;
@@ -78,11 +78,14 @@ namespace DeliveryExpress
 
             currentLives = startingLives;
             
+            // Forzamos el tiempo a 60 segundos ignorando el Inspector
+            baseLevelDuration = 60f;
             // Cargar tiempo base más la mejora permanente comprada en la tienda
             timeRemaining = baseLevelDuration + extraTimeUpgrade;
 
-            // Determinar la cantidad de pedidos requeridos según la curva de dificultad del GDD
-            totalDeliveriesRequired = baseOrdersToDeliver + (currentDay - 1) * 2;
+            // Forzar pedidos a 0 porque la entrega es al final del recorrido!
+            baseOrdersToDeliver = 0;
+            totalDeliveriesRequired = 0;
             currentDeliveriesCompleted = 0;
 
             // Al inicio del nivel, el repartidor sale cargado con todos sus pedidos asignados del restaurante
@@ -110,7 +113,16 @@ namespace DeliveryExpress
             {
                 timeRemaining = 0;
                 OnTimeChanged?.Invoke(timeRemaining);
-                TriggerDefeat(true); // Derrota por falta de tiempo
+                
+                // Si llegamos al final del tiempo, comprobamos si hicimos suficientes entregas
+                if (currentDeliveriesCompleted >= totalDeliveriesRequired)
+                {
+                    TriggerVictory();
+                }
+                else
+                {
+                    TriggerDefeat(true); // Derrota por falta de tiempo / entregas
+                }
             }
         }
 
@@ -147,11 +159,11 @@ namespace DeliveryExpress
             OnCoinsChanged?.Invoke(coinsAccumulated);
             OnOrdersWeightChanged?.Invoke(activeOrders);
 
-            // Verificar condición de victoria de la jornada
-            if (currentDeliveriesCompleted >= totalDeliveriesRequired)
-            {
-                TriggerVictory();
-            }
+            // Ya no disparamos la victoria acá, hay que sobrevivir hasta que se acabe el tiempo!
+            // if (currentDeliveriesCompleted >= totalDeliveriesRequired)
+            // {
+            //     TriggerVictory();
+            // }
         }
 
         /// <summary>
@@ -185,6 +197,17 @@ namespace DeliveryExpress
 
             Debug.Log("¡Felicidades! Jornada completada con éxito.");
             
+            // Forzar que la meta baje de inmediato en el fondo
+            CapaParallax cp = GameObject.FindFirstObjectByType<CapaParallax>();
+            if (cp != null) cp.ForceFinalStreet();
+            
+            // Destruir todos los autos que quedaron en la calle para que no pisen la meta
+            GameObject[] cars = GameObject.FindGameObjectsWithTag("Car");
+            foreach (GameObject car in cars)
+            {
+                Destroy(car);
+            }
+            
             // Abrir pantalla de Upgrades de forma diferida
             StartCoroutine(TransitionToUpgradeShop());
         }
@@ -212,7 +235,8 @@ namespace DeliveryExpress
 
         private IEnumerator TransitionToUpgradeShop()
         {
-            yield return new WaitForSeconds(1.5f);
+            // Esperar 4.5 segundos para dar tiempo a que aparezca y baje la meta
+            yield return new WaitForSeconds(4.5f);
             
             // Avanzar el día para la siguiente jornada
             currentDay++;

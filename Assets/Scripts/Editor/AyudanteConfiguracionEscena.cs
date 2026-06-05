@@ -233,6 +233,33 @@ namespace DeliveryExpress.Editor
                 }
             }
 
+            if (!needsFix)
+            {
+                CapaParallax cp = GameObject.FindFirstObjectByType<CapaParallax>();
+                if (cp == null)
+                {
+                    needsFix = true;
+                }
+                else
+                {
+                    var crossField = typeof(CapaParallax).GetField("crossroadSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (crossField != null && crossField.GetValue(cp) == null)
+                    {
+                        needsFix = true;
+                    }
+                }
+            }
+
+            // Forzar actualización de PPU en las imágenes nuevas si no están en 181
+            if (!needsFix)
+            {
+                TextureImporter importer = AssetImporter.GetAtPath("Assets/sprites/Calle_cruce.png") as TextureImporter;
+                if (importer != null && importer.spritePixelsPerUnit != 181f)
+                {
+                    needsFix = true;
+                }
+            }
+
             if (needsFix)
             {
                 isCheckingScene = true;
@@ -273,11 +300,11 @@ namespace DeliveryExpress.Editor
             RegisterRequiredTags();
             Debug.Log("🛣️ Configurando nueva calle y vereda desde calleyvereda.png...");
 
-            // 1. Cargar la imagen completa sin cortar (soporta vereda_calle.png o calleyvereda.png)
-            string spritePath = "Assets/sprites/vereda_calle.png";
+            // 1. Cargar la nueva imagen base de la calle
+            string spritePath = "Assets/sprites/calle_vereda.png";
             if (!System.IO.File.Exists(spritePath))
             {
-                spritePath = "Assets/sprites/calleyvereda.png";
+                spritePath = "Assets/sprites/vereda_calle.png"; // Fallback a la vieja por si acaso
             }
 
             EnsureIsSprite(spritePath);
@@ -327,11 +354,18 @@ namespace DeliveryExpress.Editor
             GameObject scrollingBackground = new GameObject("_ScrollingBackground");
             CapaParallax scrollScript = scrollingBackground.AddComponent<CapaParallax>();
 
+            // Cargar sprites adicionales para la secuencia
+            EnsureIsSprite("Assets/sprites/Calle_cruce.png");
+            EnsureIsSprite("Assets/sprites/calle_final.png");
+            Sprite crossroadSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Calle_cruce.png");
+            Sprite finalStreetSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/calle_final.png");
+            
+            scrollScript.SetupSequence(streetSprite, crossroadSprite, finalStreetSprite);
+
             // Aplicamos un factor de escala mínimo de 1.05x para tapar los bordes negros
-            // en los laterales y centrar la calle asimétrica perfectamente
             Vector3 finalScale = new Vector3(1.05f, 1.05f, 1f);
-            // Desplazar X a 0.44f para centrar la calle debido a la asimetría del lienzo de vereda_calle.png
-            scrollScript.Setup(streetSprite, 1.0f, -10, new Vector3(0.44f, 0f, 0f), finalScale);
+            // La nueva secuencia está centrada, el offset X es 0f
+            scrollScript.Setup(streetSprite, 1.0f, -10, new Vector3(0f, 0f, 0f), finalScale);
 
             // 4. Buscar y configurar al repartidor en la escena
             GameObject riderObj = GameObject.Find("imagen_repartidor_0 (1)");

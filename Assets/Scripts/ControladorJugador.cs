@@ -65,6 +65,7 @@ namespace DeliveryExpress
         public float CurrentBalance => currentBalance;
         public float MaxBalance => maxBalance;
         public float CurrentTiltAngle => currentTiltAngle;
+        public bool IsBraking { get; private set; }
 
         // Variables de estado interno de mejoras (permanentemente actualizadas por el AdministradorMejoras)
         [HideInInspector] public float speedUpgradeFactor = 1f;       // Mejor Bicicleta
@@ -184,11 +185,13 @@ namespace DeliveryExpress
                 {
                     leftPressed = UnityEngine.InputSystem.Keyboard.current.aKey.wasPressedThisFrame || UnityEngine.InputSystem.Keyboard.current.leftArrowKey.wasPressedThisFrame;
                     rightPressed = UnityEngine.InputSystem.Keyboard.current.dKey.wasPressedThisFrame || UnityEngine.InputSystem.Keyboard.current.rightArrowKey.wasPressedThisFrame;
+                    IsBraking = UnityEngine.InputSystem.Keyboard.current.spaceKey.isPressed;
                 }
                 else
                 {
                     leftPressed = Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow);
                     rightPressed = Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow);
+                    IsBraking = Input.GetKey(KeyCode.Space);
                 }
             }
             catch (System.Exception)
@@ -200,6 +203,7 @@ namespace DeliveryExpress
             {
                 leftPressed = Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow);
                 rightPressed = Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow);
+                IsBraking = Input.GetKey(KeyCode.Space);
             }
             catch (System.Exception) {}
             #endif
@@ -385,6 +389,9 @@ namespace DeliveryExpress
             {
                 animator.SetInteger(StateHash, 0); // Animación "Idle" / Avance calmo
             }
+
+            // Reducir la velocidad visual de la animación para simular el freno
+            animator.speed = IsBraking ? 0.5f : 1f;
         }
 
         /// <summary>

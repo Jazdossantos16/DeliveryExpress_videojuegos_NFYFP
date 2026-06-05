@@ -62,8 +62,16 @@ namespace DeliveryExpress
                 return;
             }
 
+            // Obtener estado de frenado
+            float speedMultiplier = 1f;
+            ControladorJugador player = GameObject.FindFirstObjectByType<ControladorJugador>();
+            if (player != null && player.IsBraking)
+            {
+                speedMultiplier = 0.3f; // Reducir la velocidad de acercamiento al 30%
+            }
+
             // El movimiento relativo del obstáculo es la combinación del avance del scroll de la calle más su propia velocidad
-            float finalDownwardSpeed = globalStreetScrollSpeed + (movementDirection.y * ownSpeed);
+            float finalDownwardSpeed = (globalStreetScrollSpeed + (movementDirection.y * ownSpeed)) * speedMultiplier;
             
             // Aplicar traslación
             if (type == TipoObstaculo.BlackCar || type == TipoObstaculo.GreenCar)
@@ -73,7 +81,9 @@ namespace DeliveryExpress
             }
             else
             {
-                transform.Translate(new Vector3(movementDirection.x * ownSpeed * Time.deltaTime, -finalDownwardSpeed * Time.deltaTime, 0f), Space.World);
+                // Obstáculos como peatones que cruzan en diagonal o lateralmente también se ven afectados por el freno
+                float finalHorizontalSpeed = movementDirection.x * ownSpeed * speedMultiplier;
+                transform.Translate(new Vector3(finalHorizontalSpeed * Time.deltaTime, -finalDownwardSpeed * Time.deltaTime, 0f), Space.World);
             }
 
             // Destruir el obstáculo si sale de la pantalla por la parte inferior

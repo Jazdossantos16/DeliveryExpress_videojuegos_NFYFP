@@ -105,8 +105,8 @@ namespace DeliveryExpress
                 Debug.Log("✅ GeneradorObstaculos instanciado en carriles virtuales.");
             }
 
-            // 6. Crear NPCs Clientes en Veredas (Vereda izquierda y derecha)
-            CreateNPCs();
+            // 6. Remover los NPCs de las veredas, la entrega es al final del recorrido
+            // CreateNPCs();
 
             Debug.Log("🚀 ¡Nivel auto-construido con éxito! Presiona PLAY para jugar.");
         }
