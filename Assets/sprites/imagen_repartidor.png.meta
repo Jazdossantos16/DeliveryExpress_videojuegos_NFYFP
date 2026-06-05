@@ -1,0 +1,429 @@
+fileFormatVersion: 2
+guid: 926ba83600a0343e0bb3fe8d3a574d29
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3997972583747078590
+    second: imagen_repartidor_0
+  - first:
+      213: -7977040147875054272
+    second: imagen_repartidor_1
+  - first:
+      213: -3815203548498098662
+    second: imagen_repartidor_2
+  - first:
+      213: 8990445481380575167
+    second: imagen_repartidor_3
+  - first:
+      213: -9048494023854525918
+    second: imagen_repartidor_4
+  - first:
+      213: 4938059467011046939
+    second: imagen_repartidor_5
+  - first:
+      213: -6936954215681648229
+    second: imagen_repartidor_6
+  - first:
+      213: 3462750259761525014
+    second: imagen_repartidor_7
+  - first:
+      213: -3319904096202736982
+    second: imagen_repartidor_8
+  - first:
+      213: 4437172727558554381
+    second: imagen_repartidor_9
+  - first:
+      213: -3971237973133658552
+    second: imagen_repartidor_10
+  - first:
+      213: 7529935097872149017
+    second: imagen_repartidor_11
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: imagen_repartidor_0
+      rect:
+        serializedVersion: 2
+        x: 2375
+        y: 3117
+        width: 306
+        height: 780
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb9cefbf1e6ab7730800000000000000
+      internalID: 3997972583747078590
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_1
+      rect:
+        serializedVersion: 2
+        x: 2773
+        y: 3117
+        width: 307
+        height: 781
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 04db0eaef3cdb4190800000000000000
+      internalID: -7977040147875054272
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_2
+      rect:
+        serializedVersion: 2
+        x: 3167
+        y: 3117
+        width: 314
+        height: 776
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1606f1269cad0bc0800000000000000
+      internalID: -3815203548498098662
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_3
+      rect:
+        serializedVersion: 2
+        x: 3565
+        y: 3117
+        width: 309
+        height: 781
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fb7743a288a74cc70800000000000000
+      internalID: 8990445481380575167
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_4
+      rect:
+        serializedVersion: 2
+        x: 2374
+        y: 2198
+        width: 320
+        height: 804
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 222f7e350aa4d6280800000000000000
+      internalID: -9048494023854525918
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_5
+      rect:
+        serializedVersion: 2
+        x: 2767
+        y: 2198
+        width: 320
+        height: 804
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b1eb2fa1ce2878440800000000000000
+      internalID: 4938059467011046939
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_6
+      rect:
+        serializedVersion: 2
+        x: 3162
+        y: 2198
+        width: 319
+        height: 804
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b999527f4ecfabf90800000000000000
+      internalID: -6936954215681648229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_7
+      rect:
+        serializedVersion: 2
+        x: 3556
+        y: 2198
+        width: 320
+        height: 806
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6113afac3092e0030800000000000000
+      internalID: 3462750259761525014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_8
+      rect:
+        serializedVersion: 2
+        x: 2372
+        y: 1274
+        width: 329
+        height: 824
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aaab87960d45de1d0800000000000000
+      internalID: -3319904096202736982
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_9
+      rect:
+        serializedVersion: 2
+        x: 2767
+        y: 1274
+        width: 328
+        height: 826
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d03cd292611049d30800000000000000
+      internalID: 4437172727558554381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_10
+      rect:
+        serializedVersion: 2
+        x: 3168
+        y: 1276
+        width: 331
+        height: 813
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84673dc9a1453e8c0800000000000000
+      internalID: -3971237973133658552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imagen_repartidor_11
+      rect:
+        serializedVersion: 2
+        x: 3545
+        y: 1276
+        width: 338
+        height: 823
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 91a6a628314bf7860800000000000000
+      internalID: 7529935097872149017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      imagen_repartidor_0: 3997972583747078590
+      imagen_repartidor_1: -7977040147875054272
+      imagen_repartidor_10: -3971237973133658552
+      imagen_repartidor_11: 7529935097872149017
+      imagen_repartidor_2: -3815203548498098662
+      imagen_repartidor_3: 8990445481380575167
+      imagen_repartidor_4: -9048494023854525918
+      imagen_repartidor_5: 4938059467011046939
+      imagen_repartidor_6: -6936954215681648229
+      imagen_repartidor_7: 3462750259761525014
+      imagen_repartidor_8: -3319904096202736982
+      imagen_repartidor_9: 4437172727558554381
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
