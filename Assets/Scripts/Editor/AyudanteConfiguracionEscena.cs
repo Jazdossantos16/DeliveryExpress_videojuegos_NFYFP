@@ -254,10 +254,10 @@ namespace DeliveryExpress.Editor
 
         private static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
-            if (state == PlayModeStateChange.ExitingEditMode)
+            if (state == PlayModeStateChange.EnteredEditMode)
             {
-                // Configurar automáticamente de forma silenciosa antes de entrar a modo juego
-                SetupNewStreetAndSidewalkInternal(true);
+                // Cuando volvemos a Edit Mode, realizamos un chequeo de autocuración por si acaso
+                AutoCheckAndFixScene();
             }
         }
 
