@@ -7,16 +7,16 @@ namespace DeliveryExpress
     /// Maneja el indicador visual de navegación (flecha estilo arcade) para apuntar constantemente
     /// al cliente activo (NPC) más cercano que aún no haya recibido su pedido.
     /// </summary>
-    public class DeliveryIndicator : MonoBehaviour
+    public class IndicadorEntrega : MonoBehaviour
     {
         [Header("Configuración Visual")]
         [SerializeField] private GameObject arrowVisual; // El sprite de la flecha
         [SerializeField] private float offsetDistance = 1.8f; // Distancia desde el jugador
         
         private Transform playerTransform;
-        private List<DeliveryNPC> registeredNPCs = new List<DeliveryNPC>();
+        private List<NpcCliente> registeredNPCs = new List<NpcCliente>();
 
-        public void RegisterNPC(DeliveryNPC npc)
+        public void RegisterNPC(NpcCliente npc)
         {
             if (!registeredNPCs.Contains(npc))
             {
@@ -27,7 +27,7 @@ namespace DeliveryExpress
         private void Start()
         {
             // Buscar la referencia del jugador
-            PlayerController player = FindFirstObjectByType<PlayerController>();
+            ControladorJugador player = FindFirstObjectByType<ControladorJugador>();
             if (player != null)
             {
                 playerTransform = player.transform;
@@ -44,7 +44,7 @@ namespace DeliveryExpress
             if (playerTransform == null || arrowVisual == null) return;
 
             // Encontrar el cliente activo más cercano
-            DeliveryNPC targetNPC = GetClosestActiveNPC();
+            NpcCliente targetNPC = GetClosestActiveNPC();
 
             if (targetNPC != null)
             {
@@ -67,9 +67,9 @@ namespace DeliveryExpress
             }
         }
 
-        private DeliveryNPC GetClosestActiveNPC()
+        private NpcCliente GetClosestActiveNPC()
         {
-            DeliveryNPC closest = null;
+            NpcCliente closest = null;
             float minDistance = float.MaxValue;
 
             for (int i = registeredNPCs.Count - 1; i >= 0; i--)

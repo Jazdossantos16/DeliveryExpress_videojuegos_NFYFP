@@ -9,9 +9,9 @@ using DeliveryExpress;
 namespace DeliveryExpress.Editor
 {
     [InitializeOnLoad]
-    public static class SceneSetupHelper
+    public static class AyudanteConfiguracionEscena
     {
-        static SceneSetupHelper()
+        static AyudanteConfiguracionEscena()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 
@@ -137,10 +137,10 @@ namespace DeliveryExpress.Editor
                 GameObject canvasObj = GameObject.Find("_UI_Canvas");
                 if (canvasObj != null)
                 {
-                    UIManager uiManagerObj = canvasObj.GetComponent<UIManager>();
+                    AdministradorUI uiManagerObj = canvasObj.GetComponent<AdministradorUI>();
                     if (uiManagerObj != null)
                     {
-                        var loseSpriteField = typeof(UIManager).GetField("loseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        var loseSpriteField = typeof(AdministradorUI).GetField("loseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                         if (loseSpriteField != null)
                         {
                             var spriteVal = loseSpriteField.GetValue(uiManagerObj) as Sprite;
@@ -156,14 +156,14 @@ namespace DeliveryExpress.Editor
 
             if (!needsFix)
             {
-                ObstacleSpawner spawnerObj = GameObject.FindFirstObjectByType<ObstacleSpawner>();
+                GeneradorObstaculos spawnerObj = GameObject.FindFirstObjectByType<GeneradorObstaculos>();
                 if (spawnerObj == null)
                 {
                     needsFix = true;
                 }
                 else
                 {
-                    var carSpritesField = typeof(ObstacleSpawner).GetField("carSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var carSpritesField = typeof(GeneradorObstaculos).GetField("carSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (carSpritesField != null)
                     {
                         var spritesValue = carSpritesField.GetValue(spawnerObj) as Sprite[];
@@ -173,7 +173,7 @@ namespace DeliveryExpress.Editor
                         }
                     }
 
-                    var spawnerLanesField = typeof(ObstacleSpawner).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var spawnerLanesField = typeof(GeneradorObstaculos).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (spawnerLanesField != null)
                     {
                         var lanesVal = spawnerLanesField.GetValue(spawnerObj) as float[];
@@ -214,10 +214,10 @@ namespace DeliveryExpress.Editor
                 GameObject rider = GameObject.Find("imagen_repartidor_0 (1)");
                 if (rider != null)
                 {
-                    PlayerController pc = rider.GetComponent<PlayerController>();
+                    ControladorJugador pc = rider.GetComponent<ControladorJugador>();
                     if (pc != null)
                     {
-                        var pcLanesField = typeof(PlayerController).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        var pcLanesField = typeof(ControladorJugador).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                         if (pcLanesField != null)
                         {
                             var lanesVal = pcLanesField.GetValue(pc) as float[];
@@ -298,8 +298,8 @@ namespace DeliveryExpress.Editor
             }
 
             // 2. Limpiar todos los fondos anteriores y duplicados para evitar superposiciones
-            ParallaxLayer[] oldLayers = GameObject.FindObjectsByType<ParallaxLayer>(FindObjectsSortMode.None);
-            foreach (ParallaxLayer layer in oldLayers)
+            CapaParallax[] oldLayers = GameObject.FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
+            foreach (CapaParallax layer in oldLayers)
             {
                 if (layer != null && layer.gameObject != null)
                 {
@@ -325,7 +325,7 @@ namespace DeliveryExpress.Editor
 
             // 3. Crear el objeto de fondo con el script de scroll infinito
             GameObject scrollingBackground = new GameObject("_ScrollingBackground");
-            ParallaxLayer scrollScript = scrollingBackground.AddComponent<ParallaxLayer>();
+            CapaParallax scrollScript = scrollingBackground.AddComponent<CapaParallax>();
 
             // Aplicamos un factor de escala mínimo de 1.05x para tapar los bordes negros
             // en los laterales y centrar la calle asimétrica perfectamente
@@ -366,21 +366,21 @@ namespace DeliveryExpress.Editor
                 riderObj.transform.localScale = new Vector3(0.38f, 0.38f, 1f);
 
                 // Asegurar controlador del jugador
-                PlayerController pc = riderObj.GetComponent<PlayerController>();
+                ControladorJugador pc = riderObj.GetComponent<ControladorJugador>();
                 if (pc == null)
                 {
-                    pc = riderObj.AddComponent<PlayerController>();
+                    pc = riderObj.AddComponent<ControladorJugador>();
                 }
 
                 // Configurar carriles para vereda_calle.png a PPU 181 con escala 1.05x y desplazamiento
-                var laneField = typeof(PlayerController).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var laneField = typeof(ControladorJugador).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (laneField != null)
                 {
                     laneField.SetValue(pc, new float[] { -3.60f, -0.12f, 3.51f });
                     Debug.Log("✅ Carriles de movimiento ajustados a: {-3.60, -0.12, 3.51}");
                 }
 
-                var limitField = typeof(PlayerController).GetField("screenLimitX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var limitField = typeof(ControladorJugador).GetField("screenLimitX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (limitField != null)
                 {
                     limitField.SetValue(pc, 4.5f); // Límite exacto ajustado para dar margen al carril derecho
@@ -411,24 +411,24 @@ namespace DeliveryExpress.Editor
                 ConfigureAnimatorController(riderObj);
             }
 
-            // 4.1 Configurar ObstacleSpawner (Creación y sprites de autos)
-            ObstacleSpawner spawner = GameObject.FindFirstObjectByType<ObstacleSpawner>();
+            // 4.1 Configurar GeneradorObstaculos (Creación y sprites de autos)
+            GeneradorObstaculos spawner = GameObject.FindFirstObjectByType<GeneradorObstaculos>();
             if (spawner == null)
             {
-                GameObject spawnerObj = new GameObject("ObstacleSpawner");
+                GameObject spawnerObj = new GameObject("GeneradorObstaculos");
                 spawnerObj.transform.position = new Vector3(0f, 8f, 0f);
-                spawner = spawnerObj.AddComponent<ObstacleSpawner>();
-                Debug.Log("✅ ObstacleSpawner creado automáticamente.");
+                spawner = spawnerObj.AddComponent<GeneradorObstaculos>();
+                Debug.Log("✅ GeneradorObstaculos creado automáticamente.");
             }
 
             if (spawner != null)
             {
                 // Inyectar carriles {-2.9f, 0f, 2.9f}
-                var spawnerLaneField = typeof(ObstacleSpawner).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var spawnerLaneField = typeof(GeneradorObstaculos).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (spawnerLaneField != null)
                 {
                     spawnerLaneField.SetValue(spawner, new float[] { -3.60f, -0.12f, 3.51f });
-                    Debug.Log("✅ Carriles de ObstacleSpawner ajustados a: {-3.60, -0.12, 3.51}");
+                    Debug.Log("✅ Carriles de GeneradorObstaculos ajustados a: {-3.60, -0.12, 3.51}");
                 }
                 EditorUtility.SetDirty(spawner);
 
@@ -451,12 +451,12 @@ namespace DeliveryExpress.Editor
                     Debug.LogWarning("Error al cargar sprites de autos: " + ex.Message);
                 }
 
-                var carSpritesField = typeof(ObstacleSpawner).GetField("carSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var carSpritesField = typeof(GeneradorObstaculos).GetField("carSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (carSpritesField != null && carSprites != null)
                 {
                     carSpritesField.SetValue(spawner, carSprites);
                     EditorUtility.SetDirty(spawner);
-                    Debug.Log($"✅ Asignados {carSprites.Length} sprites de autos al ObstacleSpawner.");
+                    Debug.Log($"✅ Asignados {carSprites.Length} sprites de autos al GeneradorObstaculos.");
                 }
             }
 
@@ -471,16 +471,16 @@ namespace DeliveryExpress.Editor
                 mainCam.clearFlags = CameraClearFlags.SolidColor;
             }
 
-            // 6. Asegurar GameManager en la escena para controlar el sistema de vidas
-            GameManager gameManager = GameObject.FindFirstObjectByType<GameManager>();
+            // 6. Asegurar AdministradorJuego en la escena para controlar el sistema de vidas
+            AdministradorJuego gameManager = GameObject.FindFirstObjectByType<AdministradorJuego>();
             if (gameManager == null)
             {
                 GameObject managerObj = new GameObject("_GameManager");
-                gameManager = managerObj.AddComponent<GameManager>();
+                gameManager = managerObj.AddComponent<AdministradorJuego>();
                 Debug.Log("✅ Se creó el objeto '_GameManager' con el script central.");
             }
 
-            // 7. Crear el Canvas UI con el UIManager y las 3 vidas visuales
+            // 7. Crear el Canvas UI con el AdministradorUI y las 3 vidas visuales
             Canvas canvas = GameObject.FindFirstObjectByType<Canvas>();
             if (canvas == null)
             {
@@ -672,24 +672,24 @@ namespace DeliveryExpress.Editor
             goTRect.pivot = new Vector2(0.5f, 0.5f);
             goTRect.anchoredPosition = Vector2.zero;
 
-            // 7.5 Configurar el UIManager
-            UIManager uiManager = canvas.GetComponent<UIManager>();
+            // 7.5 Configurar el AdministradorUI
+            AdministradorUI uiManager = canvas.GetComponent<AdministradorUI>();
             if (uiManager == null)
             {
-                uiManager = canvas.gameObject.AddComponent<UIManager>();
+                uiManager = canvas.gameObject.AddComponent<AdministradorUI>();
             }
 
             // Asignar corazones por reflexión
-            var heartField = typeof(UIManager).GetField("heartImages", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var heartField = typeof(AdministradorUI).GetField("heartImages", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (heartField != null)
             {
                 heartField.SetValue(uiManager, hearts);
-                EditorUtility.SetDirty(uiManager); // Marcar UIManager como dirty para que Unity guarde los cambios en la escena
-                Debug.Log("[HEARTS DEBUG] Assigned heartImages array and marked UIManager dirty.");
+                EditorUtility.SetDirty(uiManager); // Marcar AdministradorUI como dirty para que Unity guarde los cambios en la escena
+                Debug.Log("[HEARTS DEBUG] Assigned heartImages array and marked AdministradorUI dirty.");
             }
 
             // Asignar texto por reflexión (null ya que eliminamos la frase de vidas)
-            var textField = typeof(UIManager).GetField("livesText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var textField = typeof(AdministradorUI).GetField("livesText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (textField != null)
             {
                 textField.SetValue(uiManager, null);
@@ -697,7 +697,7 @@ namespace DeliveryExpress.Editor
             }
 
             // Asignar panel por reflexión
-            var panelField = typeof(UIManager).GetField("gameOverPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var panelField = typeof(AdministradorUI).GetField("gameOverPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (panelField != null)
             {
                 panelField.SetValue(uiManager, panelObj);
@@ -705,15 +705,15 @@ namespace DeliveryExpress.Editor
             }
 
             // Asignar sprite de derrota por reflexión
-            var loseSpriteField = typeof(UIManager).GetField("loseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var loseSpriteField = typeof(AdministradorUI).GetField("loseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (loseSpriteField != null && loseSprite != null)
             {
                 loseSpriteField.SetValue(uiManager, loseSprite);
                 EditorUtility.SetDirty(uiManager);
-                Debug.Log("✅ Sprite de derrota inyectado en UIManager.");
+                Debug.Log("✅ Sprite de derrota inyectado en AdministradorUI.");
             }
 
-            Debug.Log("✅ UIManager configurado con corazones, HUD de texto y panel de GameOver.");
+            Debug.Log("✅ AdministradorUI configurado con corazones, HUD de texto y panel de GameOver.");
 
             // Asegurar que el Canvas y todos sus hijos estén en la capa "UI" (Capa 5)
             // para que Unity los renderice correctamente en la cámara
@@ -782,10 +782,10 @@ namespace DeliveryExpress.Editor
             }
 
             riderObj.tag = "Player";
-            PlayerController playerController = riderObj.GetComponent<PlayerController>();
+            ControladorJugador playerController = riderObj.GetComponent<ControladorJugador>();
             if (playerController == null)
             {
-                playerController = riderObj.AddComponent<PlayerController>();
+                playerController = riderObj.AddComponent<ControladorJugador>();
             }
 
             Rigidbody2D rb = riderObj.GetComponent<Rigidbody2D>();
@@ -833,8 +833,8 @@ namespace DeliveryExpress.Editor
                 if (go != riderObj && go.name != "Main Camera" && go.name != "Global Light 2D")
                 {
                     string name = go.name;
-                    if (name == "RoadBackground" || name == "_SceneBuilder" || name == "ObstacleSpawner" || 
-                        name.StartsWith("Cliente_NPC_") || name == "PlayerController" || name == "_GameManager" || name == "_ParallaxBackground" || name == "_ScrollingBackground")
+                    if (name == "RoadBackground" || name == "_SceneBuilder" || name == "GeneradorObstaculos" || 
+                        name.StartsWith("Cliente_NPC_") || name == "ControladorJugador" || name == "_GameManager" || name == "_ParallaxBackground" || name == "_ScrollingBackground")
                     {
                         UnityEngine.Object.DestroyImmediate(go);
                         deletedCount++;
@@ -1075,7 +1075,7 @@ namespace DeliveryExpress.Editor
                     SerializedProperty tagsProp = tagManager.FindProperty("tags");
                     if (tagsProp != null)
                     {
-                        string[] requiredTags = new string[] { "Obstacle", "Car" };
+                        string[] requiredTags = new string[] { "Obstaculo", "Car" };
                         bool changed = false;
                         foreach (string requiredTag in requiredTags)
                         {

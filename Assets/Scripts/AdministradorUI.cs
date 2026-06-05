@@ -7,9 +7,9 @@ namespace DeliveryExpress
     /// <summary>
     /// Gestiona la interfaz de usuario en tiempo real (HUD de vidas, pantalla de Game Over).
     /// </summary>
-    public class UIManager : MonoBehaviour
+    public class AdministradorUI : MonoBehaviour
     {
-        public static UIManager Instance { get; private set; }
+        public static AdministradorUI Instance { get; private set; }
 
         [Header("UI de Vidas")]
         [SerializeField] private Image[] heartImages;
@@ -29,17 +29,17 @@ namespace DeliveryExpress
             // Asegurar que el tiempo corra normalmente al iniciar la escena
             Time.timeScale = 1f;
 
-            if (GameManager.Instance != null)
+            if (AdministradorJuego.Instance != null)
             {
                 // Si la escena fue recargada por derrota, reiniciamos el día aquí.
-                // Esto garantiza que GameManager.Instance.IsGameOver continúe siendo true
+                // Esto garantiza que AdministradorJuego.Instance.IsGameOver continúe siendo true
                 // durante la carga de la escena, manteniendo el piso congelado.
-                if (GameManager.Instance.IsGameOver)
+                if (AdministradorJuego.Instance.IsGameOver)
                 {
-                    GameManager.Instance.RestartCurrentDay();
+                    AdministradorJuego.Instance.RestartCurrentDay();
                 }
 
-                GameManager.Instance.OnLivesChanged += UpdateLivesUI;
+                AdministradorJuego.Instance.OnLivesChanged += UpdateLivesUI;
                 
                 // Buscar componentes dinámicamente si no se asignaron en el inspector
                 if (heartImages == null || heartImages.Length == 0)
@@ -70,16 +70,16 @@ namespace DeliveryExpress
             {
                 Instance = null;
             }
-            if (GameManager.Instance != null)
+            if (AdministradorJuego.Instance != null)
             {
-                GameManager.Instance.OnLivesChanged -= UpdateLivesUI;
+                AdministradorJuego.Instance.OnLivesChanged -= UpdateLivesUI;
             }
         }
 
         private void Update()
         {
             // Detectar reinicio si la partida ha terminado (tecla R o click del mouse)
-            if (GameManager.Instance != null && GameManager.Instance.IsGameOver)
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
             {
                 if (Input.GetKeyDown(KeyCode.R) || Input.GetMouseButtonDown(0))
                 {
@@ -90,8 +90,8 @@ namespace DeliveryExpress
 
         public void RestartGame()
         {
-            // Solo cargamos la escena sin reiniciar GameManager todavía.
-            // De esta forma, GameManager.Instance.IsGameOver sigue siendo true y
+            // Solo cargamos la escena sin reiniciar AdministradorJuego todavía.
+            // De esta forma, AdministradorJuego.Instance.IsGameOver sigue siendo true y
             // Time.timeScale sigue siendo 0f durante todo el proceso de carga de la escena,
             // garantizando que el piso se quede perfectamente congelado en todo momento.
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);

@@ -9,9 +9,9 @@ namespace DeliveryExpress
     /// Administrador central del ciclo de juego, tiempo, vidas, monedas y jornadas.
     /// Implementa el patrón Singleton.
     /// </summary>
-    public class GameManager : MonoBehaviour
+    public class AdministradorJuego : MonoBehaviour
     {
-        public static GameManager Instance { get; private set; }
+        public static AdministradorJuego Instance { get; private set; }
 
         [Header("Configuración de Vidas y Tiempo")]
         [SerializeField] private int startingLives = 3;
@@ -204,9 +204,9 @@ namespace DeliveryExpress
                 Debug.Log("¡Te quedaste sin vidas debido a los choques urbanos!");
             }
 
-            if (UIManager.Instance != null)
+            if (AdministradorUI.Instance != null)
             {
-                UIManager.Instance.ShowGameOver();
+                AdministradorUI.Instance.ShowGameOver();
             }
         }
 

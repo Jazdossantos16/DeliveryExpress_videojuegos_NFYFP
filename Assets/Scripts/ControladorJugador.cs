@@ -10,7 +10,7 @@ namespace DeliveryExpress
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(SpriteRenderer))]
     [RequireComponent(typeof(Animator))]
-    public class PlayerController : MonoBehaviour
+    public class ControladorJugador : MonoBehaviour
     {
         [Header("Movimiento Lateral (Sistema de Carriles)")]
         [SerializeField] private float[] lanePositionsX = new float[] { -4f, 0f, 4f }; // Izquierdo, Centro, Derecho
@@ -66,7 +66,7 @@ namespace DeliveryExpress
         public float MaxBalance => maxBalance;
         public float CurrentTiltAngle => currentTiltAngle;
 
-        // Variables de estado interno de mejoras (permanentemente actualizadas por el UpgradeManager)
+        // Variables de estado interno de mejoras (permanentemente actualizadas por el AdministradorMejoras)
         [HideInInspector] public float speedUpgradeFactor = 1f;       // Mejor Bicicleta
         [HideInInspector] public float suspensionUpgradeFactor = 1f;  // Mejor Suspensión (reduce wobble)
         [HideInInspector] public float backpackUpgradeFactor = 1f;    // Mochila Liviana (reduce penalización por peso)
@@ -164,12 +164,12 @@ namespace DeliveryExpress
                     currentLaneIndex = i;
                 }
             }
-            Debug.Log("PlayerController iniciado. Carril inicial: " + currentLaneIndex + " (X: " + lanePositionsX[currentLaneIndex] + ")");
+            Debug.Log("ControladorJugador iniciado. Carril inicial: " + currentLaneIndex + " (X: " + lanePositionsX[currentLaneIndex] + ")");
         }
 
         private void Update()
         {
-            if (GameManager.Instance != null && GameManager.Instance.IsGameOver)
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
             {
                 rb2d.linearVelocity = Vector2.zero;
                 return;
@@ -225,7 +225,7 @@ namespace DeliveryExpress
             }
 
             // Calcular penalización de velocidad lateral debido al peso cargado
-            int currentOrders = GameManager.Instance != null ? GameManager.Instance.ActiveOrders : 0;
+            int currentOrders = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.ActiveOrders : 0;
             
             // La mejora de mochila reduce la penalización de peso (ej: factor de 0.6f reduce la penalización en un 40%)
             float activeSpeedPenalty = weightSpeedPenalty * backpackUpgradeFactor;
@@ -403,10 +403,10 @@ namespace DeliveryExpress
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            if (isInvulnerable || (GameManager.Instance != null && GameManager.Instance.IsGameOver)) return;
+            if (isInvulnerable || (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)) return;
 
             // Si colisiona con un obstáculo o auto (por Tag o por Componente)
-            if (collision.CompareTag("Obstacle") || collision.CompareTag("Car") || collision.GetComponent<Obstacle>() != null)
+            if (collision.CompareTag("Obstaculo") || collision.CompareTag("Car") || collision.GetComponent<Obstaculo>() != null)
             {
                 TakeDamage();
             }
@@ -415,9 +415,9 @@ namespace DeliveryExpress
         private void TakeDamage()
         {
             currentBalance = maxBalance; // Restablecer equilibrio al chocar
-            if (GameManager.Instance != null)
+            if (AdministradorJuego.Instance != null)
             {
-                GameManager.Instance.LoseLife();
+                AdministradorJuego.Instance.LoseLife();
             }
             
             StartCoroutine(InvulnerabilitySequence());

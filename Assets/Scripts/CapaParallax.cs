@@ -6,7 +6,7 @@ namespace DeliveryExpress
     /// Se encarga de desplazar una capa de fondo hacia abajo y reposicionarla
     /// de forma infinita y continua para simular movimiento y efecto Parallax.
     /// </summary>
-    public class ParallaxLayer : MonoBehaviour
+    public class CapaParallax : MonoBehaviour
     {
         [Header("Configuración de Movimiento")]
         [Tooltip("Multiplicador de velocidad de scroll (ej: 1.0 para la calle, 0.8 para edificios para dar profundidad)")]
@@ -86,7 +86,7 @@ namespace DeliveryExpress
         private void Update()
         {
             // Si el juego ha terminado por derrota, congelamos el movimiento del fondo (no en victoria)
-            if (GameManager.Instance != null && GameManager.Instance.IsGameOver && !GameManager.Instance.IsVictory)
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver && !AdministradorJuego.Instance.IsVictory)
             {
                 return;
             }

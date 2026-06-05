@@ -5,9 +5,9 @@ namespace DeliveryExpress
     /// <summary>
     /// Script especial y premium que automatiza la creación completa de la escena en Unity a tiempo de ejecución.
     /// Si tienes una escena vacía, simplemente arrastra este script a cualquier objeto vacío, presiona PLAY,
-    /// y el nivel se auto-construirá (Jugador, GameManager, Spawner y NPCs) para que puedas jugar inmediatamente.
+    /// y el nivel se auto-construirá (Jugador, AdministradorJuego, Spawner y NPCs) para que puedas jugar inmediatamente.
     /// </summary>
-    public class SceneBuilder : MonoBehaviour
+    public class ConstructorEscena : MonoBehaviour
     {
         [Header("Assets Visuales")]
         [Tooltip("Arrastra aquí el sprite o spritesheet del repartidor desde Assets/Sprites")]
@@ -40,17 +40,17 @@ namespace DeliveryExpress
             // 2. Crear Calle de Asfalto (Fondo)
             CreateRoadBackground();
 
-            // 3. Crear GameManager Central
-            if (GameManager.Instance == null)
+            // 3. Crear AdministradorJuego Central
+            if (AdministradorJuego.Instance == null)
             {
                 GameObject gmObj = new GameObject("_GameManager");
-                gmObj.AddComponent<GameManager>();
-                gmObj.AddComponent<UpgradeManager>();
-                Debug.Log("✅ GameManager y UpgradeManager instanciados correctamente.");
+                gmObj.AddComponent<AdministradorJuego>();
+                gmObj.AddComponent<AdministradorMejoras>();
+                Debug.Log("✅ AdministradorJuego y AdministradorMejoras instanciados correctamente.");
             }
 
             // 4. Crear Jugador (Repartidor)
-            PlayerController existingPlayer = FindFirstObjectByType<PlayerController>();
+            ControladorJugador existingPlayer = FindFirstObjectByType<ControladorJugador>();
             if (existingPlayer == null)
             {
                 GameObject playerObj = new GameObject("Player");
@@ -91,18 +91,18 @@ namespace DeliveryExpress
                 col.isTrigger = false;
 
                 // Agregar Controlador del jugador
-                playerObj.AddComponent<PlayerController>();
+                playerObj.AddComponent<ControladorJugador>();
                 Debug.Log("✅ Objeto Player (Repartidor) auto-configurado.");
             }
 
             // 5. Crear Spawner de Obstáculos
-            ObstacleSpawner spawner = FindFirstObjectByType<ObstacleSpawner>();
+            GeneradorObstaculos spawner = FindFirstObjectByType<GeneradorObstaculos>();
             if (spawner == null)
             {
-                GameObject spawnerObj = new GameObject("ObstacleSpawner");
+                GameObject spawnerObj = new GameObject("GeneradorObstaculos");
                 spawnerObj.transform.position = new Vector3(0, 8f, 0);
-                spawner = spawnerObj.AddComponent<ObstacleSpawner>();
-                Debug.Log("✅ ObstacleSpawner instanciado en carriles virtuales.");
+                spawner = spawnerObj.AddComponent<GeneradorObstaculos>();
+                Debug.Log("✅ GeneradorObstaculos instanciado en carriles virtuales.");
             }
 
             // 6. Crear NPCs Clientes en Veredas (Vereda izquierda y derecha)
@@ -153,7 +153,7 @@ namespace DeliveryExpress
             SetNPCTempSprite(sr1, Color.blue);
             BoxCollider2D col1 = npc1.AddComponent<BoxCollider2D>();
             col1.isTrigger = true;
-            npc1.AddComponent<DeliveryNPC>();
+            npc1.AddComponent<NpcCliente>();
 
             // Cliente 2 (Vereda Derecha)
             GameObject npc2 = new GameObject("Cliente_NPC_Derecha");
@@ -162,7 +162,7 @@ namespace DeliveryExpress
             SetNPCTempSprite(sr2, Color.green);
             BoxCollider2D col2 = npc2.AddComponent<BoxCollider2D>();
             col2.isTrigger = true;
-            npc2.AddComponent<DeliveryNPC>();
+            npc2.AddComponent<NpcCliente>();
         }
 
         private void SetNPCTempSprite(SpriteRenderer sr, Color color)

@@ -4,11 +4,11 @@ namespace DeliveryExpress
 {
     /// <summary>
     /// Gestiona la compra y aplicación de mejoras permanentes adquiridas en la tienda entre jornadas.
-    /// Actualiza directamente los multiplicadores físicos en el PlayerController y GameManager.
+    /// Actualiza directamente los multiplicadores físicos en el ControladorJugador y AdministradorJuego.
     /// </summary>
-    public class UpgradeManager : MonoBehaviour
+    public class AdministradorMejoras : MonoBehaviour
     {
-        public static UpgradeManager Instance { get; private set; }
+        public static AdministradorMejoras Instance { get; private set; }
 
         [System.Serializable]
         public struct UpgradeTier
@@ -47,7 +47,7 @@ namespace DeliveryExpress
         /// <summary>
         /// Aplica los modificadores actuales de las mejoras a las clases físicas/lógicas principales.
         /// </summary>
-        public void ApplyUpgradesToGameplay(PlayerController player)
+        public void ApplyUpgradesToGameplay(ControladorJugador player)
         {
             if (player != null)
             {
@@ -61,10 +61,10 @@ namespace DeliveryExpress
                 player.backpackUpgradeFactor = GetModifierValue(backpackTiers, currentBackpackLevel, 1f);
             }
 
-            if (GameManager.Instance != null)
+            if (AdministradorJuego.Instance != null)
             {
                 // Tiempo extra sumado en segundos a la jornada
-                GameManager.Instance.extraTimeUpgrade = GetModifierValue(extraTimeTiers, currentExtraTimeLevel, 0f);
+                AdministradorJuego.Instance.extraTimeUpgrade = GetModifierValue(extraTimeTiers, currentExtraTimeLevel, 0f);
             }
         }
 
@@ -74,7 +74,7 @@ namespace DeliveryExpress
             if (currentBicycleLevel >= bicycleSpeedTiers.Length) return false; // Nivel Max
 
             int cost = bicycleSpeedTiers[currentBicycleLevel].cost;
-            if (GameManager.Instance != null && GameManager.Instance.SpendCoins(cost))
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.SpendCoins(cost))
             {
                 currentBicycleLevel++;
                 SaveUpgrades();
@@ -88,7 +88,7 @@ namespace DeliveryExpress
             if (currentSuspensionLevel >= suspensionTiers.Length) return false;
 
             int cost = suspensionTiers[currentSuspensionLevel].cost;
-            if (GameManager.Instance != null && GameManager.Instance.SpendCoins(cost))
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.SpendCoins(cost))
             {
                 currentSuspensionLevel++;
                 SaveUpgrades();
@@ -102,7 +102,7 @@ namespace DeliveryExpress
             if (currentBackpackLevel >= backpackTiers.Length) return false;
 
             int cost = backpackTiers[currentBackpackLevel].cost;
-            if (GameManager.Instance != null && GameManager.Instance.SpendCoins(cost))
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.SpendCoins(cost))
             {
                 currentBackpackLevel++;
                 SaveUpgrades();
@@ -116,7 +116,7 @@ namespace DeliveryExpress
             if (currentExtraTimeLevel >= extraTimeTiers.Length) return false;
 
             int cost = extraTimeTiers[currentExtraTimeLevel].cost;
-            if (GameManager.Instance != null && GameManager.Instance.SpendCoins(cost))
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.SpendCoins(cost))
             {
                 currentExtraTimeLevel++;
                 SaveUpgrades();

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace DeliveryExpress
 {
-    public enum ObstacleType
+    public enum TipoObstaculo
     {
         BlackCar,
         GreenCar,
@@ -15,10 +15,10 @@ namespace DeliveryExpress
     /// Define el comportamiento de los obstáculos y vehículos en la calle.
     /// Se mueven verticalmente hacia abajo para simular que el repartidor avanza hacia arriba.
     /// </summary>
-    public class Obstacle : MonoBehaviour
+    public class Obstaculo : MonoBehaviour
     {
         [Header("Configuración del Obstáculo")]
-        [SerializeField] private ObstacleType type;
+        [SerializeField] private TipoObstaculo type;
         [SerializeField] private float ownSpeed = 2f; // Velocidad propia del obstáculo (los autos se mueven más rápido)
         
         [Tooltip("Daño infligido al jugador al colisionar")]
@@ -34,21 +34,21 @@ namespace DeliveryExpress
             // Ajustar comportamientos específicos de velocidad e IA según el tipo
             switch (type)
             {
-                case ObstacleType.BlackCar:
+                case TipoObstaculo.BlackCar:
                     ownSpeed = 3.5f; // Los autos bajan rápido
                     movementDirection = Vector2.up;
                     break;
-                case ObstacleType.GreenCar:
+                case TipoObstaculo.GreenCar:
                     ownSpeed = 5.0f; // Autos verdes son deportivos/rápidos
                     movementDirection = Vector2.up;
                     break;
-                case ObstacleType.Cone:
+                case TipoObstaculo.Cone:
                     ownSpeed = 0f; // Estático respecto a la calle
                     break;
-                case ObstacleType.Pothole:
+                case TipoObstaculo.Pothole:
                     ownSpeed = 0f; // Estático
                     break;
-                case ObstacleType.Pedestrian:
+                case TipoObstaculo.Pedestrian:
                     ownSpeed = 0.5f; // Cruza lateralmente
                     movementDirection = new Vector2(Random.value > 0.5f ? 1f : -1f, -1f).normalized; // Movimiento diagonal
                     break;
@@ -57,7 +57,7 @@ namespace DeliveryExpress
 
         private void Update()
         {
-            if (GameManager.Instance != null && GameManager.Instance.IsGameOver)
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
             {
                 return;
             }
@@ -66,7 +66,7 @@ namespace DeliveryExpress
             float finalDownwardSpeed = globalStreetScrollSpeed + (movementDirection.y * ownSpeed);
             
             // Aplicar traslación
-            if (type == ObstacleType.BlackCar || type == ObstacleType.GreenCar)
+            if (type == TipoObstaculo.BlackCar || type == TipoObstaculo.GreenCar)
             {
                 // Los autos se desplazan estrictamente en línea recta vertical sin movimiento lateral
                 transform.Translate(new Vector3(0f, -finalDownwardSpeed * Time.deltaTime, 0f), Space.World);
@@ -104,10 +104,10 @@ namespace DeliveryExpress
             if (other.CompareTag("Player"))
             {
                 // Si es un bache (pothole), genera inestabilidad temporal en vez de restar vidas directas obligatorias
-                if (type == ObstacleType.Pothole)
+                if (type == TipoObstaculo.Pothole)
                 {
                     // Triggers extreme wobble
-                    PlayerController player = other.GetComponent<PlayerController>();
+                    ControladorJugador player = other.GetComponent<ControladorJugador>();
                     if (player != null)
                     {
                         // Provoca un sacudón en los controles
@@ -116,7 +116,7 @@ namespace DeliveryExpress
                 }
                 
                 // Desaparecer o desactivar el obstáculo tras chocar (excepto los baches que están pintados en el suelo)
-                if (type != ObstacleType.Pothole)
+                if (type != TipoObstaculo.Pothole)
                 {
                     Destroy(gameObject);
                 }

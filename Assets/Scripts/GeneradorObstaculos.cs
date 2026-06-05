@@ -7,10 +7,10 @@ namespace DeliveryExpress
     /// <summary>
     /// Generador procedural de obstáculos y tráfico en base a carriles virtuales y a la curva de dificultad por jornadas.
     /// </summary>
-    public class ObstacleSpawner : MonoBehaviour
+    public class GeneradorObstaculos : MonoBehaviour
     {
         [Header("Prefabs de Obstáculos")]
-        [SerializeField] private GameObject[] obstaclePrefabs; // Colección indexada por enum ObstacleType
+        [SerializeField] private GameObject[] obstaclePrefabs; // Colección indexada por enum TipoObstaculo
 
         [Header("Sprites de Autos (Imagen Auto)")]
         [SerializeField] private Sprite[] carSprites;
@@ -43,7 +43,7 @@ namespace DeliveryExpress
 
             while (canSpawn)
             {
-                if (GameManager.Instance != null && GameManager.Instance.IsGameOver)
+                if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
                 {
                     yield return new WaitForSeconds(1.0f);
                     continue;
@@ -54,9 +54,9 @@ namespace DeliveryExpress
                 float currentMaxDelay = maxSpawnDelay;
 
                 // Reducir tiempos de espera a medida que avanzan los días para mayor densidad
-                if (GameManager.Instance != null)
+                if (AdministradorJuego.Instance != null)
                 {
-                    int day = GameManager.Instance.CurrentDay;
+                    int day = AdministradorJuego.Instance.CurrentDay;
                     float difficultyFactor = Mathf.Clamp(1f - ((day - 1) * 0.12f), 0.45f, 1f);
                     currentMinDelay *= difficultyFactor;
                     currentMaxDelay *= difficultyFactor;
@@ -91,7 +91,7 @@ namespace DeliveryExpress
                 {
                     Vector3 spawnPosition = new Vector3(spawnX, spawnYPosition, 0f);
                     GameObject spawnedObj = Instantiate(selectedPrefab, spawnPosition, Quaternion.identity);
-                    Obstacle obstacleComponent = spawnedObj.GetComponent<Obstacle>();
+                    Obstaculo obstacleComponent = spawnedObj.GetComponent<Obstaculo>();
                     if (obstacleComponent != null)
                     {
                         obstacleComponent.SetScrollSpeed(levelScrollSpeed);
@@ -138,7 +138,7 @@ namespace DeliveryExpress
             
             // Crear el GameObject del auto
             GameObject carObj = new GameObject("Obstaculo_Auto");
-            carObj.tag = "Car"; // Es detectado por el PlayerController para el daño
+            carObj.tag = "Car"; // Es detectado por el ControladorJugador para el daño
             carObj.transform.position = new Vector3(spawnX, spawnYPosition, 0f);
             
             // Sin rotación (los sprites originales en imagen_auto.png ya están orientados hacia abajo)
@@ -169,28 +169,28 @@ namespace DeliveryExpress
             col.isTrigger = true;
             col.size = new Vector2(1.2f, 1.4f);
 
-            // Añadir componente Obstacle al padre
-            Obstacle obstacle = carObj.AddComponent<Obstacle>();
+            // Añadir componente Obstaculo al padre
+            Obstaculo obstacle = carObj.AddComponent<Obstaculo>();
             
-            // Configurar el tipo de auto y velocidad en Obstacle.cs por reflexión
-            var typeField = typeof(Obstacle).GetField("type", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            // Configurar el tipo de auto y velocidad en Obstaculo.cs por reflexión
+            var typeField = typeof(Obstaculo).GetField("type", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (typeField != null)
             {
                 // Alternar tipo de auto (BlackCar o GreenCar) según el sprite seleccionado
-                ObstacleType carType = (randomSpriteIndex % 2 == 0) ? ObstacleType.BlackCar : ObstacleType.GreenCar;
+                TipoObstaculo carType = (randomSpriteIndex % 2 == 0) ? TipoObstaculo.BlackCar : TipoObstaculo.GreenCar;
                 typeField.SetValue(obstacle, carType);
             }
 
-            // Los autos van en sentido contrario a el chico (Vector2.up en la ecuación final de Obstacle bajan a scrollSpeed + ownSpeed)
+            // Los autos van en sentido contrario a el chico (Vector2.up en la ecuación final de Obstaculo bajan a scrollSpeed + ownSpeed)
             obstacle.SetMovementDirection(Vector2.up);
             obstacle.SetScrollSpeed(levelScrollSpeed);
         }
 
         private void AdjustDifficultyBasedOnDay()
         {
-            if (GameManager.Instance == null) return;
+            if (AdministradorJuego.Instance == null) return;
 
-            int day = GameManager.Instance.CurrentDay;
+            int day = AdministradorJuego.Instance.CurrentDay;
 
             // Estructura de Jornadas del GDD:
             // Jornada 1: Tutorial, pocos obstáculos, velocidad lenta.

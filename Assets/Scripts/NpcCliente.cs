@@ -8,7 +8,7 @@ namespace DeliveryExpress
     /// Gatilla la entrega automática al detectar la cercanía del jugador si quedan pedidos.
     /// </summary>
     [RequireComponent(typeof(Collider2D))]
-    public class DeliveryNPC : MonoBehaviour
+    public class NpcCliente : MonoBehaviour
     {
         [Header("Configuración del Cliente")]
         [SerializeField] private int coinsReward = 20;
@@ -23,7 +23,7 @@ namespace DeliveryExpress
         private void Start()
         {
             // Registrarse en el indicador de navegación si hay uno activo
-            DeliveryIndicator indicator = FindFirstObjectByType<DeliveryIndicator>();
+            IndicadorEntrega indicator = FindFirstObjectByType<IndicadorEntrega>();
             if (indicator != null)
             {
                 indicator.RegisterNPC(this);
@@ -38,7 +38,7 @@ namespace DeliveryExpress
             if (collision.CompareTag("Player"))
             {
                 // Solo entregar si el jugador tiene pedidos cargados encima
-                if (GameManager.Instance != null && GameManager.Instance.ActiveOrders > 0)
+                if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.ActiveOrders > 0)
                 {
                     ExecuteDelivery(collision.gameObject);
                 }
@@ -50,16 +50,16 @@ namespace DeliveryExpress
             hasDelivered = true;
 
             // Trigger de la animación de entrega del brazo en el repartidor
-            PlayerController playerController = playerObj.GetComponent<PlayerController>();
+            ControladorJugador playerController = playerObj.GetComponent<ControladorJugador>();
             if (playerController != null)
             {
                 playerController.TriggerDeliveryAnimation();
             }
 
-            // Registrar entrega exitosa en el GameManager central
-            if (GameManager.Instance != null)
+            // Registrar entrega exitosa en el AdministradorJuego central
+            if (AdministradorJuego.Instance != null)
             {
-                GameManager.Instance.CompleteDelivery(coinsReward);
+                AdministradorJuego.Instance.CompleteDelivery(coinsReward);
             }
 
             // Mostrar feedback visual
