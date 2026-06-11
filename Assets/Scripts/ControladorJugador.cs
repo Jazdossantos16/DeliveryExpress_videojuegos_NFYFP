@@ -170,7 +170,9 @@ namespace DeliveryExpress
 
         private void Update()
         {
-            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
+            // Bloquear el movimiento solo si el jugador perdió. 
+            // Si ganó, permitimos que se siga moviendo durante los 4.5 segundos de la animación final.
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver && !AdministradorJuego.Instance.IsVictory)
             {
                 rb2d.linearVelocity = Vector2.zero;
                 return;
@@ -410,7 +412,7 @@ namespace DeliveryExpress
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            if (isInvulnerable || (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)) return;
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver) return;
 
             Obstaculo obs = collision.GetComponent<Obstaculo>();
             string objName = collision.gameObject.name.ToLower();
@@ -419,12 +421,17 @@ namespace DeliveryExpress
                         || objName.Contains("car") 
                         || (obs != null && (obs.Type == TipoObstaculo.BlackCar || obs.Type == TipoObstaculo.GreenCar));
 
-            // Si colisiona con un obstáculo o auto
+            // Los autos son letales y atraviesan la invulnerabilidad
             if (isCar)
             {
-                TakeDamage(true); // Muerte instantánea por chocar auto
+                TakeDamage(true); // Muerte instantánea
+                return;
             }
-            else if (collision.CompareTag("Obstaculo") || obs != null)
+
+            // Si es un obstáculo menor (cono), la invulnerabilidad te protege
+            if (isInvulnerable) return;
+
+            if (collision.CompareTag("Obstaculo") || obs != null)
             {
                 TakeDamage(false); // Solo perder 1 vida
             }

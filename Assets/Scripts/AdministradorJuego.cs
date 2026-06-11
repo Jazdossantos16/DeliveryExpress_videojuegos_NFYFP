@@ -48,6 +48,7 @@ namespace DeliveryExpress
         public bool IsGameOver => isGameOver;
         public bool IsVictory => isVictory;
         public int CurrentDay => currentDay;
+        public float TimeRemaining => timeRemaining;
 
         private void Awake()
         {

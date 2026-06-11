@@ -63,6 +63,48 @@ namespace DeliveryExpress
         private float lastLeftHouseHeight;
         private GameObject lastRightHouse;
         private float lastRightHouseHeight;
+        private bool isPreSpawned = false;
+
+        private int lastLeftHouseIndex = -1;
+        private int lastRightHouseIndex = -1;
+
+        private System.Collections.Generic.Queue<int> leftHouseQueue = new System.Collections.Generic.Queue<int>();
+        private System.Collections.Generic.Queue<int> rightHouseQueue = new System.Collections.Generic.Queue<int>();
+
+        private int GetNextHouseIndex(System.Collections.Generic.Queue<int> queue, ref int lastIndex)
+        {
+            if (houseSprites == null || houseSprites.Length <= 2) return 0;
+            int max = houseSprites.Length / 2;
+
+            if (queue.Count == 0)
+            {
+                System.Collections.Generic.List<int> bag = new System.Collections.Generic.List<int>();
+                for (int i = 0; i < max; i++) bag.Add(i);
+                
+                // Mezclar la lista
+                for (int i = 0; i < bag.Count; i++)
+                {
+                    int temp = bag[i];
+                    int randomIndex = Random.Range(i, bag.Count);
+                    bag[i] = bag[randomIndex];
+                    bag[randomIndex] = temp;
+                }
+
+                // Evitar que la primera casa de la nueva bolsa sea igual a la última de la bolsa anterior
+                if (bag[0] == lastIndex && bag.Count > 1)
+                {
+                    int temp = bag[0];
+                    bag[0] = bag[1];
+                    bag[1] = temp;
+                }
+
+                foreach (int val in bag) queue.Enqueue(val);
+            }
+            
+            int result = queue.Dequeue();
+            lastIndex = result;
+            return result;
+        }
 
         private void Update()
         {
@@ -71,6 +113,13 @@ namespace DeliveryExpress
 
             CapaParallax bg = GameObject.FindFirstObjectByType<CapaParallax>();
             bool isCrossroad = (bg != null && bg.IsCrossroadOverlapping(spawnYPosition));
+
+            if (!isPreSpawned)
+            {
+                AdjustDifficultyBasedOnDay(); // Ajustar la velocidad primero para que coincida con el fondo
+                PreSpawnHouses();
+                isPreSpawned = true;
+            }
 
             if (isCrossroad)
             {
@@ -83,7 +132,9 @@ namespace DeliveryExpress
                 // Casa izquierda pegada al borde
                 if (lastLeftHouse == null || lastLeftHouse.transform.position.y <= spawnYPosition - lastLeftHouseHeight)
                 {
-                    lastLeftHouse = SpawnHouse(-9.5f);
+                    int index = GetNextHouseIndex(leftHouseQueue, ref lastLeftHouseIndex);
+                    // Usamos index * 2 (pares) para la izquierda
+                    lastLeftHouse = SpawnHouse(-1f, spawnYPosition, index * 2);
                     if (lastLeftHouse != null)
                     {
                         lastLeftHouseHeight = lastLeftHouse.GetComponent<SpriteRenderer>().bounds.size.y;
@@ -93,7 +144,9 @@ namespace DeliveryExpress
                 // Casa derecha pegada al borde
                 if (lastRightHouse == null || lastRightHouse.transform.position.y <= spawnYPosition - lastRightHouseHeight)
                 {
-                    lastRightHouse = SpawnHouse(9.5f);
+                    int index = GetNextHouseIndex(rightHouseQueue, ref lastRightHouseIndex);
+                    // Usamos index * 2 + 1 (impares) para la derecha
+                    lastRightHouse = SpawnHouse(1f, spawnYPosition, index * 2 + 1);
                     if (lastRightHouse != null)
                     {
                         lastRightHouseHeight = lastRightHouse.GetComponent<SpriteRenderer>().bounds.size.y;
@@ -102,23 +155,58 @@ namespace DeliveryExpress
             }
         }
 
+        private void PreSpawnHouses()
+        {
+            float currentY = -6f; // Empezar por debajo del borde inferior de la cámara
+            while (currentY <= spawnYPosition)
+            {
+                int leftIndex = GetNextHouseIndex(leftHouseQueue, ref lastLeftHouseIndex);
+                GameObject leftH = SpawnHouse(-1f, currentY, leftIndex * 2);
+                
+                int rightIndex = GetNextHouseIndex(rightHouseQueue, ref lastRightHouseIndex);
+                GameObject rightH = SpawnHouse(1f, currentY, rightIndex * 2 + 1);
+
+                if (leftH != null && rightH != null)
+                {
+                    float h = leftH.GetComponent<SpriteRenderer>().bounds.size.y;
+                    lastLeftHouseHeight = h;
+                    lastRightHouseHeight = h;
+                    lastLeftHouse = leftH;
+                    lastRightHouse = rightH;
+                    currentY += h; // Subir el equivalente a una casa para la próxima
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
         private IEnumerator SpawnRoutine()
         {
-            // Esperar que inicie el juego
-            yield return new WaitForSeconds(1.5f);
+            // Esperar un instante pequeñísimo que inicie el juego
+            yield return new WaitForSeconds(0.5f);
 
             // Ajustar dificultad según el día de la jornada actual
             AdjustDifficultyBasedOnDay();
 
+            float timeElapsed = 0f;
+
             while (canSpawn)
             {
-                if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
+                // Verificación: si el juego terminó o estamos en los últimos 3.5 segundos (acercándonos a la meta)
+                // dejamos de generar obstáculos para que la línea de llegada esté despejada.
+                if (AdministradorJuego.Instance != null && 
+                   (AdministradorJuego.Instance.IsGameOver || AdministradorJuego.Instance.TimeRemaining < 3.5f))
                 {
                     yield return new WaitForSeconds(1.0f);
                     continue;
                 }
 
-                // Esperar tiempo aleatorio antes del siguiente spawn
+                // Spawnear obstáculo INMEDIATAMENTE al inicio del ciclo
+                SpawnRandomObstacle();
+
+                // Calcular cuánto tiempo esperar ANTES de spawnear el SIGUIENTE obstáculo
                 float currentMinDelay = minSpawnDelay;
                 float currentMaxDelay = maxSpawnDelay;
 
@@ -131,16 +219,18 @@ namespace DeliveryExpress
                     currentMaxDelay *= difficultyFactor;
                 }
 
-                yield return new WaitForSeconds(Random.Range(currentMinDelay, currentMaxDelay));
+                // ACELERACIÓN PROGRESIVA: Partidas de 60 segundos.
+                // Reducimos el tiempo de espera pero con un límite más conservador (0.65x)
+                // para que no salgan "autos pegados" uno detrás del otro.
+                float inGameTimeFactor = Mathf.Clamp(1f - (timeElapsed / 60f), 0.65f, 1f);
+                currentMinDelay *= inGameTimeFactor;
+                currentMaxDelay *= inGameTimeFactor;
 
-                // Verificación extra: si el juego terminó mientras esperábamos, no spawneamos nada
-                if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
-                {
-                    continue;
-                }
-
-                // Spawnear obstáculo
-                SpawnRandomObstacle();
+                float waitTime = Random.Range(currentMinDelay, currentMaxDelay);
+                
+                // Esperar para el siguiente
+                yield return new WaitForSeconds(waitTime);
+                timeElapsed += waitTime;
             }
         }
 
@@ -179,25 +269,44 @@ namespace DeliveryExpress
         {
             if (lanePositionsX == null || lanePositionsX.Length == 0) return;
 
-            // Revisar si ya hay algún cono (obstáculo estático) en pantalla
+            List<int> blockedLanes = new List<int>();
+
+            // Revisar conos en pantalla (bloquean el carril por mucho tiempo porque son lentos)
             GameObject[] activeCones = GameObject.FindGameObjectsWithTag("Obstaculo");
             bool hasConesOnScreen = activeCones.Length > 0;
-
-            // Si hay un cono en pantalla, limitamos a 1 solo auto para garantizar que siempre haya espacio libre
-            int spawnCount = hasConesOnScreen ? 1 : Random.Range(1, 3);
-            
-            if (lanePositionsX.Length <= spawnCount)
+            foreach (GameObject cone in activeCones)
             {
-                spawnCount = lanePositionsX.Length - 1;
+                if (cone.transform.position.y > -4f) // Bloquean hasta casi el final de la pantalla
+                {
+                    int lane = GetLaneIndexFromX(cone.transform.position.x);
+                    if (lane != -1 && !blockedLanes.Contains(lane)) blockedLanes.Add(lane);
+                }
             }
-            if (spawnCount <= 0) spawnCount = 1;
 
-            // Elegir carriles sin repetir
+            // Revisar autos en pantalla (bloquean el carril menos tiempo porque son rápidos)
+            GameObject[] activeCars = GameObject.FindGameObjectsWithTag("Car");
+            foreach (GameObject car in activeCars)
+            {
+                if (car.transform.position.y > 0f) // Bloquean solo la mitad superior
+                {
+                    int lane = GetLaneIndexFromX(car.transform.position.x);
+                    if (lane != -1 && !blockedLanes.Contains(lane)) blockedLanes.Add(lane);
+                }
+            }
+
+            // Elegir carriles libres
             List<int> availableLaneIndices = new List<int>();
             for (int i = 0; i < lanePositionsX.Length; i++)
             {
-                availableLaneIndices.Add(i);
+                if (!blockedLanes.Contains(i)) availableLaneIndices.Add(i);
             }
+
+            // Si todos los carriles están ocupados (o hay peligro de choque), cancelamos el spawn esta vez
+            if (availableLaneIndices.Count == 0) return;
+
+            // Decidir cuántos autos spawnear
+            int spawnCount = hasConesOnScreen ? 1 : Random.Range(1, 3);
+            if (spawnCount > availableLaneIndices.Count) spawnCount = availableLaneIndices.Count;
 
             bool spawnedConeInThisWave = false;
 
@@ -213,6 +322,16 @@ namespace DeliveryExpress
                 
                 if (isCone) spawnedConeInThisWave = true;
             }
+        }
+
+        private int GetLaneIndexFromX(float xPos)
+        {
+            if (lanePositionsX == null) return -1;
+            for (int i = 0; i < lanePositionsX.Length; i++)
+            {
+                if (Mathf.Abs(lanePositionsX[i] - xPos) < 0.5f) return i;
+            }
+            return -1;
         }
 
         private bool SpawnObjectInLane(int laneIndex, bool forceCar)
@@ -311,7 +430,17 @@ namespace DeliveryExpress
             // Añadir BoxCollider2D como Trigger al padre
             BoxCollider2D col = carObj.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
-            col.size = new Vector2(1.2f, 1.4f);
+            if (sr.sprite != null)
+            {
+                // Ajustar el tamaño del collider para que cubra casi todo el sprite
+                col.size = new Vector2(sr.sprite.bounds.size.x * 0.85f, sr.sprite.bounds.size.y * 0.9f);
+                // Alinear el centro del collider al centro desplazado del sprite visual
+                col.offset = new Vector2(-sr.sprite.bounds.center.x, -sr.sprite.bounds.center.y);
+            }
+            else
+            {
+                col.size = new Vector2(1.2f, 1.4f);
+            }
 
             // Añadir componente Obstaculo al padre
             Obstaculo obstacle = carObj.AddComponent<Obstaculo>();
@@ -342,21 +471,32 @@ namespace DeliveryExpress
             // Jornadas finales: Máxima presión, más tráfico, mayor velocidad del scroll.
             if (day == 1)
             {
-                levelScrollSpeed = 4.0f;
-                minSpawnDelay = 2.5f;
-                maxSpawnDelay = 4.0f;
+                levelScrollSpeed = 5.0f;
+                minSpawnDelay = 1.3f;
+                maxSpawnDelay = 2.2f;
             }
             else if (day >= 2 && day <= 4)
             {
-                levelScrollSpeed = 5.5f;
-                minSpawnDelay = 1.8f;
-                maxSpawnDelay = 3.0f;
+                levelScrollSpeed = 6.5f;
+                minSpawnDelay = 1.0f;
+                maxSpawnDelay = 1.8f;
             }
             else // Jornadas finales (Day >= 5)
             {
-                levelScrollSpeed = 7.0f;
-                minSpawnDelay = 1.0f;
-                maxSpawnDelay = 2.0f;
+                levelScrollSpeed = 8.0f;
+                minSpawnDelay = 0.8f;
+                maxSpawnDelay = 1.4f;
+            }
+
+            SyncBackgroundSpeeds();
+        }
+
+        private void SyncBackgroundSpeeds()
+        {
+            CapaParallax[] fondos = FindObjectsOfType<CapaParallax>();
+            foreach (CapaParallax fondo in fondos)
+            {
+                fondo.SetBaseSpeed(levelScrollSpeed);
             }
         }
 
@@ -367,20 +507,47 @@ namespace DeliveryExpress
 
 
 
-        private GameObject SpawnHouse(float spawnX)
+        private GameObject SpawnHouse(float spawnX, float spawnY, int spriteIndex)
         {
             if (houseSprites == null || houseSprites.Length == 0) return null;
 
             GameObject houseObj = new GameObject("Entorno_Casa");
-            houseObj.transform.position = new Vector3(spawnX, spawnYPosition, 0f);
+            houseObj.transform.position = new Vector3(spawnX, spawnY, 0f);
             houseObj.transform.rotation = Quaternion.identity;
             
             // Escala de las casas (los sprites originales miden 600x600 aprox)
             houseObj.transform.localScale = new Vector3(0.65f, 0.65f, 1f);
 
             SpriteRenderer sr = houseObj.AddComponent<SpriteRenderer>();
-            sr.sprite = houseSprites[Random.Range(0, houseSprites.Length)];
+
+            sr.sprite = houseSprites[spriteIndex];
             sr.sortingOrder = 2; // Debajo de los obstáculos (8) y el jugador (10), pero encima de la calle (0)
+
+            // Ajuste fino: Alineamos TODAS las casas por su FACHADA (borde interno hacia la calle)
+            // Empujamos la fachada lo más atrás posible (hacia el borde de la pantalla) 
+            // garantizando que la casa más ancha no se corte.
+            if (sr.sprite != null)
+            {
+                float scaledWidth = sr.sprite.bounds.size.x * 0.65f;
+                
+                float screenEdgeX = 8.9f;
+                if (Camera.main != null)
+                {
+                    screenEdgeX = Camera.main.orthographicSize * Camera.main.aspect;
+                }
+                
+                // El ancho máximo de tus dibujos es de aprox 6.8 unidades
+                float maxHouseWidth = 6.8f * 0.65f; // ~4.42f
+                
+                // Fijamos la línea de la vereda (fachada) para que la casa más ancha toque justo el borde negro
+                float facadeX = screenEdgeX - maxHouseWidth;
+                
+                // Si está a la izquierda, la fachada es el borde derecho de la casa.
+                // Si está a la derecha, la fachada es el borde izquierdo de la casa.
+                float finalX = (spawnX < 0) ? (-facadeX - (scaledWidth / 2f)) : (facadeX + (scaledWidth / 2f));
+                
+                houseObj.transform.position = new Vector3(finalX, spawnY, 0f);
+            }
 
             // Usamos la lógica de movimiento de Obstaculo para que acompañe el parallax de la calle
             Obstaculo obstacle = houseObj.AddComponent<Obstaculo>();
