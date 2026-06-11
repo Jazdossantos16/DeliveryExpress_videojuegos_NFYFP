@@ -216,5 +216,22 @@ namespace DeliveryExpress
         {
             baseScrollSpeed = newSpeed;
         }
+
+        public bool IsCrossroadOverlapping(float yPosition)
+        {
+            float halfHeight = spriteHeight / 2f;
+            
+            if (sprite1 != null && sprite1.sprite == crossroadSprite)
+            {
+                if (yPosition >= sprite1.transform.localPosition.y - halfHeight && yPosition <= sprite1.transform.localPosition.y + halfHeight) 
+                    return true;
+            }
+            if (sprite2 != null && sprite2.sprite == crossroadSprite)
+            {
+                if (yPosition >= sprite2.transform.localPosition.y - halfHeight && yPosition <= sprite2.transform.localPosition.y + halfHeight) 
+                    return true;
+            }
+            return false;
+        }
     }
 }

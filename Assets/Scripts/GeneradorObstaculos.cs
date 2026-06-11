@@ -15,6 +15,12 @@ namespace DeliveryExpress
         [Header("Sprites de Autos (Imagen Auto)")]
         [SerializeField] private Sprite[] carSprites;
 
+        [Header("Sprites de Obstáculos Menores (Ej: Cono)")]
+        [SerializeField] private Sprite[] minorObstacleSprites;
+
+        [Header("Sprites de Casas (Entorno Vereda)")]
+        [SerializeField] private Sprite[] houseSprites;
+
         [Header("Configuración de Carriles (Posiciones X)")]
         [SerializeField] private float[] lanePositionsX = new float[] { -4f, 0f, 4f }; // Izquierdo, Centro, Derecho
         [SerializeField] private float spawnYPosition = 12f; // Posición de entrada superior en pantalla
@@ -30,7 +36,70 @@ namespace DeliveryExpress
 
         private void Start()
         {
+            // Autocargar los nuevos sprites de obstáculos (ahora son múltiples en una sola imagen)
+            if (minorObstacleSprites == null || minorObstacleSprites.Length == 0)
+            {
+                Sprite[] loadedSprites = Resources.LoadAll<Sprite>("imagen_obstaculos");
+                if (loadedSprites != null && loadedSprites.Length > 0)
+                {
+                    minorObstacleSprites = loadedSprites; // Cargamos todos los obstáculos cortados
+                }
+            }
+
+            // Autocargar las imágenes de las casas para la vereda
+            if (houseSprites == null || houseSprites.Length == 0)
+            {
+                Sprite[] loadedHouses = Resources.LoadAll<Sprite>("imagenes_ casas");
+                if (loadedHouses != null && loadedHouses.Length > 0)
+                {
+                    houseSprites = loadedHouses;
+                }
+            }
+
             StartCoroutine(SpawnRoutine());
+        }
+
+        private GameObject lastLeftHouse;
+        private float lastLeftHouseHeight;
+        private GameObject lastRightHouse;
+        private float lastRightHouseHeight;
+
+        private void Update()
+        {
+            if (!canSpawn) return;
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver) return;
+
+            CapaParallax bg = GameObject.FindFirstObjectByType<CapaParallax>();
+            bool isCrossroad = (bg != null && bg.IsCrossroadOverlapping(spawnYPosition));
+
+            if (isCrossroad)
+            {
+                // Dejar hueco para la calle transversal
+                lastLeftHouse = null;
+                lastRightHouse = null;
+            }
+            else
+            {
+                // Casa izquierda pegada al borde
+                if (lastLeftHouse == null || lastLeftHouse.transform.position.y <= spawnYPosition - lastLeftHouseHeight)
+                {
+                    lastLeftHouse = SpawnHouse(-9.5f);
+                    if (lastLeftHouse != null)
+                    {
+                        lastLeftHouseHeight = lastLeftHouse.GetComponent<SpriteRenderer>().bounds.size.y;
+                    }
+                }
+
+                // Casa derecha pegada al borde
+                if (lastRightHouse == null || lastRightHouse.transform.position.y <= spawnYPosition - lastRightHouseHeight)
+                {
+                    lastRightHouse = SpawnHouse(9.5f);
+                    if (lastRightHouse != null)
+                    {
+                        lastRightHouseHeight = lastRightHouse.GetComponent<SpriteRenderer>().bounds.size.y;
+                    }
+                }
+            }
         }
 
         private IEnumerator SpawnRoutine()
@@ -63,6 +132,12 @@ namespace DeliveryExpress
                 }
 
                 yield return new WaitForSeconds(Random.Range(currentMinDelay, currentMaxDelay));
+
+                // Verificación extra: si el juego terminó mientras esperábamos, no spawneamos nada
+                if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
+                {
+                    continue;
+                }
 
                 // Spawnear obstáculo
                 SpawnRandomObstacle();
@@ -104,8 +179,12 @@ namespace DeliveryExpress
         {
             if (lanePositionsX == null || lanePositionsX.Length == 0) return;
 
-            // Determinar si spawnear 1 o 2 autos (50% de probabilidad para cada uno)
-            int spawnCount = Random.Range(1, 3); // 1 o 2
+            // Revisar si ya hay algún cono (obstáculo estático) en pantalla
+            GameObject[] activeCones = GameObject.FindGameObjectsWithTag("Obstaculo");
+            bool hasConesOnScreen = activeCones.Length > 0;
+
+            // Si hay un cono en pantalla, limitamos a 1 solo auto para garantizar que siempre haya espacio libre
+            int spawnCount = hasConesOnScreen ? 1 : Random.Range(1, 3);
             
             if (lanePositionsX.Length <= spawnCount)
             {
@@ -120,25 +199,90 @@ namespace DeliveryExpress
                 availableLaneIndices.Add(i);
             }
 
+            bool spawnedConeInThisWave = false;
+
             for (int k = 0; k < spawnCount; k++)
             {
                 int listIndex = Random.Range(0, availableLaneIndices.Count);
                 int selectedLaneIndex = availableLaneIndices[listIndex];
                 availableLaneIndices.RemoveAt(listIndex);
 
-                SpawnCarInLane(selectedLaneIndex);
+                // Si ya hay un cono en pantalla o ya spawneamos uno en esta ola, forzar que sea un auto
+                bool forceCar = hasConesOnScreen || spawnedConeInThisWave;
+                bool isCone = SpawnObjectInLane(selectedLaneIndex, forceCar);
+                
+                if (isCone) spawnedConeInThisWave = true;
             }
         }
 
-        private void SpawnCarInLane(int laneIndex)
+        private bool SpawnObjectInLane(int laneIndex, bool forceCar)
+        {
+            float spawnX = lanePositionsX[laneIndex];
+
+            // 30% de probabilidad de spawnear un obstáculo menor, solo si no estamos forzando un auto
+            bool spawnMinorObstacle = !forceCar && (minorObstacleSprites != null && minorObstacleSprites.Length > 0 && Random.value < 0.3f);
+
+            if (spawnMinorObstacle)
+            {
+                SpawnMinorObstacleInLane(spawnX);
+                return true;
+            }
+            else if (carSprites != null && carSprites.Length > 0)
+            {
+                SpawnVehicleInLane(spawnX);
+                return false;
+            }
+            return false;
+        }
+
+
+
+        private void SpawnMinorObstacleInLane(float spawnX)
+        {
+            GameObject obsObj = new GameObject("Obstaculo_Cono");
+            obsObj.tag = "Obstaculo"; // Tag "Obstaculo" quita 1 sola vida en ControladorJugador
+            obsObj.transform.position = new Vector3(spawnX, spawnYPosition, 0f);
+            obsObj.transform.rotation = Quaternion.identity;
+            
+            // Ajustamos el tamaño a 1.25f para lograr el punto medio perfecto
+            obsObj.transform.localScale = new Vector3(1.25f, 1.25f, 1f); 
+
+            GameObject visualObj = new GameObject("Visual");
+            visualObj.transform.SetParent(obsObj.transform, false);
+
+            SpriteRenderer sr = visualObj.AddComponent<SpriteRenderer>();
+            sr.sprite = minorObstacleSprites[Random.Range(0, minorObstacleSprites.Length)];
+            sr.sortingOrder = 8;
+
+            if (sr.sprite != null)
+            {
+                Vector3 centerOffset = sr.sprite.bounds.center;
+                visualObj.transform.localPosition = new Vector3(-centerOffset.x, -centerOffset.y, 0f);
+            }
+
+            BoxCollider2D col = obsObj.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+            col.size = new Vector2(0.9f, 0.9f); // Collider más pequeño para el cono
+
+            Obstaculo obstacle = obsObj.AddComponent<Obstaculo>();
+            
+            var typeField = typeof(Obstaculo).GetField("type", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (typeField != null)
+            {
+                typeField.SetValue(obstacle, TipoObstaculo.Cone); // Tipo cono (ownSpeed = 0)
+            }
+
+            // Los conos no tienen velocidad propia, solo se mueven con la calle
+            obstacle.SetScrollSpeed(levelScrollSpeed);
+        }
+
+        private void SpawnVehicleInLane(float spawnX)
         {
             if (carSprites == null || carSprites.Length == 0) return;
 
-            float spawnX = lanePositionsX[laneIndex];
-            
             // Crear el GameObject del auto
             GameObject carObj = new GameObject("Obstaculo_Auto");
-            carObj.tag = "Car"; // Es detectado por el ControladorJugador para el daño
+            carObj.tag = "Car"; // Es detectado por el ControladorJugador para muerte instantánea
             carObj.transform.position = new Vector3(spawnX, spawnYPosition, 0f);
             
             // Sin rotación (los sprites originales en imagen_auto.png ya están orientados hacia abajo)
@@ -219,6 +363,35 @@ namespace DeliveryExpress
         public void StopSpawning()
         {
             canSpawn = false;
+        }
+
+
+
+        private GameObject SpawnHouse(float spawnX)
+        {
+            if (houseSprites == null || houseSprites.Length == 0) return null;
+
+            GameObject houseObj = new GameObject("Entorno_Casa");
+            houseObj.transform.position = new Vector3(spawnX, spawnYPosition, 0f);
+            houseObj.transform.rotation = Quaternion.identity;
+            
+            // Escala de las casas (los sprites originales miden 600x600 aprox)
+            houseObj.transform.localScale = new Vector3(0.65f, 0.65f, 1f);
+
+            SpriteRenderer sr = houseObj.AddComponent<SpriteRenderer>();
+            sr.sprite = houseSprites[Random.Range(0, houseSprites.Length)];
+            sr.sortingOrder = 2; // Debajo de los obstáculos (8) y el jugador (10), pero encima de la calle (0)
+
+            // Usamos la lógica de movimiento de Obstaculo para que acompañe el parallax de la calle
+            Obstaculo obstacle = houseObj.AddComponent<Obstaculo>();
+            var typeField = typeof(Obstaculo).GetField("type", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (typeField != null)
+            {
+                typeField.SetValue(obstacle, TipoObstaculo.Cone); // Cone no tiene velocidad propia, se mueve con la calle
+            }
+            obstacle.SetScrollSpeed(levelScrollSpeed);
+
+            return houseObj;
         }
     }
 }
