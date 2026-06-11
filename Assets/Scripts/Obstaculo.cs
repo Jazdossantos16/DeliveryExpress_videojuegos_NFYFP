@@ -19,6 +19,7 @@ namespace DeliveryExpress
     {
         [Header("Configuración del Obstáculo")]
         [SerializeField] private TipoObstaculo type;
+        public TipoObstaculo Type => type;
         [SerializeField] private float ownSpeed = 2f; // Velocidad propia del obstáculo (los autos se mueven más rápido)
         
         [Tooltip("Daño infligido al jugador al colisionar")]
@@ -57,10 +58,7 @@ namespace DeliveryExpress
 
         private void Update()
         {
-            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
-            {
-                return;
-            }
+            // Los autos siguen avanzando y salen de la pantalla naturalmente aunque el juego termine
 
             // Obtener estado de frenado
             float speedMultiplier = 1f;

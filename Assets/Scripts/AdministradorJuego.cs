@@ -14,7 +14,7 @@ namespace DeliveryExpress
         public static AdministradorJuego Instance { get; private set; }
 
         [Header("Configuración de Vidas y Tiempo")]
-        [SerializeField] private int startingLives = 99; // 99 vidas para poder probar el escenario tranquilo
+        [SerializeField] private int startingLives = 3; // 3 vidas para los obstáculos menores
         [SerializeField] private float baseLevelDuration = 60f; // Duración base en segundos por jornada
 
         [Header("Configuración de Jornadas")]
@@ -76,7 +76,8 @@ namespace DeliveryExpress
             isVictory = false;
             isGameRunning = true;
 
-            currentLives = startingLives;
+            // Restauramos las 3 vidas para poder chocar con baches o perder equilibrio sin perder automáticamente
+            currentLives = 3;
             
             // Forzamos el tiempo a 60 segundos ignorando el Inspector
             baseLevelDuration = 60f;
@@ -143,6 +144,17 @@ namespace DeliveryExpress
         }
 
         /// <summary>
+        /// Muerte instantánea al chocar con un auto enemigo
+        /// </summary>
+        public void InstantGameOver()
+        {
+            if (isGameOver) return;
+            currentLives = 0;
+            OnLivesChanged?.Invoke(currentLives);
+            TriggerDefeat(false);
+        }
+
+        /// <summary>
         /// Ejecuta una entrega de pedido exitosa a un NPC cliente
         /// </summary>
         public void CompleteDelivery(int coinsReward)
@@ -201,12 +213,8 @@ namespace DeliveryExpress
             CapaParallax cp = GameObject.FindFirstObjectByType<CapaParallax>();
             if (cp != null) cp.ForceFinalStreet();
             
-            // Destruir todos los autos que quedaron en la calle para que no pisen la meta
-            GameObject[] cars = GameObject.FindGameObjectsWithTag("Car");
-            foreach (GameObject car in cars)
-            {
-                Destroy(car);
-            }
+            // Ya no destruimos los autos bruscamente, los dejamos seguir de largo hasta que salgan de la pantalla
+            // (Se eliminó el bucle Destroy)
             
             // Abrir pantalla de Upgrades de forma diferida
             StartCoroutine(TransitionToUpgradeShop());

@@ -412,19 +412,37 @@ namespace DeliveryExpress
         {
             if (isInvulnerable || (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)) return;
 
-            // Si colisiona con un obstáculo o auto (por Tag o por Componente)
-            if (collision.CompareTag("Obstaculo") || collision.CompareTag("Car") || collision.GetComponent<Obstaculo>() != null)
+            Obstaculo obs = collision.GetComponent<Obstaculo>();
+            string objName = collision.gameObject.name.ToLower();
+            bool isCar = collision.CompareTag("Car") 
+                        || objName.Contains("auto") 
+                        || objName.Contains("car") 
+                        || (obs != null && (obs.Type == TipoObstaculo.BlackCar || obs.Type == TipoObstaculo.GreenCar));
+
+            // Si colisiona con un obstáculo o auto
+            if (isCar)
             {
-                TakeDamage();
+                TakeDamage(true); // Muerte instantánea por chocar auto
+            }
+            else if (collision.CompareTag("Obstaculo") || obs != null)
+            {
+                TakeDamage(false); // Solo perder 1 vida
             }
         }
 
-        private void TakeDamage()
+        private void TakeDamage(bool instantKill = false)
         {
             currentBalance = maxBalance; // Restablecer equilibrio al chocar
             if (AdministradorJuego.Instance != null)
             {
-                AdministradorJuego.Instance.LoseLife();
+                if (instantKill)
+                {
+                    AdministradorJuego.Instance.InstantGameOver();
+                }
+                else
+                {
+                    AdministradorJuego.Instance.LoseLife();
+                }
             }
             
             StartCoroutine(InvulnerabilitySequence());
