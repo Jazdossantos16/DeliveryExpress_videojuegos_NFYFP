@@ -162,21 +162,21 @@ namespace DeliveryExpress
             {
                 sprite1.transform.localPosition -= new Vector3(0, movement, 0);
                 sprite2.transform.localPosition -= new Vector3(0, movement, 0);
-
-                // Lógica para detenerse EXACTAMENTE en la línea de llegada
-                if (finalStreetSpawned)
+                
+                if (finishLineObj != null)
                 {
-                    if (sprite1.sprite == finalStreetSprite && sprite1.transform.localPosition.y <= 0)
+                    finishLineObj.transform.localPosition -= new Vector3(0, movement, 0);
+
+                    // Frenar todo cuando la meta llega a la posición del jugador (Y = 0)
+                    if (finishLineObj.transform.localPosition.y <= 0f)
                     {
-                        sprite1.transform.localPosition = new Vector3(sprite1.transform.localPosition.x, 0, sprite1.transform.localPosition.z);
-                        stopScrolling = true;
-                        return;
-                    }
-                    else if (sprite2.sprite == finalStreetSprite && sprite2.transform.localPosition.y <= 0)
-                    {
-                        sprite2.transform.localPosition = new Vector3(sprite2.transform.localPosition.x, 0, sprite2.transform.localPosition.z);
-                        stopScrolling = true;
-                        return;
+                        finishLineObj.transform.localPosition = new Vector3(0, 0f, 0);
+                        stopScrolling = true; // Frenar el asfalto
+
+                        if (AdministradorJuego.Instance != null)
+                        {
+                            AdministradorJuego.Instance.IsFinishLineReached = true; // Frenar casas y autos
+                        }
                     }
                 }
 
@@ -195,20 +195,30 @@ namespace DeliveryExpress
             }
         }
 
+        private GameObject finishLineObj;
+
         public void ForceFinalStreet()
         {
-            if (finalStreetSprite != null && sprite1 != null && sprite2 != null)
+            if (finalStreetSprite != null && !finalStreetSpawned)
             {
                 finalStreetSpawned = true;
-                // Asignamos la línea de meta al sprite que esté más arriba actualmente para que baje YA
-                if (sprite1.transform.localPosition.y > sprite2.transform.localPosition.y)
-                {
-                    sprite1.sprite = finalStreetSprite;
+                
+                // En lugar de reemplazar el sprite de la calle (lo que deja un hueco negro si la meta es más chica),
+                // instanciamos la línea de meta como un objeto superpuesto a la calle que baja con ella.
+                
+                finishLineObj = new GameObject("LineaDeMeta");
+                finishLineObj.transform.SetParent(transform);
+                
+                // La ponemos bien arriba, por encima del borde superior de la cámara (Y=6) para que baje fluidamente
+                // La coordenada exacta dependerá de qué tan rápido llegue al centro. Y=12 es un buen lugar seguro.
+                finishLineObj.transform.position = new Vector3(0, 10f, 0);
+                if (obj1 != null) {
+                    finishLineObj.transform.localScale = obj1.transform.localScale; // misma escala que la calle
                 }
-                else
-                {
-                    sprite2.sprite = finalStreetSprite;
-                }
+                
+                SpriteRenderer sr = finishLineObj.AddComponent<SpriteRenderer>();
+                sr.sprite = finalStreetSprite;
+                sr.sortingOrder = 1; // Por encima del asfalto (-10), pero debajo de las casas (2) y del jugador
             }
         }
 

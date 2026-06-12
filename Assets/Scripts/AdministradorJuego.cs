@@ -49,6 +49,7 @@ namespace DeliveryExpress
         public bool IsVictory => isVictory;
         public int CurrentDay => currentDay;
         public float TimeRemaining => timeRemaining;
+        public bool IsFinishLineReached { get; set; } = false;
 
         private void Awake()
         {
@@ -147,6 +148,8 @@ namespace DeliveryExpress
         /// <summary>
         /// Muerte instantánea al chocar con un auto enemigo
         /// </summary>
+
+
         public void InstantGameOver()
         {
             if (isGameOver) return;

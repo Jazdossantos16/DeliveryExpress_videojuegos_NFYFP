@@ -109,7 +109,8 @@ namespace DeliveryExpress
         private void Update()
         {
             if (!canSpawn) return;
-            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver) return;
+            // Quitamos la restricción de IsGameOver para que las casas sigan rellenando el fondo
+            // mientras la calle se mueve durante la animación de la línea de llegada.
 
             CapaParallax bg = GameObject.FindFirstObjectByType<CapaParallax>();
             bool isCrossroad = (bg != null && bg.IsCrossroadOverlapping(spawnYPosition));

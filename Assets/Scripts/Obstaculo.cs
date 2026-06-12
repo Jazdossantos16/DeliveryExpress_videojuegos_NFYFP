@@ -58,7 +58,12 @@ namespace DeliveryExpress
 
         private void Update()
         {
-            // Los autos siguen avanzando y salen de la pantalla naturalmente aunque el juego termine
+            // Los autos siguen avanzando y salen de la pantalla naturalmente aunque el juego termine,
+            // EXCEPTO cuando cruzamos la meta y queremos congelar la escena
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsFinishLineReached)
+            {
+                return;
+            }
 
             // Obtener estado de frenado
             float speedMultiplier = 1f;
