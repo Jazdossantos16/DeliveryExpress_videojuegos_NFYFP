@@ -16,7 +16,6 @@ namespace DeliveryExpress
         [SerializeField] private float[] lanePositionsX = new float[] { -4f, 0f, 4f }; // Izquierdo, Centro, Derecho
         [SerializeField] private int currentLaneIndex = 1; // 0: Izquierdo, 1: Centro, 2: Derecho
         [SerializeField] private float laneTransitionSpeed = 15f; // Velocidad para deslizarse entre carriles
-        [SerializeField] private float baseLateralSpeed = 8f; // Respaldo analógico
         [SerializeField] private float screenLimitX = 6f; // Límite de la calle
 
         [Header("Mecánica de Peso e Inestabilidad")]
@@ -45,10 +44,6 @@ namespace DeliveryExpress
         [SerializeField] private float currentTiltAngle = 0f;
         [Tooltip("Ángulo máximo de inclinación antes de perder el equilibrio y caer")]
         [SerializeField] private float maxTiltAngle = 35f;
-        [Tooltip("Fuerza con la que el movimiento de carril inclina la bicicleta")]
-        [SerializeField] private float tiltSensitivity = 30f;
-        [Tooltip("Tasa de auto-estabilización de la bici para volver al centro vertical")]
-        [SerializeField] private float selfRightingSpeed = 35f;
         [Tooltip("Umbral de velocidad lateral por debajo de la cual se considera estable")]
         [SerializeField] private float stableThreshold = 0.5f;
 
@@ -89,7 +84,7 @@ namespace DeliveryExpress
 
         private void Start()
         {
-            // Auto-recuperar o añadir el Rigidbody2D de manera dinámica por seguridad
+            // Recuperamos el componente Rigidbody2D o lo creamos dinámicamente si no existe
             rb2d = GetComponent<Rigidbody2D>();
             if (rb2d == null)
             {
@@ -106,26 +101,25 @@ namespace DeliveryExpress
 
             if (rb2d != null)
             {
-                rb2d.bodyType = RigidbodyType2D.Kinematic; // Establecer como Kinematic para evitar caídas físicas
-                rb2d.gravityScale = 0f; // Asegurar que no caiga por gravedad física en un juego 2D top-down
+                rb2d.gravityScale = 0f; // Desactivamos la gravedad en el Rigidbody para evitar desplazamientos involuntarios en 2D
                 rb2d.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
             }
             
             targetX = transform.position.x;
 
-            // Evitar que un array vacío desde el Inspector de Unity cause bloqueos o excepciones
+            // Evitamos que un arreglo vacío en el Inspector genere excepciones en ejecución
             if (lanePositionsX == null || lanePositionsX.Length == 0)
             {
                 lanePositionsX = new float[] { -4f, 0f, 4f };
             }
 
-            // Evitar que límites incorrectos del Inspector bloqueen el movimiento lateral
+            // Validamos que los límites laterales no bloqueen el movimiento del jugador
             if (screenLimitX < 5f)
             {
                 screenLimitX = 6f;
             }
 
-            // Evitar velocidades nulas o corruptas desde el Inspector
+            // Asignamos una velocidad por defecto si el valor del Inspector no es válido
             if (laneTransitionSpeed < 1f)
             {
                 laneTransitionSpeed = 15f;
@@ -154,7 +148,7 @@ namespace DeliveryExpress
             if (backpackUpgradeFactor < 0.1f) backpackUpgradeFactor = 1f;
             if (suspensionUpgradeFactor < 0.1f) suspensionUpgradeFactor = 1f;
 
-            // Encontrar el carril inicial más cercano a la posición de inicio
+            // Buscamos el carril inicial que se encuentra más cercano a la posición del jugador
             float minDistance = float.MaxValue;
             for (int i = 0; i < lanePositionsX.Length; i++)
             {
@@ -165,13 +159,12 @@ namespace DeliveryExpress
                     currentLaneIndex = i;
                 }
             }
-            Debug.Log("ControladorJugador iniciado. Carril inicial: " + currentLaneIndex + " (X: " + lanePositionsX[currentLaneIndex] + ")");
         }
 
         private void Update()
         {
-            // Bloquear el movimiento solo si el jugador perdió. 
-            // Si ganó, permitimos que se siga moviendo durante los 4.5 segundos de la animación final.
+            // Si la partida terminó en derrota, bloqueamos el movimiento lateral.
+            // Si es victoria, permitimos movimiento durante el transcurso de la secuencia final.
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver && !AdministradorJuego.Instance.IsVictory)
             {
                 rb2d.linearVelocity = Vector2.zero;
@@ -198,7 +191,7 @@ namespace DeliveryExpress
             }
             catch (System.Exception)
             {
-                // Evitar crasheo si el sistema de inputs no está inicializado o hay conflicto de configuración
+                // Controlamos excepciones si el sistema de entrada no está inicializado
             }
             #else
             try
@@ -210,72 +203,59 @@ namespace DeliveryExpress
             catch (System.Exception) {}
             #endif
 
-            // Capturar entrada del jugador para saltar entre carriles (A/D o flechas izquierda/derecha)
             if (leftPressed)
             {
-                Debug.Log("Tecla Izquierda presionada. Carril actual: " + currentLaneIndex);
                 if (currentLaneIndex > 0)
                 {
                     currentLaneIndex--;
-                    Debug.Log("Cambiando a carril izquierdo: " + currentLaneIndex + " (X objetivo: " + lanePositionsX[currentLaneIndex] + ")");
                 }
             }
             if (rightPressed)
             {
-                Debug.Log("Tecla Derecha presionada. Carril actual: " + currentLaneIndex);
                 if (currentLaneIndex < lanePositionsX.Length - 1)
                 {
                     currentLaneIndex++;
-                    Debug.Log("Cambiando a carril derecho: " + currentLaneIndex + " (X objetivo: " + lanePositionsX[currentLaneIndex] + ")");
                 }
             }
 
-            // Calcular penalización de velocidad lateral debido al peso cargado
+            // Calculamos la penalización en la velocidad de giro debido al peso de los pedidos
             int currentOrders = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.ActiveOrders : 0;
             
-            // La mejora de mochila reduce la penalización de peso (ej: factor de 0.6f reduce la penalización en un 40%)
+            // La mejora de la mochila aligera el peso de la mochila, reduciendo la penalización
             float activeSpeedPenalty = weightSpeedPenalty * backpackUpgradeFactor;
             float speedMultiplier = Mathf.Max(0.3f, 1f - (currentOrders * activeSpeedPenalty));
             
-            // Velocidad lateral final combinada con la mejora de la bicicleta y transición de carril
             float currentLateralSpeed = laneTransitionSpeed * speedUpgradeFactor * speedMultiplier;
 
-            // Conseguir la posición X objetivo del carril actual
             float targetLaneX = lanePositionsX[currentLaneIndex];
 
-            // Mover horizontalmente de manera suave hacia el carril seleccionado
             float prevX = targetX;
             targetX = Mathf.MoveTowards(targetX, targetLaneX, currentLateralSpeed * Time.deltaTime);
-            if (Mathf.Abs(targetX - prevX) > 0.001f)
-            {
-                Debug.Log("Desplazando personaje. X actual: " + targetX + " | X destino: " + targetLaneX + " | Velocidad: " + currentLateralSpeed);
-            }
 
             // --- CÁLCULO DE INCLINACIÓN Y EQUILIBRIO ---
-            // 1. Inclinación visual basada en la velocidad lateral de transición y el wobble (tambaleo)
+            // 1. Inclinación visual basada en la velocidad de transición lateral y el efecto de tambaleo
             float rawLateralSpeed = Time.deltaTime > 0 ? (targetX - prevX) / Time.deltaTime : 0f;
             float targetTilt = (rawLateralSpeed / laneTransitionSpeed) * maxTiltAngle;
             float wobbleTiltEffect = wobbleOffset * 15f; // Convertir el offset lateral a grados visuales
 
-            // Suavizar la inclinación de la bicicleta para que sea fluida
             currentTiltAngle = Mathf.Lerp(currentTiltAngle, targetTilt + wobbleTiltEffect, 8f * Time.deltaTime);
             currentTiltAngle = Mathf.Clamp(currentTiltAngle, -maxTiltAngle - 5f, maxTiltAngle + 5f);
 
-            // 2. Drenaje y recuperación de la variable de equilibrio
-            // Usamos la velocidad lateral de transición de carril (sin incluir el wobble)
+            // 2. Desgaste y recuperación del nivel de equilibrio del jugador
+            // Evaluamos el equilibrio utilizando la velocidad lateral pura (sin incluir tambaleo)
             float laneTransitionVelocity = Time.deltaTime > 0 ? Mathf.Abs(targetX - prevX) / Time.deltaTime : 0f;
 
-            // Se considera inestable si se desplaza rápido o si está muy inclinado
+            // Aumentamos la inestabilidad si el giro es muy pronunciado o si la inclinación es alta
             bool isTilted = Mathf.Abs(currentTiltAngle) > 20f;
             bool isMovingFast = laneTransitionVelocity > stableThreshold;
 
             if (isMovingFast || isTilted)
             {
-                // Drenaje por giro lateral
+                // Desgaste por giro lateral
                 float turningDrain = balanceDrainFromTurning * (laneTransitionVelocity / laneTransitionSpeed);
-                // Drenaje por velocidad de avance
+                // Desgaste por velocidad de avance
                 float speedDrain = balanceDrainFromSpeedFactor * speedUpgradeFactor;
-                // Drenaje continuo proporcional a la inclinación de la bicicleta (gravedad simulada)
+                // Desgaste continuo proporcional a la inclinación de la bicicleta (gravedad simulada)
                 float tiltDrain = (Mathf.Abs(currentTiltAngle) / maxTiltAngle) * 40f; 
                 
                 // Multiplicador por peso de pedidos cargados
@@ -286,31 +266,34 @@ namespace DeliveryExpress
             }
             else
             {
-                // Solo recupera el equilibrio si está completamente derecho y no se desplaza
+                // Recuperamos el equilibrio si el jugador avanza de forma estable sin realizar giros
                 currentBalance = Mathf.Min(maxBalance, currentBalance + balanceRecoveryRate * Time.deltaTime);
             }
 
-            // 3. Si pierde por completo el equilibrio (cero), se cae hacia el lado de la inclinación
+            if (AdministradorUI.Instance != null)
+            {
+                AdministradorUI.Instance.UpdateBalanceUI(currentBalance, maxBalance);
+            }
+
+            // 3. Si el equilibrio llega a cero, se activa la caída del jugador hacia el lado de inclinación
             if (currentBalance <= 0f && !isInvulnerable)
             {
-                // Orientar la animación de caída (flipX) según el lado al que se inclinó la bici
+                // Invertimos el sprite según la dirección de inclinación para la animación de caída
                 if (spriteRenderer != null)
                 {
                     spriteRenderer.flipX = (currentTiltAngle < 0f);
                 }
 
-                // Mantener el personaje derecho en lugar de acostarlo en el piso
+                // Mantenemos la rotación en cero para iniciar la secuencia de caída correctamente
                 transform.rotation = Quaternion.identity;
                 
                 TakeDamage();
             }
             else if (!isInvulnerable)
             {
-                // Aplicar inclinación visual al Sprite en el eje Z durante el juego
                 transform.rotation = Quaternion.Euler(0f, 0f, -currentTiltAngle);
             }
 
-            // Calcular el valor de entrada horizontal de forma dinámica para las animaciones de giro
             if (Mathf.Abs(targetX - targetLaneX) > 0.01f)
             {
                 currentHorizontalInput = Mathf.Sign(targetLaneX - targetX);
@@ -320,19 +303,18 @@ namespace DeliveryExpress
                 currentHorizontalInput = 0f;
             }
 
-            // Calcular el efecto de tambaleo (Wobble) en base al peso y al nivel de equilibrio actual
-            // El factor de inestabilidad va de 0.15 (equilibrio perfecto) hasta 1.5 (equilibrio en 0) para evitar un zigzag excesivo en recta
+            // Calculamos el efecto de tambaleo (wobble) basado en el peso y nivel de equilibrio actual
+            // El factor de inestabilidad varía según la pérdida de equilibrio para evitar un zigzag exagerado en recta
             float balanceLoss = 1f - (currentBalance / maxBalance);
             float balanceInstabilityFactor = 0.15f + (1.35f * balanceLoss);
             
-            // El tambaleo se produce si tiene pedidos o si el equilibrio ha bajado de 90%
+            // El tambaleo se activa si se transportan pedidos o si el equilibrio disminuye del 90%
             if (currentOrders > 0 || currentBalance < maxBalance * 0.9f)
             {
-                // La mejora de suspensión reduce la amplitud del tambaleo
+                // La mejora de suspensión reduce la amplitud del efecto de tambaleo
                 float effectiveOrders = Mathf.Max(0.5f, currentOrders);
                 float activeWobbleAmplitude = baseWobbleAmplitude * suspensionUpgradeFactor * effectiveOrders * balanceInstabilityFactor;
                 
-                // Variación sinusoidal dinámica para simular pérdida de estabilidad
                 wobbleOffset = Mathf.Sin(Time.time * wobbleFrequency) * activeWobbleAmplitude;
             }
             else
@@ -340,26 +322,23 @@ namespace DeliveryExpress
                 wobbleOffset = 0f;
             }
 
-            // Aplicar límites de la calle (veredas)
             float finalX = targetX + wobbleOffset;
             
             if (Mathf.Abs(finalX) >= screenLimitX)
             {
                 finalX = Mathf.Sign(finalX) * screenLimitX;
-                targetX = finalX - wobbleOffset; // Bloquear el target para evitar acumulación fuera de límites
+                targetX = finalX - wobbleOffset; // Limitamos la variable objetivo para evitar el desplazamiento fuera de la calle
 
-                // Si chocar contra la vereda hace daño (opción del GDD)
+                // Si colisionar contra el cordón de la vereda inflige daño (parámetro configurable)
                 if (curbDamage && !isInvulnerable)
                 {
                     TakeDamage();
                 }
             }
 
-            // Aplicar posición al Rigidbody2D y al Transform para garantizar el movimiento lateral en cualquier modo físico
             rb2d.position = new Vector2(finalX, rb2d.position.y);
             transform.position = new Vector3(finalX, transform.position.y, transform.position.z);
 
-            // Actualizar animaciones
             UpdateAnimatorStates(currentOrders);
         }
 
@@ -368,37 +347,34 @@ namespace DeliveryExpress
         /// </summary>
         private void UpdateAnimatorStates(int currentOrders)
         {
-            // Validar que el Animator tenga asignado un controlador para evitar spamear la consola de errores
+            // Verificamos el AnimatorController antes de enviar parámetros para evitar advertencias
             if (animator == null || animator.runtimeAnimatorController == null) return;
 
             animator.SetFloat(SpeedXHash, currentHorizontalInput);
 
             if (isInvulnerable && animator.GetInteger(StateHash) == 3)
             {
-                // Mantener estado de choque durante el golpe inicial
+                // Mantenemos el estado de colisión durante la secuencia de caída inicial
                 return;
             }
 
             if (currentOrders >= 4 || currentBalance < maxBalance * 0.5f)
             {
-                animator.SetInteger(StateHash, 3); // Estado "Inestable" (Usa Choque.anim/frames 8-11 para simular el tambaleo)
+                animator.SetInteger(StateHash, 3); // Estado "Inestable" (utilizamos los fotogramas de tambaleo)
             }
             else if (Mathf.Abs(currentHorizontalInput) > 0.1f)
             {
-                animator.SetInteger(StateHash, 1); // Animación de "Pedaleo" (Movimiento activo)
+                animator.SetInteger(StateHash, 1);
             }
             else
             {
-                animator.SetInteger(StateHash, 0); // Animación "Idle" / Avance calmo
+                animator.SetInteger(StateHash, 0);
             }
 
-            // Reducir la velocidad visual de la animación para simular el freno
             animator.speed = IsBraking ? 0.5f : 1f;
         }
 
-        /// <summary>
-        /// Ejecuta la animación de entrega del pedido cuando se pasa cerca de un NPC correcto
-        /// </summary>
+        /// Ejecuta la secuencia de animación de entrega cuando pasa cerca del cliente
         public void TriggerDeliveryAnimation()
         {
             StartCoroutine(DeliverySequence());
@@ -406,7 +382,7 @@ namespace DeliveryExpress
 
         private IEnumerator DeliverySequence()
         {
-            animator.SetInteger(StateHash, 4); // 4: Animación de "Entrega" (repartidor estirando el brazo)
+            animator.SetInteger(StateHash, 4);
             yield return new WaitForSeconds(0.6f);
         }
 
@@ -421,25 +397,25 @@ namespace DeliveryExpress
                         || objName.Contains("car") 
                         || (obs != null && (obs.Type == TipoObstaculo.BlackCar || obs.Type == TipoObstaculo.GreenCar));
 
-            // Los autos son letales y atraviesan la invulnerabilidad
+            // Los vehículos colisionados son letales e ignoran el estado de invulnerabilidad
             if (isCar)
             {
                 TakeDamage(true); // Muerte instantánea
                 return;
             }
 
-            // Si es un obstáculo menor (cono), la invulnerabilidad te protege
+            // Si el obstáculo es menor (como un cono), el estado invulnerable absorbe el impacto
             if (isInvulnerable) return;
 
             if (collision.CompareTag("Obstaculo") || obs != null)
             {
-                TakeDamage(false); // Solo perder 1 vida
+                TakeDamage(false);
             }
         }
 
         private void TakeDamage(bool instantKill = false)
         {
-            currentBalance = maxBalance; // Restablecer equilibrio al chocar
+            currentBalance = maxBalance;
             if (AdministradorJuego.Instance != null)
             {
                 if (instantKill)
@@ -459,7 +435,7 @@ namespace DeliveryExpress
         {
             isInvulnerable = true;
             
-            // Usar tiempo no escalado para que la animación de choque se reproduzca aun en pausa (Time.timeScale = 0)
+            // Hacemos uso de tiempo no escalado para que la caída se anime correctamente en pausa
             if (animator != null)
             {
                 animator.updateMode = AnimatorUpdateMode.UnscaledTime;
@@ -467,7 +443,7 @@ namespace DeliveryExpress
             
             animator.SetInteger(StateHash, 3); // 3: Animación de "Choque" / Pérdida de control
 
-            // Pequeño retroceso visual o pausa
+            // Pequeño retroceso y retardo visual de impacto
             float crashTime = 0.5f;
             float elapsed = 0f;
             Vector2 originalPos = rb2d.position;
@@ -475,12 +451,11 @@ namespace DeliveryExpress
             while (elapsed < crashTime)
             {
                 elapsed += Time.unscaledDeltaTime;
-                // Efecto sutil de temblor en pantalla o en el personaje
+                // Aplicamos una oscilación de baja amplitud para representar el impacto
                 rb2d.position = originalPos + new Vector2(Random.Range(-0.1f, 0.1f), 0);
                 yield return null;
             }
 
-            // Restablecer inclinación, rotación y volteo (flipX) tras la caída
             transform.rotation = Quaternion.identity;
             if (spriteRenderer != null)
             {
@@ -489,7 +464,7 @@ namespace DeliveryExpress
             currentTiltAngle = 0f;
             currentBalance = maxBalance;
 
-            // Efecto de parpadeo de invulnerabilidad usando tiempo real (unscaled)
+            // Secuencia visual de parpadeo utilizando tiempo real
             float invulnElapsed = 0f;
             while (invulnElapsed < invulnerabilityDuration)
             {
@@ -501,7 +476,6 @@ namespace DeliveryExpress
             spriteRenderer.enabled = true;
             isInvulnerable = false;
 
-            // Restablecer el modo de actualización del animator
             if (animator != null)
             {
                 animator.updateMode = AnimatorUpdateMode.Normal;

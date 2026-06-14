@@ -15,7 +15,7 @@ namespace DeliveryExpress.Editor
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 
-            // Auto-configurar la escena de forma segura en Edit Mode al compilar o iniciar
+            // Configura la escena automáticamente en Edit Mode al compilar o iniciar
             EditorApplication.delayCall += () =>
             {
                 AutoCheckAndFixScene();
@@ -27,7 +27,7 @@ namespace DeliveryExpress.Editor
         {
             if (EditorApplication.isPlaying || EditorApplication.isCompiling || isCheckingScene) return;
 
-            // Verificar si hay corazones o hamburguesas huérfanos en la raíz de la escena o si la jerarquía es inválida
+            // Verifica si hay hamburguesas huérfanas en la raíz de la escena o si la jerarquía es inválida
             bool needsFix = false;
             try
             {
@@ -47,12 +47,12 @@ namespace DeliveryExpress.Editor
             }
             catch (System.Exception)
             {
-                // Evitar errores si la escena no está lista
+                // Evita excepciones si la escena no está lista
             }
 
             if (!needsFix)
             {
-                // Si aún existe el texto de vidas antiguo, reconstruir para eliminarlo
+                // Reconstruye la escena si todavía existe el texto de vidas anterior
                 if (GameObject.Find("Texto_Vidas") != null)
                 {
                     needsFix = true;
@@ -74,14 +74,13 @@ namespace DeliveryExpress.Editor
                     }
                     else
                     {
-                        // Si hay objetos de Corazon_1 de la versión anterior, forzar reconstrucción
+                        // Si quedan corazones de la versión anterior, fuerza la reconstrucción
                         if (livesContainer.transform.Find("Corazon_1") != null)
                         {
                             needsFix = true;
                         }
                         else
                         {
-                            // Verificar que tenga Hamburguesa_1
                             Transform firstLife = livesContainer.transform.Find("Hamburguesa_1");
                             if (firstLife == null)
                             {
@@ -89,11 +88,14 @@ namespace DeliveryExpress.Editor
                             }
                             else
                             {
-                                Image img = firstLife.GetComponent<Image>();
-                                if (img == null || img.sprite == null || !img.sprite.name.ToLower().Contains("hamburguesa"))
+                                // Si no es una instancia de prefab, forzar reconstrucción
+                                if (!PrefabUtility.IsPartOfPrefabInstance(firstLife.gameObject))
                                 {
                                     needsFix = true;
                                 }
+                                // Es instancia de prefab válida - no reconstruir
+                                // Nota: img.sprite puede ser null en Edit mode en componentes stripped,
+                                // el sprite se hereda del prefab en runtime correctamente.
                             }
                         }
                     }
@@ -114,17 +116,9 @@ namespace DeliveryExpress.Editor
                     {
                         needsFix = true;
                     }
-                    else
-                    {
-                        // Si existe portada_perdiste.png, goImg.sprite no debería ser null
-                        string losePath = "Assets/sprites/portada_perdiste.png";
-                        if (System.IO.File.Exists(losePath) && goImg.sprite == null)
-                        {
-                            needsFix = true;
-                        }
-                    }
+                    // Nota: goImg.sprite puede ser null en Edit mode (prefab stripped)
+                    // No validar sprite aquí para evitar rebuild infinito
 
-                    // Asegurar que tenga un Button
                     if (goPanelObj.GetComponent<Button>() == null)
                     {
                         needsFix = true;
@@ -134,23 +128,11 @@ namespace DeliveryExpress.Editor
 
             if (!needsFix)
             {
-                GameObject canvasObj = GameObject.Find("_UI_Canvas");
+                GameObject canvasObj = GameObject.Find("_Lienzo_UI") ?? GameObject.Find("_UI_Canvas");
                 if (canvasObj != null)
                 {
-                    AdministradorUI uiManagerObj = canvasObj.GetComponent<AdministradorUI>();
-                    if (uiManagerObj != null)
-                    {
-                        var loseSpriteField = typeof(AdministradorUI).GetField("loseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                        if (loseSpriteField != null)
-                        {
-                            var spriteVal = loseSpriteField.GetValue(uiManagerObj) as Sprite;
-                            string losePath = "Assets/sprites/portada_perdiste.png";
-                            if (System.IO.File.Exists(losePath) && spriteVal == null)
-                            {
-                                needsFix = true;
-                            }
-                        }
-                    }
+                    // Nota: loseSprite puede ser null en Edit mode (serialized ref no cargada)
+                    // No validar sprite aquí para evitar rebuild infinito
                 }
             }
 
@@ -163,16 +145,6 @@ namespace DeliveryExpress.Editor
                 }
                 else
                 {
-                    var carSpritesField = typeof(GeneradorObstaculos).GetField("carSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    if (carSpritesField != null)
-                    {
-                        var spritesValue = carSpritesField.GetValue(spawnerObj) as Sprite[];
-                        if (spritesValue == null || spritesValue.Length == 0)
-                        {
-                            needsFix = true;
-                        }
-                    }
-
                     var spawnerLanesField = typeof(GeneradorObstaculos).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (spawnerLanesField != null)
                     {
@@ -190,19 +162,7 @@ namespace DeliveryExpress.Editor
 
             if (!needsFix)
             {
-                GameObject riderObj = GameObject.Find("imagen_repartidor_0 (1)");
-                if (riderObj == null)
-                {
-                    GameObject[] allObjs = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
-                    foreach (var go in allObjs)
-                    {
-                        if (go.name.ToLower().Contains("repartidor") || go.name.ToLower().Contains("player"))
-                        {
-                            riderObj = go;
-                            break;
-                        }
-                    }
-                }
+                GameObject riderObj = FindRiderGameObject();
                 if (riderObj != null && (riderObj.transform.localScale.x > 0.4f || riderObj.transform.localScale.x < 0.35f))
                 {
                     needsFix = true;
@@ -211,7 +171,7 @@ namespace DeliveryExpress.Editor
 
             if (!needsFix)
             {
-                GameObject rider = GameObject.Find("imagen_repartidor_0 (1)");
+                GameObject rider = FindRiderGameObject();
                 if (rider != null)
                 {
                     ControladorJugador pc = rider.GetComponent<ControladorJugador>();
@@ -250,7 +210,18 @@ namespace DeliveryExpress.Editor
                 }
             }
 
-            // Forzar actualización de PPU en las imágenes nuevas si no están en 181
+            // Renombra los objetos clave al español si aún tienen nombres heredados en inglés
+            if (!needsFix)
+            {
+                // Sólo dispara fix si el canvas principal todavía tiene el nombre de inglés
+                if (GameObject.Find("_UI_Canvas") != null || 
+                    GameObject.Find("_GameManager") != null)
+                {
+                    needsFix = true;
+                }
+            }
+
+            // Actualiza los Pixels Per Unit a 181 en las imágenes nuevas
             if (!needsFix)
             {
                 TextureImporter importer = AssetImporter.GetAtPath("Assets/sprites/Calle_cruce.png") as TextureImporter;
@@ -265,6 +236,27 @@ namespace DeliveryExpress.Editor
                 isCheckingScene = true;
                 try
                 {
+                    // Log de diagnóstico para identificar el trigger
+                    bool dbgCanvas   = GameObject.Find("_UI_Canvas") != null;
+                    bool dbgGM       = GameObject.Find("_GameManager") != null;
+                    bool dbgSprites  = false;
+                    var sp = GameObject.FindFirstObjectByType<GeneradorObstaculos>();
+                    if (sp != null)
+                    {
+                        var f = typeof(GeneradorObstaculos).GetField("carSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        var v = f?.GetValue(sp) as Sprite[];
+                        dbgSprites = (v == null || v.Length == 0);
+                    }
+                    bool dbgLanes = false;
+                    if (sp != null)
+                    {
+                        var lf = typeof(GeneradorObstaculos).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        var lv = lf?.GetValue(sp) as float[];
+                        dbgLanes = (lv == null || lv.Length < 3);
+                    }
+                    bool dbgPrefab = !PrefabUtility.IsPartOfPrefabInstance(
+                        GameObject.Find("Contenedor_Vidas")?.transform.Find("Hamburguesa_1")?.gameObject ?? new GameObject());
+                    Debug.Log($"[DIAGNÓSTICO AUTO-HEAL] canvas={dbgCanvas} gm={dbgGM} carSprites={dbgSprites} lanes={dbgLanes} prefab={dbgPrefab}");
                     Debug.Log("🛠️ [Auto-Self-Heal] Se detectó un estado incorrecto o desordenado en los corazones. Corrigiendo y guardando escena automáticamente...");
                     SetupNewStreetAndSidewalkInternal(true);
                 }
@@ -283,7 +275,7 @@ namespace DeliveryExpress.Editor
         {
             if (state == PlayModeStateChange.EnteredEditMode)
             {
-                // Cuando volvemos a Edit Mode, realizamos un chequeo de autocuración por si acaso
+                // Al volver a Edit Mode, realiza un chequeo de autocuración
                 AutoCheckAndFixScene();
             }
         }
@@ -300,11 +292,10 @@ namespace DeliveryExpress.Editor
             RegisterRequiredTags();
             Debug.Log("🛣️ Configurando nueva calle y vereda desde calleyvereda.png...");
 
-            // 1. Cargar la nueva imagen base de la calle
             string spritePath = "Assets/sprites/calle_vereda.png";
             if (!System.IO.File.Exists(spritePath))
             {
-                spritePath = "Assets/sprites/vereda_calle.png"; // Fallback a la vieja por si acaso
+                spritePath = "Assets/sprites/vereda_calle.png";
             }
 
             EnsureIsSprite(spritePath);
@@ -324,7 +315,7 @@ namespace DeliveryExpress.Editor
                 return;
             }
 
-            // 2. Limpiar todos los fondos anteriores y duplicados para evitar superposiciones
+            // Limpia los fondos anteriores y duplicados para evitar superposiciones
             CapaParallax[] oldLayers = GameObject.FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
             foreach (CapaParallax layer in oldLayers)
             {
@@ -344,17 +335,16 @@ namespace DeliveryExpress.Editor
                                    go.name.Contains("RoadBackground") ||
                                    go.name.Contains("Sprite_1") ||
                                    go.name.Contains("Sprite_2") ||
+                                   go.name.Contains("_FondoCalle") ||
                                    go.name.StartsWith("Corazon_")))
                 {
                     UnityEngine.Object.DestroyImmediate(go);
                 }
             }
 
-            // 3. Crear el objeto de fondo con el script de scroll infinito
-            GameObject scrollingBackground = new GameObject("_ScrollingBackground");
+            GameObject scrollingBackground = new GameObject("_FondoCalle");
             CapaParallax scrollScript = scrollingBackground.AddComponent<CapaParallax>();
 
-            // Cargar sprites adicionales para la secuencia
             EnsureIsSprite("Assets/sprites/Calle_cruce.png");
             EnsureIsSprite("Assets/sprites/calle_final.png");
             Sprite crossroadSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Calle_cruce.png");
@@ -362,51 +352,35 @@ namespace DeliveryExpress.Editor
             
             scrollScript.SetupSequence(streetSprite, crossroadSprite, finalStreetSprite);
 
-            // Aplicamos un factor de escala mínimo de 1.05x para tapar los bordes negros
+            // Aplica escala de 1.05x para evitar bordes negros
             Vector3 finalScale = new Vector3(1.05f, 1.05f, 1f);
-            // La nueva secuencia está centrada, el offset X es 0f
             scrollScript.Setup(streetSprite, 1.0f, -10, new Vector3(0f, 0f, 0f), finalScale);
 
-            // 4. Buscar y configurar al repartidor en la escena
-            GameObject riderObj = GameObject.Find("imagen_repartidor_0 (1)");
-            if (riderObj == null)
-            {
-                GameObject[] allObjs = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
-                foreach (var go in allObjs)
-                {
-                    if (go.name.ToLower().Contains("repartidor") || go.name.ToLower().Contains("player"))
-                    {
-                        riderObj = go;
-                        break;
-                    }
-                }
-            }
+            GameObject riderObj = FindRiderGameObject();
 
             if (riderObj != null)
             {
                 riderObj.tag = "Player";
                 
-                // Asegurar que se dibuje por encima del fondo (Sorting Order 10)
                 SpriteRenderer sr = riderObj.GetComponent<SpriteRenderer>();
                 if (sr != null)
                 {
                     sr.sortingOrder = 10;
                 }
 
-                // Posicionar al chico en la parte inferior central
+                // Posiciona al repartidor en la parte inferior
                 riderObj.transform.position = new Vector3(0, -3.5f, 0);
 
-                // Escalar al repartidor para que sea más chico (más realista en relación a los autos)
+                // Escala al repartidor para que sea más chico
                 riderObj.transform.localScale = new Vector3(0.38f, 0.38f, 1f);
 
-                // Asegurar controlador del jugador
                 ControladorJugador pc = riderObj.GetComponent<ControladorJugador>();
                 if (pc == null)
                 {
                     pc = riderObj.AddComponent<ControladorJugador>();
                 }
 
-                // Configurar carriles para vereda_calle.png a PPU 181 con escala 1.05x y desplazamiento
+                // Configura los carriles de la calle
                 var laneField = typeof(ControladorJugador).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (laneField != null)
                 {
@@ -417,12 +391,11 @@ namespace DeliveryExpress.Editor
                 var limitField = typeof(ControladorJugador).GetField("screenLimitX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (limitField != null)
                 {
-                    limitField.SetValue(pc, 4.5f); // Límite exacto ajustado para dar margen al carril derecho
+                    limitField.SetValue(pc, 4.5f);
                     Debug.Log("✅ Límite lateral de la calle ajustado a: 4.5");
                 }
                 EditorUtility.SetDirty(pc);
 
-                // Asegurar físicas rígidas kinematic
                 Rigidbody2D rb = riderObj.GetComponent<Rigidbody2D>();
                 if (rb == null)
                 {
@@ -432,7 +405,6 @@ namespace DeliveryExpress.Editor
                 rb.gravityScale = 0f;
                 rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
-                // Asegurar colisionador del jugador
                 BoxCollider2D col = riderObj.GetComponent<BoxCollider2D>();
                 if (col == null)
                 {
@@ -441,11 +413,9 @@ namespace DeliveryExpress.Editor
                     col.isTrigger = false;
                 }
 
-                // Configurar animaciones del jugador
                 ConfigureAnimatorController(riderObj);
             }
 
-            // 4.1 Configurar GeneradorObstaculos (Creación y sprites de autos)
             GeneradorObstaculos spawner = GameObject.FindFirstObjectByType<GeneradorObstaculos>();
             if (spawner == null)
             {
@@ -457,7 +427,6 @@ namespace DeliveryExpress.Editor
 
             if (spawner != null)
             {
-                // Inyectar carriles {-2.9f, 0f, 2.9f}
                 var spawnerLaneField = typeof(GeneradorObstaculos).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (spawnerLaneField != null)
                 {
@@ -466,114 +435,167 @@ namespace DeliveryExpress.Editor
                 }
                 EditorUtility.SetDirty(spawner);
 
-                // Cargar y asignar sprites de autos desde imagen_auto.png
-                string carSpritePath = "Assets/sprites/imagen_auto.png";
-                Sprite[] carSprites = null;
+                // Carga los sprites de casas desde imagenes_ casas.png (se siguen spawneando dinámicamente)
+                string houseSpritePath = "Assets/sprites/imagenes_ casas.png";
+                Sprite[] houseSprites = null;
                 try
                 {
-                    if (System.IO.File.Exists(carSpritePath))
+                    if (System.IO.File.Exists(houseSpritePath))
                     {
-                        var subAssets = AssetDatabase.LoadAllAssetsAtPath(carSpritePath);
+                        var subAssets = AssetDatabase.LoadAllAssetsAtPath(houseSpritePath);
                         if (subAssets != null)
                         {
-                            carSprites = subAssets.OfType<Sprite>().OrderBy(s => s.name).ToArray();
+                            houseSprites = subAssets.OfType<Sprite>().OrderBy(s => GetSpriteNumber(s.name)).ToArray();
                         }
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    Debug.LogWarning("Error al cargar sprites de autos: " + ex.Message);
+                    Debug.LogWarning("Error al cargar sprites de casas: " + ex.Message);
                 }
 
-                var carSpritesField = typeof(GeneradorObstaculos).GetField("carSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (carSpritesField != null && carSprites != null)
+                var houseSpritesField = typeof(GeneradorObstaculos).GetField("houseSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (houseSpritesField != null && houseSprites != null)
                 {
-                    carSpritesField.SetValue(spawner, carSprites);
-                    EditorUtility.SetDirty(spawner);
-                    Debug.Log($"✅ Asignados {carSprites.Length} sprites de autos al GeneradorObstaculos.");
+                    houseSpritesField.SetValue(spawner, houseSprites);
+                    Debug.Log($"✅ Asignados {houseSprites.Length} sprites de casas al GeneradorObstaculos.");
                 }
+
+                // Asegura la creación y configuración de los prefabs de obstáculos para que el usuario pueda configurarlos desde Unity
+                EnsurePrefabsExist(spawner);
+                EditorUtility.SetDirty(spawner);
             }
 
-            // 5. Mantener la cámara estrictamente a tamaño 6.0 (SI O SI para 1920x1080)
+            // Configura la cámara con tamaño ortográfico de 6.0
             Camera mainCam = Camera.main;
             if (mainCam != null)
             {
+                mainCam.gameObject.name = "Main Camera";
                 mainCam.transform.position = new Vector3(0, 0, -10);
                 mainCam.orthographic = true;
-                mainCam.orthographicSize = 6.0f; // SÍ O SÍ 6.0, tal como pediste
+                mainCam.orthographicSize = 6.0f;
                 mainCam.backgroundColor = Color.black;
                 mainCam.clearFlags = CameraClearFlags.SolidColor;
             }
 
-            // 6. Asegurar AdministradorJuego en la escena para controlar el sistema de vidas
+            // Renombra la luz a inglés
+            GameObject globalLight = GameObject.Find("Luz Global 2D");
+            if (globalLight != null)
+            {
+                globalLight.name = "Global Light 2D";
+            }
+
+            // Renombra objetos al español si todavía tienen nombres en inglés heredados
+            GameObject oldGameManager = GameObject.Find("_GameManager");
+            if (oldGameManager != null) oldGameManager.name = "_AdministradorJuego";
+
+            GameObject oldCanvas = GameObject.Find("_UI_Canvas");
+            if (oldCanvas != null) oldCanvas.name = "_Lienzo_UI";
+
+            GameObject oldEventSystem = GameObject.Find("EventSystem");
+            if (oldEventSystem != null) oldEventSystem.name = "SistemaDeEventos";
+
             AdministradorJuego gameManager = GameObject.FindFirstObjectByType<AdministradorJuego>();
             if (gameManager == null)
             {
-                GameObject managerObj = new GameObject("_GameManager");
+                GameObject managerObj = new GameObject("_AdministradorJuego");
                 gameManager = managerObj.AddComponent<AdministradorJuego>();
-                Debug.Log("✅ Se creó el objeto '_GameManager' con el script central.");
+                Debug.Log("✅ Se creó el objeto '_AdministradorJuego' con el script central.");
             }
 
-            // 7. Crear el Canvas UI con el AdministradorUI y las 3 vidas visuales
             Canvas canvas = GameObject.FindFirstObjectByType<Canvas>();
             if (canvas == null)
             {
-                GameObject canvasObj = new GameObject("_UI_Canvas");
+                GameObject canvasObj = new GameObject("_Lienzo_UI");
                 canvas = canvasObj.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
                 
                 canvasObj.AddComponent<CanvasScaler>();
                 canvasObj.AddComponent<GraphicRaycaster>();
                 
-                // Asegurar EventSystem
                 if (GameObject.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
                 {
-                    GameObject eventSystemObj = new GameObject("EventSystem");
+                    GameObject eventSystemObj = new GameObject("SistemaDeEventos");
                     eventSystemObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
                     eventSystemObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
                 }
             }
 
-            // 7.1 Limpiar contenedor de vidas anterior si existía para evitar duplicaciones
+            // 7.05 Barra de Equilibrio
+            Transform oldBalance = canvas.transform.Find("Barra_Equilibrio");
+            if (oldBalance != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldBalance.gameObject);
+            }
+
+            GameObject sliderObj = UnityEngine.UI.DefaultControls.CreateSlider(new UnityEngine.UI.DefaultControls.Resources());
+            sliderObj.name = "Barra_Equilibrio";
+            sliderObj.transform.SetParent(canvas.transform, false);
+            
+            UnityEngine.UI.Slider slider = sliderObj.GetComponent<UnityEngine.UI.Slider>();
+            slider.interactable = false;
+            slider.value = 1f;
+            
+            RectTransform sliderRect = slider.GetComponent<RectTransform>();
+            // Ancla la barra en el centro inferior, ideal para monitorearla con visión periférica
+            sliderRect.anchorMin = new Vector2(0.5f, 0f);
+            sliderRect.anchorMax = new Vector2(0.5f, 0f);
+            sliderRect.pivot = new Vector2(0.5f, 0f);
+            sliderRect.anchoredPosition = new Vector2(0f, 35f);
+            sliderRect.sizeDelta = new Vector2(220f, 16f);
+
+            UnityEngine.UI.Image fillImage = slider.fillRect.GetComponent<UnityEngine.UI.Image>();
+            fillImage.color = Color.green;
+
+            // Oculta la perilla del slider
+            Transform handleSlideArea = sliderObj.transform.Find("Handle Slide Area");
+            if (handleSlideArea != null) handleSlideArea.gameObject.SetActive(false);
+
+            AdministradorUI tempUiManager = canvas.gameObject.GetComponent<AdministradorUI>();
+            if (tempUiManager == null) tempUiManager = canvas.gameObject.AddComponent<AdministradorUI>();
+
+            // Asigna el slider por reflexión
+            var sliderField = typeof(AdministradorUI).GetField("balanceSlider", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (sliderField != null) sliderField.SetValue(tempUiManager, slider);
+
+            var fillImageField = typeof(AdministradorUI).GetField("balanceFillImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fillImageField != null) fillImageField.SetValue(tempUiManager, fillImage);
+
             Transform oldContainer = canvas.transform.Find("Contenedor_Vidas");
             if (oldContainer != null)
             {
                 UnityEngine.Object.DestroyImmediate(oldContainer.gameObject);
             }
 
-            // Limpiar texto de vidas anterior si existía
             Transform oldText = canvas.transform.Find("Texto_Vidas");
             if (oldText != null)
             {
                 UnityEngine.Object.DestroyImmediate(oldText.gameObject);
             }
 
-            // Limpiar panel de GameOver anterior si existía
             Transform oldGameOver = canvas.transform.Find("GameOverPanel");
             if (oldGameOver != null)
             {
                 UnityEngine.Object.DestroyImmediate(oldGameOver.gameObject);
             }
 
-            // 7.2 Crear nuevo contenedor de corazones en la esquina superior izquierda (más grande)
             GameObject livesContainerObj = new GameObject("Contenedor_Vidas", typeof(RectTransform));
             RectTransform rect = livesContainerObj.GetComponent<RectTransform>();
             rect.SetParent(canvas.transform, false);
-            rect.anchorMin = new Vector2(0f, 1f); // Esquina superior izquierda
+            rect.anchorMin = new Vector2(0f, 1f);
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(35f, -35f); // Margen ajustado
-            rect.sizeDelta = new Vector2(400f, 75f); // Más grande
+            rect.anchoredPosition = new Vector2(35f, -35f);
+            rect.sizeDelta = new Vector2(400f, 75f);
 
-            // Añadir layout horizontal
             HorizontalLayoutGroup layout = livesContainerObj.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 18f; // Spacing aumentado
+            layout.spacing = 18f;
             layout.childControlWidth = false;
             layout.childControlHeight = false;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
 
-            // Cargar sprites de hamburguesas
+            // Carga los sprites de hamburguesas
             string hamburgerSpritePath = "Assets/sprites/hamburguesa_ui.png";
             Sprite[] hamburgerSprites = null;
             bool fileExists = System.IO.File.Exists(hamburgerSpritePath);
@@ -600,53 +622,86 @@ namespace DeliveryExpress.Editor
                 Debug.LogError("[HAMBURGERS DEBUG] Error al cargar sprites de hamburguesas: " + ex.Message);
             }
 
-            // Generar 3 hamburguesas como indicadores de vidas
+            // Crea las hamburguesas de vidas cargándolas como instancias del prefab Hamburguesa_Vida.prefab
+            string hamburgerPrefabPath = "Assets/Prefabs/Hamburguesa_Vida.prefab";
+            GameObject hamburgerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(hamburgerPrefabPath);
+
             Image[] hearts = new Image[3];
             for (int i = 0; i < 3; i++)
             {
-                GameObject heartObj = new GameObject($"Hamburguesa_{i + 1}", typeof(RectTransform));
-                RectTransform hRect = heartObj.GetComponent<RectTransform>();
-                hRect.SetParent(rect, false);
-                // Ajustar el tamaño a 75x55 para mantener la relación de aspecto de la hamburguesa
-                hRect.sizeDelta = new Vector2(75f, 55f); 
-
-                Image img = heartObj.AddComponent<Image>();
-                img.preserveAspect = true; // Evitar distorsión del sprite de la hamburguesa
-                
-                if (hamburgerSprites != null && hamburgerSprites.Length > i)
+                GameObject heartObj = null;
+                if (hamburgerPrefab != null)
                 {
-                    img.sprite = hamburgerSprites[i];
-                    img.color = Color.white;
-                    Debug.Log($"[HAMBURGERS DEBUG] Assigned sprite {hamburgerSprites[i].name} to Hamburguesa_{i + 1}");
-                }
-                else if (hamburgerSprites != null && hamburgerSprites.Length > 0)
-                {
-                    img.sprite = hamburgerSprites[0];
-                    img.color = Color.white;
-                    Debug.Log($"[HAMBURGERS DEBUG] Fallback assigned sprite {hamburgerSprites[0].name} to Hamburguesa_{i + 1}");
+                    heartObj = PrefabUtility.InstantiatePrefab(hamburgerPrefab) as GameObject;
+                    heartObj.name = $"Hamburguesa_{i + 1}";
                 }
                 else
                 {
-                    img.color = Color.yellow; // Fallback amarillo/hamburguesa
-                    Debug.LogWarning($"[HAMBURGERS DEBUG] No sprites available, using yellow color fallback for Hamburguesa_{i + 1}");
+                    heartObj = new GameObject($"Hamburguesa_{i + 1}", typeof(RectTransform));
+                }
+
+                RectTransform hRect = heartObj.GetComponent<RectTransform>();
+                hRect.SetParent(rect, false);
+
+                Image img = heartObj.GetComponent<Image>();
+                if (img == null)
+                {
+                    img = heartObj.AddComponent<Image>();
+                    img.preserveAspect = true;
+                }
+
+                if (hamburgerPrefab == null)
+                {
+                    hRect.sizeDelta = new Vector2(75f, 55f); 
+                    img.preserveAspect = true;
+                    
+                    if (hamburgerSprites != null && hamburgerSprites.Length > i)
+                    {
+                        img.sprite = hamburgerSprites[i];
+                        img.color = Color.white;
+                        Debug.Log($"[HAMBURGERS DEBUG] Assigned sprite {hamburgerSprites[i].name} to Hamburguesa_{i + 1}");
+                    }
+                    else if (hamburgerSprites != null && hamburgerSprites.Length > 0)
+                    {
+                        img.sprite = hamburgerSprites[0];
+                        img.color = Color.white;
+                        Debug.Log($"[HAMBURGERS DEBUG] Fallback assigned sprite {hamburgerSprites[0].name} to Hamburguesa_{i + 1}");
+                    }
+                    else
+                    {
+                        img.color = Color.yellow;
+                        Debug.LogWarning($"[HAMBURGERS DEBUG] No sprites available, using yellow color fallback for Hamburguesa_{i + 1}");
+                    }
+                }
+                else
+                {
+                    // Si usamos el prefab, sólo asignamos el sprite de la variante/rebanada correspondiente
+                    // si el sprite actual es null o es el default (sprite 0)
+                    if (img.sprite == null || (hamburgerSprites != null && hamburgerSprites.Length > 0 && img.sprite == hamburgerSprites[0]))
+                    {
+                        if (hamburgerSprites != null && hamburgerSprites.Length > i)
+                        {
+                            img.sprite = hamburgerSprites[i];
+                            Debug.Log($"[HAMBURGERS DEBUG] Assigned sprite variant {hamburgerSprites[i].name} from prefab to Hamburguesa_{i + 1}");
+                        }
+                    }
                 }
 
                 hearts[i] = img;
             }
 
-            // 7.4 Crear el panel de fin de partida (GameOverPanel)
             GameObject panelObj = new GameObject("GameOverPanel", typeof(RectTransform));
             RectTransform pRect = panelObj.GetComponent<RectTransform>();
             pRect.SetParent(canvas.transform, false);
-            panelObj.SetActive(false); // Oculto al inicio
+            panelObj.SetActive(false);
 
             pRect.anchorMin = Vector2.zero;
             pRect.anchorMax = Vector2.one;
-            pRect.sizeDelta = Vector2.zero; // Cubrir toda la pantalla
+            pRect.sizeDelta = Vector2.zero;
 
             Image panelImage = panelObj.AddComponent<Image>();
 
-            // Cargar sprite de portada_perdiste
+            // Carga el sprite de derrota
             string loseSpritePath = "Assets/sprites/portada_perdiste.png";
             Sprite loseSprite = null;
             try
@@ -673,14 +728,13 @@ namespace DeliveryExpress.Editor
             }
             else
             {
-                panelImage.color = new Color(0f, 0f, 0f, 0.85f); // Fallback fondo oscuro
+                panelImage.color = new Color(0f, 0f, 0f, 0.85f);
                 Debug.LogWarning("⚠️ No se encontró 'portada_perdiste.png' para el fondo de derrota, usando fondo oscuro.");
             }
 
-            // Añadir botón para interactuar con el click del mouse
             panelObj.AddComponent<Button>();
 
-            // Crear texto de Game Over (solo se muestra como fallback si no hay sprite)
+            // Texto de fallback si no hay sprite
             GameObject goTextObj = new GameObject("GameOverText", typeof(RectTransform));
             RectTransform goTRect = goTextObj.GetComponent<RectTransform>();
             goTRect.SetParent(pRect, false);
@@ -693,7 +747,7 @@ namespace DeliveryExpress.Editor
 
             if (loseSprite != null)
             {
-                goText.text = ""; // El sprite ya contiene el arte de Game Over
+                goText.text = "";
             }
             else
             {
@@ -713,16 +767,15 @@ namespace DeliveryExpress.Editor
                 uiManager = canvas.gameObject.AddComponent<AdministradorUI>();
             }
 
-            // Asignar corazones por reflexión
+            // Asigna los corazones por reflexión
             var heartField = typeof(AdministradorUI).GetField("heartImages", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (heartField != null)
             {
                 heartField.SetValue(uiManager, hearts);
-                EditorUtility.SetDirty(uiManager); // Marcar AdministradorUI como dirty para que Unity guarde los cambios en la escena
+                EditorUtility.SetDirty(uiManager);
                 Debug.Log("[HEARTS DEBUG] Assigned heartImages array and marked AdministradorUI dirty.");
             }
 
-            // Asignar texto por reflexión (null ya que eliminamos la frase de vidas)
             var textField = typeof(AdministradorUI).GetField("livesText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (textField != null)
             {
@@ -730,7 +783,6 @@ namespace DeliveryExpress.Editor
                 EditorUtility.SetDirty(uiManager);
             }
 
-            // Asignar panel por reflexión
             var panelField = typeof(AdministradorUI).GetField("gameOverPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (panelField != null)
             {
@@ -738,7 +790,6 @@ namespace DeliveryExpress.Editor
                 EditorUtility.SetDirty(uiManager);
             }
 
-            // Asignar sprite de derrota por reflexión
             var loseSpriteField = typeof(AdministradorUI).GetField("loseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (loseSpriteField != null && loseSprite != null)
             {
@@ -749,18 +800,16 @@ namespace DeliveryExpress.Editor
 
             Debug.Log("✅ AdministradorUI configurado con corazones, HUD de texto y panel de GameOver.");
 
-            // Asegurar que el Canvas y todos sus hijos estén en la capa "UI" (Capa 5)
-            // para que Unity los renderice correctamente en la cámara
+            // Asigna la capa UI de forma recursiva
             int uiLayer = LayerMask.NameToLayer("UI");
             if (uiLayer >= 0)
             {
                 SetLayerRecursively(canvas.gameObject, uiLayer);
             }
 
-            // Forzar que el Canvas esté activo
             canvas.gameObject.SetActive(true);
 
-            // 8. Marcar la escena como sucia y guardar de forma síncrona si no estamos jugando
+            // Marca la escena sucia y guarda en disco
             try
             {
                 if (!EditorApplication.isPlaying)
@@ -795,19 +844,7 @@ namespace DeliveryExpress.Editor
         {
             Debug.Log("🧹 Iniciando limpieza de la escena...");
 
-            GameObject riderObj = GameObject.Find("imagen_repartidor_0 (1)");
-            if (riderObj == null)
-            {
-                GameObject[] allObjs = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
-                foreach (var go in allObjs)
-                {
-                    if (go.name.ToLower().Contains("repartidor") || go.name.ToLower().Contains("player"))
-                    {
-                        riderObj = go;
-                        break;
-                    }
-                }
-            }
+            GameObject riderObj = FindRiderGameObject();
 
             if (riderObj == null)
             {
@@ -847,7 +884,9 @@ namespace DeliveryExpress.Editor
             {
                 if (go != riderObj && 
                     go.name != "Main Camera" && 
+                    go.name != "Camara Principal" && 
                     go.name != "Global Light 2D" && 
+                    go.name != "Luz Global 2D" && 
                     go.transform.parent == null)
                 {
                     string lowerName = go.name.ToLower();
@@ -864,11 +903,17 @@ namespace DeliveryExpress.Editor
             GameObject[] remainingObjs = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
             foreach (GameObject go in remainingObjs)
             {
-                if (go != riderObj && go.name != "Main Camera" && go.name != "Global Light 2D")
+                if (go != riderObj && 
+                    go.name != "Main Camera" && 
+                    go.name != "Camara Principal" && 
+                    go.name != "Global Light 2D" && 
+                    go.name != "Luz Global 2D")
                 {
                     string name = go.name;
-                    if (name == "RoadBackground" || name == "_SceneBuilder" || name == "GeneradorObstaculos" || 
-                        name.StartsWith("Cliente_NPC_") || name == "ControladorJugador" || name == "_GameManager" || name == "_ParallaxBackground" || name == "_ScrollingBackground")
+                    if (name == "RoadBackground" || name == "FondoCalle" || name == "_SceneBuilder" || name == "GeneradorObstaculos" || 
+                        name.StartsWith("Cliente_NPC_") || name == "ControladorJugador" || 
+                        name == "_GameManager" || name == "_AdministradorJuego" || 
+                        name == "_ParallaxBackground" || name == "_ScrollingBackground" || name == "_FondoCalle")
                     {
                         UnityEngine.Object.DestroyImmediate(go);
                         deletedCount++;
@@ -909,8 +954,7 @@ namespace DeliveryExpress.Editor
                     changed = true;
                 }
                 
-                // Forzar Pixels Per Unit a 181 para que la zona activa de vereda_calle.png (3860px)
-                // calce al milímetro en la cámara de tamaño 6.0 sin bordes negros y con veredas visibles.
+                // Configura Pixels Per Unit en 181 para calzar en la cámara de tamaño 6.0
                 if (importer.spritePixelsPerUnit != 181f)
                 {
                     importer.spritePixelsPerUnit = 181f;
@@ -982,9 +1026,9 @@ namespace DeliveryExpress.Editor
             for (int i = 0; i < 4; i++) tambaleoSprites[i] = spritesList[8 + i];
 
             Sprite[] choqueSprites = new Sprite[1];
-            choqueSprites[0] = spritesList[8]; // fotograma estático de choque/caída
+            choqueSprites[0] = spritesList[8]; // fotograma de choque
 
-            AnimationClip pedaleandoClip = CreateOrReplaceClip("Assets/sprites/New Animation.anim", pedaleandoSprites, 12f, true);
+            AnimationClip pedaleandoClip = CreateOrReplaceClip("Assets/sprites/Pedaleando.anim", pedaleandoSprites, 12f, true);
             AnimationClip tambaleoClip = CreateOrReplaceClip("Assets/sprites/Tambaleo.anim", tambaleoSprites, 8f, true);
             AnimationClip choqueClip = CreateOrReplaceClip("Assets/sprites/Choque.anim", choqueSprites, 1f, false);
 
@@ -1098,6 +1142,305 @@ namespace DeliveryExpress.Editor
             return clip;
         }
 
+        private static void EnsurePrefabsExist(GeneradorObstaculos spawner)
+        {
+            AssetDatabase.Refresh();
+
+            if (!AssetDatabase.IsValidFolder("Assets/Prefabs"))
+            {
+                AssetDatabase.CreateFolder("Assets", "Prefabs");
+            }
+
+            var conoPrefabField = typeof(GeneradorObstaculos).GetField("conoPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var bachePrefabField = typeof(GeneradorObstaculos).GetField("bachePrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var basuraPrefabField = typeof(GeneradorObstaculos).GetField("basuraPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var autoPrefabsField = typeof(GeneradorObstaculos).GetField("autoPrefabs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+            Sprite[] minorSprites = LoadSpritesFromPath("Assets/sprites/imagen_obstaculos.png");
+
+            // 1. Crear Prefab de Cono si no existe
+            string conoPrefabPath = "Assets/Prefabs/Obstaculo_Cono.prefab";
+            GameObject conoPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(conoPrefabPath);
+            if (conoPrefab == null && minorSprites != null && minorSprites.Length > 0)
+            {
+                GameObject tempObj = new GameObject("Obstaculo_Cono");
+                tempObj.tag = "Obstaculo";
+                tempObj.transform.localScale = new Vector3(1.05f, 1.05f, 1f);
+
+                GameObject visualObj = new GameObject("Visual");
+                visualObj.transform.SetParent(tempObj.transform, false);
+                SpriteRenderer sr = visualObj.AddComponent<SpriteRenderer>();
+                sr.sprite = minorSprites[0];
+                Vector3 centerOffset = sr.sprite.bounds.center;
+                visualObj.transform.localPosition = new Vector3(-centerOffset.x, -centerOffset.y, 0f);
+                sr.sortingOrder = 8;
+
+                BoxCollider2D col = tempObj.AddComponent<BoxCollider2D>();
+                col.isTrigger = true;
+                col.size = new Vector2(0.9f, 0.9f);
+
+                Obstaculo obstacle = tempObj.AddComponent<Obstaculo>();
+                var typeField = typeof(Obstaculo).GetField("type", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (typeField != null)
+                {
+                    typeField.SetValue(obstacle, TipoObstaculo.Cone);
+                }
+
+                conoPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, conoPrefabPath);
+                UnityEngine.Object.DestroyImmediate(tempObj);
+                Debug.Log("✅ Prefab de Cono creado con éxito en Assets/Prefabs.");
+            }
+
+            if (conoPrefabField != null && conoPrefab != null)
+            {
+                conoPrefabField.SetValue(spawner, conoPrefab);
+            }
+
+            // 1b. Crear Prefab de Bache si no existe
+            string bachePrefabPath = "Assets/Prefabs/Obstaculo_Bache.prefab";
+            GameObject bachePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(bachePrefabPath);
+            if (bachePrefab == null && minorSprites != null && minorSprites.Length > 1)
+            {
+                GameObject tempObj = new GameObject("Obstaculo_Bache");
+                tempObj.tag = "Obstaculo";
+                tempObj.transform.localScale = new Vector3(1.15f, 1.15f, 1f);
+
+                GameObject visualObj = new GameObject("Visual");
+                visualObj.transform.SetParent(tempObj.transform, false);
+                SpriteRenderer sr = visualObj.AddComponent<SpriteRenderer>();
+                sr.sprite = minorSprites[1];
+                Vector3 centerOffset = sr.sprite.bounds.center;
+                visualObj.transform.localPosition = new Vector3(-centerOffset.x, -centerOffset.y, 0f);
+                sr.sortingOrder = 7; // Debajo de los obstáculos y autos
+
+                BoxCollider2D col = tempObj.AddComponent<BoxCollider2D>();
+                col.isTrigger = true;
+                col.size = new Vector2(sr.sprite.bounds.size.x * 0.8f, sr.sprite.bounds.size.y * 0.8f);
+
+                Obstaculo obstacle = tempObj.AddComponent<Obstaculo>();
+                var typeField = typeof(Obstaculo).GetField("type", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (typeField != null)
+                {
+                    typeField.SetValue(obstacle, TipoObstaculo.Pothole);
+                }
+
+                bachePrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, bachePrefabPath);
+                UnityEngine.Object.DestroyImmediate(tempObj);
+                Debug.Log("✅ Prefab de Bache creado con éxito en Assets/Prefabs.");
+            }
+
+            if (bachePrefabField != null && bachePrefab != null)
+            {
+                bachePrefabField.SetValue(spawner, bachePrefab);
+            }
+
+            // 1c. Crear Prefab de Basura si no existe
+            string basuraPrefabPath = "Assets/Prefabs/Obstaculo_Basura.prefab";
+            GameObject basuraPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(basuraPrefabPath);
+            if (basuraPrefab == null && minorSprites != null && minorSprites.Length > 2)
+            {
+                GameObject tempObj = new GameObject("Obstaculo_Basura");
+                tempObj.tag = "Obstaculo";
+                tempObj.transform.localScale = new Vector3(1.05f, 1.05f, 1f);
+
+                GameObject visualObj = new GameObject("Visual");
+                visualObj.transform.SetParent(tempObj.transform, false);
+                SpriteRenderer sr = visualObj.AddComponent<SpriteRenderer>();
+                sr.sprite = minorSprites[2];
+                Vector3 centerOffset = sr.sprite.bounds.center;
+                visualObj.transform.localPosition = new Vector3(-centerOffset.x, -centerOffset.y, 0f);
+                sr.sortingOrder = 8;
+
+                BoxCollider2D col = tempObj.AddComponent<BoxCollider2D>();
+                col.isTrigger = true;
+                col.size = new Vector2(0.9f, 0.9f);
+
+                Obstaculo obstacle = tempObj.AddComponent<Obstaculo>();
+                var typeField = typeof(Obstaculo).GetField("type", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (typeField != null)
+                {
+                    typeField.SetValue(obstacle, TipoObstaculo.Cone); // Se comporta como cono (fijo, daño, se destruye)
+                }
+
+                basuraPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, basuraPrefabPath);
+                UnityEngine.Object.DestroyImmediate(tempObj);
+                Debug.Log("✅ Prefab de Basura creado con éxito en Assets/Prefabs.");
+            }
+
+            if (basuraPrefabField != null && basuraPrefab != null)
+            {
+                basuraPrefabField.SetValue(spawner, basuraPrefab);
+            }
+
+            // 2. Crear Prefabs de Autos si no existen
+            Sprite[] carSprites = LoadSpritesFromPath("Assets/sprites/imagenes_autos.png");
+            if (carSprites != null && carSprites.Length > 0)
+            {
+                GameObject[] autoPrefabs = new GameObject[carSprites.Length];
+                for (int i = 0; i < carSprites.Length; i++)
+                {
+                    string autoPrefabPath = $"Assets/Prefabs/Obstaculo_Auto_{i}.prefab";
+                    GameObject autoPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(autoPrefabPath);
+                    if (autoPrefab == null)
+                    {
+                        GameObject tempObj = new GameObject($"Obstaculo_Auto_{i}");
+                        tempObj.tag = "Car";
+                        tempObj.transform.localScale = new Vector3(1.65f, 1.65f, 1f);
+
+                        GameObject visualObj = new GameObject("Visual");
+                        visualObj.transform.SetParent(tempObj.transform, false);
+                        SpriteRenderer sr = visualObj.AddComponent<SpriteRenderer>();
+                        sr.sprite = carSprites[i];
+                        sr.sortingOrder = 8;
+
+                        Vector3 centerOffset = sr.sprite.bounds.center;
+                        visualObj.transform.localPosition = new Vector3(-centerOffset.x, -centerOffset.y, 0f);
+
+                        BoxCollider2D col = tempObj.AddComponent<BoxCollider2D>();
+                        col.isTrigger = true;
+                        col.size = new Vector2(sr.sprite.bounds.size.x * 0.35f, sr.sprite.bounds.size.y * 0.6f);
+                        col.offset = new Vector2(-sr.sprite.bounds.center.x, -sr.sprite.bounds.center.y);
+
+                        Obstaculo obstacle = tempObj.AddComponent<Obstaculo>();
+                        var typeField = typeof(Obstaculo).GetField("type", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        if (typeField != null)
+                        {
+                            TipoObstaculo carType = (i % 2 == 0) ? TipoObstaculo.BlackCar : TipoObstaculo.GreenCar;
+                            typeField.SetValue(obstacle, carType);
+                        }
+
+                        autoPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, autoPrefabPath);
+                        UnityEngine.Object.DestroyImmediate(tempObj);
+                        Debug.Log($"✅ Prefab de Auto {i} creado con éxito en Assets/Prefabs.");
+                    }
+                    autoPrefabs[i] = autoPrefab;
+                }
+
+                if (autoPrefabsField != null)
+                {
+                    autoPrefabsField.SetValue(spawner, autoPrefabs);
+                }
+            }
+
+            // 3. Crear Prefab de Hamburguesa_Vida si no existe
+            string hamburguesaPrefabPath = "Assets/Prefabs/Hamburguesa_Vida.prefab";
+            GameObject hamburguesaPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(hamburguesaPrefabPath);
+            if (hamburguesaPrefab == null)
+            {
+                GameObject tempObj = new GameObject("Hamburguesa_Vida", typeof(RectTransform));
+                RectTransform rTrans = tempObj.GetComponent<RectTransform>();
+                rTrans.sizeDelta = new Vector2(75f, 55f);
+
+                Image img = tempObj.AddComponent<Image>();
+                img.preserveAspect = true;
+
+                Sprite[] hamburgerSprites = LoadSpritesFromPath("Assets/sprites/hamburguesa_ui.png");
+                if (hamburgerSprites != null && hamburgerSprites.Length > 0)
+                {
+                    img.sprite = hamburgerSprites[0];
+                    img.color = Color.white;
+                }
+                else
+                {
+                    img.color = Color.yellow;
+                }
+
+                hamburguesaPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, hamburguesaPrefabPath);
+                UnityEngine.Object.DestroyImmediate(tempObj);
+                Debug.Log("✅ Prefab de Hamburguesa_Vida creado con éxito en Assets/Prefabs.");
+            }
+
+            // 4. Crear Prefab de Hamburguesa_PowerUp (coleccionable en la calle) si no existe
+            string powerUpPrefabPath = "Assets/Prefabs/Hamburguesa_PowerUp.prefab";
+            GameObject powerUpPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(powerUpPrefabPath);
+            if (powerUpPrefab == null)
+            {
+                // Objeto raíz con tag PowerUp
+                GameObject tempObj = new GameObject("Hamburguesa_PowerUp");
+                tempObj.tag = "PowerUp"; // registrado abajo
+
+                // Colisionador trigger
+                CircleCollider2D col = tempObj.AddComponent<CircleCollider2D>();
+                col.isTrigger = true;
+                col.radius = 0.45f;
+
+                // Hijo visual con SpriteRenderer (world-space, no UI)
+                GameObject visualObj = new GameObject("Visual");
+                visualObj.transform.SetParent(tempObj.transform, false);
+                SpriteRenderer sr = visualObj.AddComponent<SpriteRenderer>();
+                sr.sortingLayerName = "Default";
+                sr.sortingOrder = 10;
+
+                // Usar el primer sprite de hamburguesa disponible
+                Sprite[] hamburgerSprites = LoadSpritesFromPath("Assets/sprites/hamburguesa_ui.png");
+                if (hamburgerSprites != null && hamburgerSprites.Length > 0)
+                {
+                    sr.sprite = hamburgerSprites[0];
+                }
+
+                // Escala para que se vea bien en la calle
+                tempObj.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
+
+                // Script de movimiento y colección
+                tempObj.AddComponent<HamburguesaVida>();
+
+                powerUpPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, powerUpPrefabPath);
+                UnityEngine.Object.DestroyImmediate(tempObj);
+                Debug.Log("✅ Prefab de Hamburguesa_PowerUp creado con éxito en Assets/Prefabs.");
+            }
+
+            // Asignar el power-up prefab al spawner
+            var hamburguesaPowerUpField = typeof(GeneradorObstaculos).GetField("hamburguesaPowerUpPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (hamburguesaPowerUpField != null && powerUpPrefab != null)
+            {
+                hamburguesaPowerUpField.SetValue(spawner, powerUpPrefab);
+            }
+
+            EditorUtility.SetDirty(spawner);
+        }
+
+        private static Sprite[] LoadSpritesFromPath(string path)
+        {
+            if (System.IO.File.Exists(path))
+            {
+                var subAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+                if (subAssets != null)
+                {
+                    return subAssets.OfType<Sprite>().OrderBy(s => GetSpriteNumber(s.name)).ToArray();
+                }
+            }
+            return null;
+        }
+
+        private static GameObject FindRiderGameObject()
+        {
+            ControladorJugador pc = GameObject.FindAnyObjectByType<ControladorJugador>();
+            if (pc != null)
+            {
+                return pc.gameObject;
+            }
+
+            GameObject riderObj = GameObject.Find("imagen_repartidor_0 (1)");
+            if (riderObj == null)
+            {
+                riderObj = GameObject.Find("Jugador");
+            }
+            if (riderObj == null)
+            {
+                GameObject[] allObjs = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+                foreach (var go in allObjs)
+                {
+                    string nameLower = go.name.ToLower();
+                    if (nameLower.Contains("repartidor") || nameLower.Contains("player") || nameLower.Contains("jugador"))
+                    {
+                        riderObj = go;
+                        break;
+                    }
+                }
+            }
+            return riderObj;
+        }
+
         private static void RegisterRequiredTags()
         {
             try
@@ -1109,7 +1452,7 @@ namespace DeliveryExpress.Editor
                     SerializedProperty tagsProp = tagManager.FindProperty("tags");
                     if (tagsProp != null)
                     {
-                        string[] requiredTags = new string[] { "Obstaculo", "Car" };
+                        string[] requiredTags = new string[] { "Obstaculo", "Car", "PowerUp" };
                         bool changed = false;
                         foreach (string requiredTag in requiredTags)
                         {

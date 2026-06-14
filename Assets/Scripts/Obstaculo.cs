@@ -12,84 +12,75 @@ namespace DeliveryExpress
     }
 
     /// <summary>
-    /// Define el comportamiento de los obstáculos y vehículos en la calle.
-    /// Se mueven verticalmente hacia abajo para simular que el repartidor avanza hacia arriba.
+    /// Define el comportamiento de los obstáculos y vehículos en el asfalto.
     /// </summary>
     public class Obstaculo : MonoBehaviour
     {
         [Header("Configuración del Obstáculo")]
         [SerializeField] private TipoObstaculo type;
         public TipoObstaculo Type => type;
-        [SerializeField] private float ownSpeed = 2f; // Velocidad propia del obstáculo (los autos se mueven más rápido)
+        [SerializeField] private float ownSpeed = 2f; // Velocidad de movimiento propio
         
-        [Tooltip("Daño infligido al jugador al colisionar")]
-        [SerializeField] private int damage = 1;
 
-        private float globalStreetScrollSpeed = 4f; // Velocidad del scroll de la calle
+
+        private static float globalStreetScrollSpeed = 4f; // Velocidad del scroll de la calle
         private float destroyYBound = -10f;       // Límite inferior para reciclar/destruir el objeto
 
         private Vector2 movementDirection = Vector2.down;
 
         private void Start()
         {
-            // Ajustar comportamientos específicos de velocidad e IA según el tipo
             switch (type)
             {
                 case TipoObstaculo.BlackCar:
-                    ownSpeed = 3.5f; // Los autos bajan rápido
+                    ownSpeed = 3.5f;
                     movementDirection = Vector2.up;
                     break;
                 case TipoObstaculo.GreenCar:
-                    ownSpeed = 5.0f; // Autos verdes son deportivos/rápidos
+                    ownSpeed = 5.0f;
                     movementDirection = Vector2.up;
                     break;
                 case TipoObstaculo.Cone:
-                    ownSpeed = 0f; // Estático respecto a la calle
+                    ownSpeed = 0f;
                     break;
                 case TipoObstaculo.Pothole:
-                    ownSpeed = 0f; // Estático
+                    ownSpeed = 0f;
                     break;
                 case TipoObstaculo.Pedestrian:
-                    ownSpeed = 0.5f; // Cruza lateralmente
-                    movementDirection = new Vector2(Random.value > 0.5f ? 1f : -1f, -1f).normalized; // Movimiento diagonal
+                    ownSpeed = 0.5f;
+                    movementDirection = new Vector2(Random.value > 0.5f ? 1f : -1f, -1f).normalized;
                     break;
             }
         }
 
         private void Update()
         {
-            // Los autos siguen avanzando y salen de la pantalla naturalmente aunque el juego termine,
-            // EXCEPTO cuando cruzamos la meta y queremos congelar la escena
+            // Los autos avanzan y salen de la pantalla aunque termine la partida, salvo al cruzar la meta
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsFinishLineReached)
             {
                 return;
             }
 
-            // Obtener estado de frenado
             float speedMultiplier = 1f;
             ControladorJugador player = GameObject.FindFirstObjectByType<ControladorJugador>();
             if (player != null && player.IsBraking)
             {
-                speedMultiplier = 0.3f; // Reducir la velocidad de acercamiento al 30%
+                speedMultiplier = 0.3f; // Reduce la velocidad de acercamiento al 30%
             }
 
-            // El movimiento relativo del obstáculo es la combinación del avance del scroll de la calle más su propia velocidad
+            // La velocidad final hacia abajo combina el scroll y el movimiento propio del obstáculo
             float finalDownwardSpeed = (globalStreetScrollSpeed + (movementDirection.y * ownSpeed)) * speedMultiplier;
             
-            // Aplicar traslación
             if (type == TipoObstaculo.BlackCar || type == TipoObstaculo.GreenCar)
             {
-                // Los autos se desplazan estrictamente en línea recta vertical sin movimiento lateral
                 transform.Translate(new Vector3(0f, -finalDownwardSpeed * Time.deltaTime, 0f), Space.World);
             }
             else
             {
-                // Obstáculos como peatones que cruzan en diagonal o lateralmente también se ven afectados por el freno
                 float finalHorizontalSpeed = movementDirection.x * ownSpeed * speedMultiplier;
                 transform.Translate(new Vector3(finalHorizontalSpeed * Time.deltaTime, -finalDownwardSpeed * Time.deltaTime, 0f), Space.World);
             }
 
-            // Destruir el obstáculo si sale de la pantalla por la parte inferior
             if (transform.position.y <= destroyYBound)
             {
                 Destroy(gameObject);
@@ -97,15 +88,51 @@ namespace DeliveryExpress
         }
 
         /// <summary>
-        /// Permite al Spawner configurar dinámicamente la velocidad del scroll del nivel
+        /// Configura la velocidad de scroll global del asfalto.
         /// </summary>
-        public void SetScrollSpeed(float speed)
+        public static void SetGlobalScrollSpeed(float speed)
         {
             globalStreetScrollSpeed = speed;
         }
 
         /// <summary>
-        /// Configura la dirección del movimiento propio del obstáculo
+        /// Configura la velocidad de scroll del asfalto.
+        /// </summary>
+        public void SetScrollSpeed(float speed)
+        {
+            SetGlobalScrollSpeed(speed);
+        }
+
+        /// <summary>
+        /// Obtiene la velocidad propia base asociada a cada tipo de obstáculo.
+        /// </summary>
+        public static float GetOwnSpeedForType(TipoObstaculo obstacleType)
+        {
+            switch (obstacleType)
+            {
+                case TipoObstaculo.BlackCar:
+                    return 3.5f;
+                case TipoObstaculo.GreenCar:
+                    return 5.0f;
+                case TipoObstaculo.Pedestrian:
+                    return 0.5f;
+                default:
+                    return 0f;
+            }
+        }
+
+        /// <summary>
+        /// Obtiene la velocidad de avance/descenso en el eje Y sin considerar el freno del jugador.
+        /// </summary>
+        public float GetSpeedWithoutMultiplier()
+        {
+            float oSpeed = GetOwnSpeedForType(type);
+            float dirY = (type == TipoObstaculo.BlackCar || type == TipoObstaculo.GreenCar) ? 1f : (type == TipoObstaculo.Pedestrian ? -0.707f : 0f);
+            return globalStreetScrollSpeed + (dirY * oSpeed);
+        }
+
+        /// <summary>
+        /// Configura la dirección de movimiento del obstáculo.
         /// </summary>
         public void SetMovementDirection(Vector2 direction)
         {
@@ -116,19 +143,17 @@ namespace DeliveryExpress
         {
             if (other.CompareTag("Player"))
             {
-                // Si es un bache (pothole), genera inestabilidad temporal en vez de restar vidas directas obligatorias
+                // El bache genera inestabilidad temporal en lugar de restar vidas directamente
                 if (type == TipoObstaculo.Pothole)
                 {
-                    // Triggers extreme wobble
                     ControladorJugador player = other.GetComponent<ControladorJugador>();
                     if (player != null)
                     {
-                        // Provoca un sacudón en los controles
-                        player.TriggerDeliveryAnimation(); // Animación temporal de desbalanceo
+                        player.TriggerDeliveryAnimation();
                     }
                 }
                 
-                // Desaparecer o desactivar el obstáculo tras chocar (excepto los baches que están pintados en el suelo)
+                // Se destruye el obstáculo tras chocar, salvo que sea un bache
                 if (type != TipoObstaculo.Pothole)
                 {
                     Destroy(gameObject);

@@ -5,15 +5,19 @@ using UnityEngine.SceneManagement;
 namespace DeliveryExpress
 {
     /// <summary>
-    /// Gestiona la interfaz de usuario en tiempo real (HUD de vidas, pantalla de Game Over).
+    /// Administra la interfaz de usuario (HUD de vidas, barra de equilibrio y pantalla de Game Over).
     /// </summary>
     public class AdministradorUI : MonoBehaviour
     {
         public static AdministradorUI Instance { get; private set; }
 
-        [Header("UI de Vidas")]
+                [Header("UI de Vidas")]
         [SerializeField] private Image[] heartImages;
         [SerializeField] private Text livesText;
+
+        [Header("UI de Equilibrio")]
+        [SerializeField] private Slider balanceSlider;
+        [SerializeField] private Image balanceFillImage;
 
         [Header("Pantalla de Fin de Juego")]
         [SerializeField] private GameObject gameOverPanel;
@@ -26,14 +30,11 @@ namespace DeliveryExpress
 
         private void Start()
         {
-            // Asegurar que el tiempo corra normalmente al iniciar la escena
             Time.timeScale = 1f;
 
             if (AdministradorJuego.Instance != null)
             {
-                // Si la escena fue recargada por derrota, reiniciamos el día aquí.
-                // Esto garantiza que AdministradorJuego.Instance.IsGameOver continúe siendo true
-                // durante la carga de la escena, manteniendo el piso congelado.
+                // Si la escena se recargó por derrota, se reinicia el día acá para mantener el scroll congelado durante la carga.
                 if (AdministradorJuego.Instance.IsGameOver)
                 {
                     AdministradorJuego.Instance.RestartCurrentDay();
@@ -41,7 +42,7 @@ namespace DeliveryExpress
 
                 AdministradorJuego.Instance.OnLivesChanged += UpdateLivesUI;
                 
-                // Buscar componentes dinámicamente si no se asignaron en el inspector
+                // Busca componentes si no están asignados en el Inspector
                 if (heartImages == null || heartImages.Length == 0)
                 {
                     FindHeartImages();
@@ -59,7 +60,6 @@ namespace DeliveryExpress
                     if (t != null) gameOverPanel = t.gameObject;
                 }
 
-                // Sincronizar estado inicial
                 UpdateLivesUI(3);
             }
         }
@@ -78,7 +78,7 @@ namespace DeliveryExpress
 
         private void Update()
         {
-            // Detectar reinicio si la partida ha terminado (tecla R o click del mouse)
+            // Detecta el reinicio (tecla R o click) si terminó la partida
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
             {
                 if (Input.GetKeyDown(KeyCode.R) || Input.GetMouseButtonDown(0))
@@ -90,10 +90,7 @@ namespace DeliveryExpress
 
         public void RestartGame()
         {
-            // Solo cargamos la escena sin reiniciar AdministradorJuego todavía.
-            // De esta forma, AdministradorJuego.Instance.IsGameOver sigue siendo true y
-            // Time.timeScale sigue siendo 0f durante todo el proceso de carga de la escena,
-            // garantizando que el piso se quede perfectamente congelado en todo momento.
+            // Carga la escena sin reiniciar el AdministradorJuego para que el fondo siga congelado en la carga
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
@@ -103,7 +100,7 @@ namespace DeliveryExpress
             {
                 gameOverPanel.SetActive(true);
 
-                // Configurar el fondo a nivel de código para asegurar que no falle la renderización en tiempo de ejecución
+                // Asigna la imagen de fondo por código
                 Image img = gameOverPanel.GetComponent<Image>();
                 if (img != null && loseSprite != null)
                 {
@@ -111,18 +108,18 @@ namespace DeliveryExpress
                     img.color = Color.white;
                 }
 
-                // Apagar el texto de fallback si tenemos la imagen cargada
+                // Oculta el texto si la imagen de fondo ya cargó
                 Transform txtTransform = gameOverPanel.transform.Find("GameOverText");
                 if (txtTransform != null && loseSprite != null)
                 {
                     Text txt = txtTransform.GetComponent<Text>();
                     if (txt != null)
                     {
-                        txt.text = ""; // Limpiar texto para que no tape la imagen
+                        txt.text = "";
                     }
                 }
             }
-            Time.timeScale = 0f; // Congelar físicas y movimiento
+            Time.timeScale = 0f;
         }
 
         public void FindHeartImages()
@@ -142,9 +139,23 @@ namespace DeliveryExpress
             
             if (hearts.Count > 0)
             {
-                // Ordenar alfabéticamente para asegurar que desaparezcan en orden
+                // Ordena alfabéticamente para apagarlos en orden
                 hearts.Sort((a, b) => string.Compare(a.gameObject.name, b.gameObject.name, System.StringComparison.Ordinal));
                 heartImages = hearts.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Actualiza la barra de equilibrio y cambia su color según el porcentaje.
+        /// </summary>
+        public void UpdateBalanceUI(float current, float max)
+        {
+            if (balanceSlider != null && balanceFillImage != null)
+            {
+                float fillPercentage = Mathf.Clamp01(current / max);
+                balanceSlider.value = fillPercentage;
+                
+                balanceFillImage.color = Color.Lerp(Color.red, Color.green, fillPercentage);
             }
         }
 
@@ -153,13 +164,11 @@ namespace DeliveryExpress
         /// </summary>
         public void UpdateLivesUI(int currentLives)
         {
-            // 1. Actualizar contador en formato texto
             if (livesText != null)
             {
                 livesText.text = "Vidas: " + Mathf.Max(0, currentLives);
             }
 
-            // 2. Actualizar corazones visuales
             if (heartImages != null && heartImages.Length > 0)
             {
                 for (int i = 0; i < heartImages.Length; i++)
@@ -171,7 +180,7 @@ namespace DeliveryExpress
                 }
             }
 
-            // 3. Si se agotan las vidas, congelar partida y activar panel
+            // Si no quedan vidas, muestra el Game Over
             if (currentLives <= 0)
             {
                 ShowGameOver();

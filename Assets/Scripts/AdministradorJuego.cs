@@ -14,12 +14,11 @@ namespace DeliveryExpress
         public static AdministradorJuego Instance { get; private set; }
 
         [Header("Configuración de Vidas y Tiempo")]
-        [SerializeField] private int startingLives = 3; // 3 vidas para los obstáculos menores
-        [SerializeField] private float baseLevelDuration = 60f; // Duración base en segundos por jornada
+        [SerializeField] private int startingLives = 3; // Cantidad de vidas iniciales
+        [SerializeField] private float baseLevelDuration = 60f; // Duración base del nivel en segundos
 
         [Header("Configuración de Jornadas")]
         [SerializeField] private int currentDay = 1;
-        [SerializeField] private int baseOrdersToDeliver = 2; // Jornada 1: 2 pedidos (porque hay 2 NPCs estáticos)
 
         // Variables de juego en tiempo real
         private int currentLives;
@@ -34,14 +33,14 @@ namespace DeliveryExpress
         private bool isVictory = false;
 
         // Modificador de mejora de tiempo
-        [HideInInspector] public float extraTimeUpgrade = 0f; // Tiempo Extra (+segundos)
+        [HideInInspector] public float extraTimeUpgrade = 0f; // Tiempo adicional por mejoras
 
         // Eventos para actualizar la UI en Unity
         public event Action<int> OnLivesChanged;
         public event Action<float> OnTimeChanged;
         public event Action<int> OnCoinsChanged;
-        public event Action<int, int> OnDeliveriesChanged; // (Completados, Requeridos)
-        public event Action<int> OnOrdersWeightChanged; // (Pedidos cargados actualmente)
+        public event Action<int, int> OnDeliveriesChanged;
+        public event Action<int> OnOrdersWeightChanged;
 
         public int ActiveOrders => activeOrders;
         public int Coins => coinsAccumulated;
@@ -78,23 +77,20 @@ namespace DeliveryExpress
             isVictory = false;
             isGameRunning = true;
 
-            // Restauramos las 3 vidas para poder chocar con baches o perder equilibrio sin perder automáticamente
-            currentLives = 3;
+            // Restablecemos las vidas al iniciar el día
+            currentLives = startingLives;
             
-            // Forzamos el tiempo a 60 segundos ignorando el Inspector
             baseLevelDuration = 60f;
-            // Cargar tiempo base más la mejora permanente comprada en la tienda
+            // Sumamos el tiempo de las mejoras adquiridas
             timeRemaining = baseLevelDuration + extraTimeUpgrade;
 
-            // Forzar pedidos a 0 porque la entrega es al final del recorrido!
-            baseOrdersToDeliver = 0;
+            // No hay entregas intermedias en este modo
             totalDeliveriesRequired = 0;
             currentDeliveriesCompleted = 0;
 
-            // Al inicio del nivel, el repartidor sale cargado con todos sus pedidos asignados del restaurante
+            // Inicializamos la cantidad de pedidos cargados
             activeOrders = totalDeliveriesRequired;
 
-            // Emitir los estados iniciales
             OnLivesChanged?.Invoke(currentLives);
             OnTimeChanged?.Invoke(timeRemaining);
             OnCoinsChanged?.Invoke(coinsAccumulated);
@@ -106,7 +102,6 @@ namespace DeliveryExpress
         {
             if (!isGameRunning || isGameOver) return;
 
-            // Manejo del temporizador (cuenta regresiva)
             if (timeRemaining > 0)
             {
                 timeRemaining -= Time.deltaTime;
@@ -117,14 +112,14 @@ namespace DeliveryExpress
                 timeRemaining = 0;
                 OnTimeChanged?.Invoke(timeRemaining);
                 
-                // Si llegamos al final del tiempo, comprobamos si hicimos suficientes entregas
+                // Verificamos las entregas al finalizar el tiempo
                 if (currentDeliveriesCompleted >= totalDeliveriesRequired)
                 {
                     TriggerVictory();
                 }
                 else
                 {
-                    TriggerDefeat(true); // Derrota por falta de tiempo / entregas
+                    TriggerDefeat(true);
                 }
             }
         }
@@ -141,12 +136,32 @@ namespace DeliveryExpress
 
             if (currentLives <= 0)
             {
-                TriggerDefeat(false); // Derrota por falta de vidas
+                TriggerDefeat(false);
             }
         }
 
         /// <summary>
-        /// Muerte instantánea al chocar con un auto enemigo
+        /// Restaura 1 vida al jugador por recoger una hamburguesa. Máximo: startingLives.
+        /// </summary>
+        public void GainLife()
+        {
+            if (isGameOver) return;
+
+            if (currentLives < startingLives)
+            {
+                currentLives++;
+                OnLivesChanged?.Invoke(currentLives);
+                Debug.Log($"🍔 +1 vida recuperada. Vidas actuales: {currentLives}");
+            }
+            else
+            {
+                Debug.Log("🍔 Vida recogida pero ya tenés el máximo de vidas.");
+            }
+        }
+
+
+        /// <summary>
+        /// Colisión letal con un vehículo
         /// </summary>
 
 
@@ -168,22 +183,17 @@ namespace DeliveryExpress
             activeOrders--;
             currentDeliveriesCompleted++;
 
-            // Sumar monedas obtenidas de la entrega
             coinsAccumulated += coinsReward;
 
             OnDeliveriesChanged?.Invoke(currentDeliveriesCompleted, totalDeliveriesRequired);
             OnCoinsChanged?.Invoke(coinsAccumulated);
             OnOrdersWeightChanged?.Invoke(activeOrders);
 
-            // Ya no disparamos la victoria acá, hay que sobrevivir hasta que se acabe el tiempo!
-            // if (currentDeliveriesCompleted >= totalDeliveriesRequired)
-            // {
-            //     TriggerVictory();
-            // }
+            // La victoria se evalúa por tiempo de supervivencia
         }
 
         /// <summary>
-        /// Suma monedas al jugador (por ejemplo, al recolectar bonos de la calle)
+        /// Incrementamos las monedas acumuladas
         /// </summary>
         public void AddCoins(int amount)
         {
@@ -192,7 +202,7 @@ namespace DeliveryExpress
         }
 
         /// <summary>
-        /// Resta monedas al realizar compras en la tienda de mejoras
+        /// Procesamos el pago en la tienda
         /// </summary>
         public bool SpendCoins(int amount)
         {
@@ -213,14 +223,26 @@ namespace DeliveryExpress
 
             Debug.Log("¡Felicidades! Jornada completada con éxito.");
             
-            // Forzar que la meta baje de inmediato en el fondo
-            CapaParallax cp = GameObject.FindFirstObjectByType<CapaParallax>();
-            if (cp != null) cp.ForceFinalStreet();
+            // Iniciamos el descenso de la senda peatonal de meta
+            // Buscamos la capa de fondo correspondiente a la calle
+            CapaParallax[] capas = GameObject.FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
+            CapaParallax cpCalle = null;
+            foreach (CapaParallax capa in capas)
+            {
+                // Identificamos el componente por su nombre
+                if (capa.gameObject.name.Contains("ScrollingBackground") || capa.gameObject.name.Contains("Calle"))
+                {
+                    cpCalle = capa;
+                    break;
+                }
+            }
+            if (cpCalle == null && capas.Length > 0) cpCalle = capas[0];
             
-            // Ya no destruimos los autos bruscamente, los dejamos seguir de largo hasta que salgan de la pantalla
-            // (Se eliminó el bucle Destroy)
+            if (cpCalle != null) cpCalle.ForceFinalStreet();
             
-            // Abrir pantalla de Upgrades de forma diferida
+            // Los vehículos continúan su avance de forma natural
+            
+            // Transición diferida a la pantalla de mejoras
             StartCoroutine(TransitionToUpgradeShop());
         }
 
@@ -247,14 +269,13 @@ namespace DeliveryExpress
 
         private IEnumerator TransitionToUpgradeShop()
         {
-            // Esperar 4.5 segundos para dar tiempo a que aparezca y baje la meta
+            // Esperamos a que la senda peatonal de meta se detenga por completo
             yield return new WaitForSeconds(4.5f);
             
-            // Avanzar el día para la siguiente jornada
+            // Avanzamos al siguiente día de trabajo
             currentDay++;
             
-            // Cargar escena de la tienda de mejoras
-            // SceneManager.LoadScene("UpgradeShopScene");
+            // Cargamos la escena de la tienda
         }
 
         /// <summary>

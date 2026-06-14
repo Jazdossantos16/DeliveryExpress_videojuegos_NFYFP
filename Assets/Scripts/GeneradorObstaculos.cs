@@ -12,11 +12,18 @@ namespace DeliveryExpress
         [Header("Prefabs de Obstáculos")]
         [SerializeField] private GameObject[] obstaclePrefabs; // Colección indexada por enum TipoObstaculo
 
-        [Header("Sprites de Autos (Imagen Auto)")]
-        [SerializeField] private Sprite[] carSprites;
+        [Header("Prefabs de Obstáculos (Configurados en Unity)")]
+        [SerializeField] private GameObject conoPrefab;
+        [SerializeField] private GameObject bachePrefab;
+        [SerializeField] private GameObject basuraPrefab;
+        [SerializeField] private GameObject[] autoPrefabs;
 
-        [Header("Sprites de Obstáculos Menores (Ej: Cono)")]
-        [SerializeField] private Sprite[] minorObstacleSprites;
+        [Header("Power-Up de Vida")]
+        [SerializeField] private GameObject hamburguesaPowerUpPrefab;
+        [Tooltip("Cada cuántos segundos puede aparecer una hamburguesa (tiempo mínimo entre apariciones)")]
+        [SerializeField] private float minTiempoEntreHamburguesas = 12f;
+        [Tooltip("Tiempo máximo entre apariciones de hamburguesas")]
+        [SerializeField] private float maxTiempoEntreHamburguesas = 25f;
 
         [Header("Sprites de Casas (Entorno Vereda)")]
         [SerializeField] private Sprite[] houseSprites;
@@ -33,35 +40,20 @@ namespace DeliveryExpress
         [SerializeField] private float levelScrollSpeed = 5f;
 
         private bool canSpawn = true;
+        private float tiempoParaSiguienteHamburguesa = 0f;
 
         private void Start()
         {
-            // Autocargar los nuevos sprites de obstáculos (ahora son múltiples en una sola imagen)
-            if (minorObstacleSprites == null || minorObstacleSprites.Length == 0)
-            {
-                Sprite[] loadedSprites = Resources.LoadAll<Sprite>("imagen_obstaculos");
-                if (loadedSprites != null && loadedSprites.Length > 0)
-                {
-                    minorObstacleSprites = loadedSprites; // Cargamos todos los obstáculos cortados
-                }
-            }
-
-            // Autocargar las imágenes de las casas para la vereda
-            if (houseSprites == null || houseSprites.Length == 0)
-            {
-                Sprite[] loadedHouses = Resources.LoadAll<Sprite>("imagenes_ casas");
-                if (loadedHouses != null && loadedHouses.Length > 0)
-                {
-                    houseSprites = loadedHouses;
-                }
-            }
-
+            fondosCacheados = FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
+            // Primer hamburguesa aparece entre 15 y 25 segundos desde el inicio
+            tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
             StartCoroutine(SpawnRoutine());
         }
 
         private GameObject lastLeftHouse;
         private float lastLeftHouseHeight;
         private GameObject lastRightHouse;
+        private CapaParallax[] fondosCacheados;
         private float lastRightHouseHeight;
         private bool isPreSpawned = false;
 
@@ -106,51 +98,99 @@ namespace DeliveryExpress
             return result;
         }
 
-        private void Update()
+                private void Update()
         {
             if (!canSpawn) return;
-            // Quitamos la restricción de IsGameOver para que las casas sigan rellenando el fondo
-            // mientras la calle se mueve durante la animación de la línea de llegada.
 
-            CapaParallax bg = GameObject.FindFirstObjectByType<CapaParallax>();
+            // Incremento progresivo de velocidad durante la partida
+            if (AdministradorJuego.Instance != null && !AdministradorJuego.Instance.IsGameOver)
+            {
+                float speedIncrement = 0.05f * Time.deltaTime; // Aumenta 3.0 unidades por minuto
+                levelScrollSpeed += speedIncrement;
+                minSpawnDelay = Mathf.Max(0.4f, minSpawnDelay - (speedIncrement * 0.1f));
+                maxSpawnDelay = Mathf.Max(0.7f, maxSpawnDelay - (speedIncrement * 0.1f));
+                SyncBackgroundSpeeds();
+
+                // Spawn de hamburguesa power-up (temporizador independiente del spawn de obstáculos)
+                if (hamburguesaPowerUpPrefab != null && !AdministradorJuego.Instance.IsGameOver)
+                {
+                    tiempoParaSiguienteHamburguesa -= Time.deltaTime;
+                    if (tiempoParaSiguienteHamburguesa <= 0f)
+                    {
+                        SpawnHamburguesa();
+                        tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
+                    }
+                }
+            }
+
+                        CapaParallax[] fondos = GameObject.FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
+            CapaParallax bg = null;
+            foreach (CapaParallax capa in fondos)
+            {
+                if (capa.gameObject.name.Contains("ScrollingBackground") || capa.gameObject.name.Contains("Calle"))
+                {
+                    bg = capa;
+                    break;
+                }
+            }
+            if (bg == null && fondos.Length > 0) bg = fondos[0];
             bool isCrossroad = (bg != null && bg.IsCrossroadOverlapping(spawnYPosition));
 
             if (!isPreSpawned)
             {
-                AdjustDifficultyBasedOnDay(); // Ajustar la velocidad primero para que coincida con el fondo
+                AdjustDifficultyBasedOnDay();
                 PreSpawnHouses();
                 isPreSpawned = true;
             }
 
             if (isCrossroad)
             {
-                // Dejar hueco para la calle transversal
+                // Dejamos un espacio libre en el carril para simular el cruce de calles
                 lastLeftHouse = null;
                 lastRightHouse = null;
             }
             else
             {
-                // Casa izquierda pegada al borde
-                if (lastLeftHouse == null || lastLeftHouse.transform.position.y <= spawnYPosition - lastLeftHouseHeight)
+                // Evitamos generar casas si la posición de spawn ya superó la línea de meta (punto de fuga)
+                bool stopSpawningHouses = false;
+                if (fondosCacheados != null)
                 {
-                    int index = GetNextHouseIndex(leftHouseQueue, ref lastLeftHouseIndex);
-                    // Usamos index * 2 (pares) para la izquierda
-                    lastLeftHouse = SpawnHouse(-1f, spawnYPosition, index * 2);
-                    if (lastLeftHouse != null)
+                    foreach (CapaParallax fondo in fondosCacheados)
                     {
-                        lastLeftHouseHeight = lastLeftHouse.GetComponent<SpriteRenderer>().bounds.size.y;
+                        if (fondo != null)
+                        {
+                            float vpY = fondo.GetWorldVanishingPointY();
+                            if (vpY != float.MaxValue && vpY <= spawnYPosition)
+                            {
+                                stopSpawningHouses = true;
+                                break;
+                            }
+                        }
                     }
                 }
 
-                // Casa derecha pegada al borde
-                if (lastRightHouse == null || lastRightHouse.transform.position.y <= spawnYPosition - lastRightHouseHeight)
+                if (!stopSpawningHouses)
                 {
-                    int index = GetNextHouseIndex(rightHouseQueue, ref lastRightHouseIndex);
-                    // Usamos index * 2 + 1 (impares) para la derecha
-                    lastRightHouse = SpawnHouse(1f, spawnYPosition, index * 2 + 1);
-                    if (lastRightHouse != null)
+                    if (lastLeftHouse == null || lastLeftHouse.transform.position.y <= spawnYPosition - lastLeftHouseHeight)
                     {
-                        lastRightHouseHeight = lastRightHouse.GetComponent<SpriteRenderer>().bounds.size.y;
+                        int index = GetNextHouseIndex(leftHouseQueue, ref lastLeftHouseIndex);
+                        // Asignamos índices pares para las casas del lateral izquierdo
+                        lastLeftHouse = SpawnHouse(-1f, spawnYPosition, index * 2);
+                        if (lastLeftHouse != null)
+                        {
+                            lastLeftHouseHeight = lastLeftHouse.GetComponent<SpriteRenderer>().bounds.size.y;
+                        }
+                    }
+
+                    if (lastRightHouse == null || lastRightHouse.transform.position.y <= spawnYPosition - lastRightHouseHeight)
+                    {
+                        int index = GetNextHouseIndex(rightHouseQueue, ref lastRightHouseIndex);
+                        // Asignamos índices impares para las casas del lateral derecho
+                        lastRightHouse = SpawnHouse(1f, spawnYPosition, index * 2 + 1);
+                        if (lastRightHouse != null)
+                        {
+                            lastRightHouseHeight = lastRightHouse.GetComponent<SpriteRenderer>().bounds.size.y;
+                        }
                     }
                 }
             }
@@ -158,7 +198,7 @@ namespace DeliveryExpress
 
         private void PreSpawnHouses()
         {
-            float currentY = -6f; // Empezar por debajo del borde inferior de la cámara
+            float currentY = -6f; // Iniciamos la generación por debajo del límite inferior de la pantalla
             while (currentY <= spawnYPosition)
             {
                 int leftIndex = GetNextHouseIndex(leftHouseQueue, ref lastLeftHouseIndex);
@@ -174,7 +214,7 @@ namespace DeliveryExpress
                     lastRightHouseHeight = h;
                     lastLeftHouse = leftH;
                     lastRightHouse = rightH;
-                    currentY += h; // Subir el equivalente a una casa para la próxima
+                    currentY += h; // Incrementamos la coordenada Y en base al alto de la casa para la siguiente iteración
                 }
                 else
                 {
@@ -185,33 +225,28 @@ namespace DeliveryExpress
 
         private IEnumerator SpawnRoutine()
         {
-            // Esperar un instante pequeñísimo que inicie el juego
             yield return new WaitForSeconds(0.5f);
 
-            // Ajustar dificultad según el día de la jornada actual
             AdjustDifficultyBasedOnDay();
 
             float timeElapsed = 0f;
 
             while (canSpawn)
             {
-                // Verificación: si el juego terminó o estamos en los últimos 3.5 segundos (acercándonos a la meta)
-                // dejamos de generar obstáculos para que la línea de llegada esté despejada.
+                // Detenemos la generación de obstáculos si el juego terminó o si restan menos de 1.5 segundos (meta despejada)
                 if (AdministradorJuego.Instance != null && 
-                   (AdministradorJuego.Instance.IsGameOver || AdministradorJuego.Instance.TimeRemaining < 3.5f))
+                   (AdministradorJuego.Instance.IsGameOver || AdministradorJuego.Instance.TimeRemaining < 1.5f))
                 {
                     yield return new WaitForSeconds(1.0f);
                     continue;
                 }
 
-                // Spawnear obstáculo INMEDIATAMENTE al inicio del ciclo
                 SpawnRandomObstacle();
 
-                // Calcular cuánto tiempo esperar ANTES de spawnear el SIGUIENTE obstáculo
                 float currentMinDelay = minSpawnDelay;
                 float currentMaxDelay = maxSpawnDelay;
 
-                // Reducir tiempos de espera a medida que avanzan los días para mayor densidad
+                // Reducimos los tiempos de espera a medida que avanzan los días para aumentar la densidad del tráfico
                 if (AdministradorJuego.Instance != null)
                 {
                     int day = AdministradorJuego.Instance.CurrentDay;
@@ -221,9 +256,8 @@ namespace DeliveryExpress
                 }
 
                 // ACELERACIÓN PROGRESIVA: Partidas de 60 segundos.
-                // Reducimos el tiempo de espera pero con un límite más conservador (0.65x)
-                // para que no salgan "autos pegados" uno detrás del otro.
-                float inGameTimeFactor = Mathf.Clamp(1f - (timeElapsed / 60f), 0.65f, 1f);
+                // Reducimos el tiempo de espera hasta la mitad (0.5x) al final de la jornada.
+                float inGameTimeFactor = Mathf.Clamp(1f - (timeElapsed / 60f), 0.5f, 1f);
                 currentMinDelay *= inGameTimeFactor;
                 currentMaxDelay *= inGameTimeFactor;
 
@@ -237,8 +271,7 @@ namespace DeliveryExpress
 
         private void SpawnRandomObstacle()
         {
-            // Si tenemos sprites de autos cargados, usamos la nueva lógica de tráfico dinámico
-            if (carSprites != null && carSprites.Length > 0)
+            if (autoPrefabs != null && autoPrefabs.Length > 0)
             {
                 SpawnTrafficWave();
                 return;
@@ -264,6 +297,29 @@ namespace DeliveryExpress
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Genera una hamburguesa coleccionable en un carril aleatorio libre.
+        /// </summary>
+        private void SpawnHamburguesa()
+        {
+            if (hamburguesaPowerUpPrefab == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
+
+            // Elegir carril aleatorio
+            int randomLane = Random.Range(0, lanePositionsX.Length);
+            float spawnX = lanePositionsX[randomLane];
+
+            Vector3 spawnPos = new Vector3(spawnX, spawnYPosition, 0f);
+            GameObject burgerObj = Instantiate(hamburguesaPowerUpPrefab, spawnPos, Quaternion.identity);
+
+            HamburguesaVida burgerComponent = burgerObj.GetComponent<HamburguesaVida>();
+            if (burgerComponent != null)
+            {
+                burgerComponent.SetScrollSpeed(levelScrollSpeed);
+            }
+
+            Debug.Log($"🍔 Hamburguesa power-up generada en carril {randomLane} (x={spawnX:F2})");
         }
 
         private void SpawnTrafficWave()
@@ -340,124 +396,153 @@ namespace DeliveryExpress
             float spawnX = lanePositionsX[laneIndex];
 
             // 30% de probabilidad de spawnear un obstáculo menor, solo si no estamos forzando un auto
-            bool spawnMinorObstacle = !forceCar && (minorObstacleSprites != null && minorObstacleSprites.Length > 0 && Random.value < 0.3f);
+            bool spawnMinorObstacle = !forceCar && (conoPrefab != null && Random.value < 0.3f);
 
             if (spawnMinorObstacle)
             {
                 SpawnMinorObstacleInLane(spawnX);
                 return true;
             }
-            else if (carSprites != null && carSprites.Length > 0)
+            else if (autoPrefabs != null && autoPrefabs.Length > 0)
             {
-                SpawnVehicleInLane(spawnX);
-                return false;
+                int randomPrefabIndex = Random.Range(0, autoPrefabs.Length);
+                GameObject selectedPrefab = autoPrefabs[randomPrefabIndex];
+                if (selectedPrefab != null)
+                {
+                    Obstaculo obsComp = selectedPrefab.GetComponent<Obstaculo>();
+                    if (obsComp != null)
+                    {
+                        float carOwnSpeed = Obstaculo.GetOwnSpeedForType(obsComp.Type);
+                        float carSpeed = levelScrollSpeed + carOwnSpeed;
+
+                        // Si el auto va a generar un bloqueo completo de los 3 carriles, lo degradamos a un cono
+                        if (WillVehicleCreateBlockade(laneIndex, carSpeed))
+                        {
+                            SpawnMinorObstacleInLane(spawnX);
+                            return true; // Ahora es un cono
+                        }
+                    }
+
+                    SpawnVehicleWithPrefab(spawnX, selectedPrefab);
+                    return false;
+                }
             }
             return false;
         }
 
-
-
         private void SpawnMinorObstacleInLane(float spawnX)
         {
-            GameObject obsObj = new GameObject("Obstaculo_Cono");
-            obsObj.tag = "Obstaculo"; // Tag "Obstaculo" quita 1 sola vida en ControladorJugador
-            obsObj.transform.position = new Vector3(spawnX, spawnYPosition, 0f);
-            obsObj.transform.rotation = Quaternion.identity;
-            
-            // Ajustamos el tamaño a 1.25f para lograr el punto medio perfecto
-            obsObj.transform.localScale = new Vector3(1.25f, 1.25f, 1f); 
+            List<GameObject> availableMinors = new List<GameObject>();
+            if (conoPrefab != null) availableMinors.Add(conoPrefab);
+            if (bachePrefab != null) availableMinors.Add(bachePrefab);
+            if (basuraPrefab != null) availableMinors.Add(basuraPrefab);
 
-            GameObject visualObj = new GameObject("Visual");
-            visualObj.transform.SetParent(obsObj.transform, false);
+            if (availableMinors.Count == 0) return;
 
-            SpriteRenderer sr = visualObj.AddComponent<SpriteRenderer>();
-            sr.sprite = minorObstacleSprites[Random.Range(0, minorObstacleSprites.Length)];
-            sr.sortingOrder = 8;
+            int randomIndex = Random.Range(0, availableMinors.Count);
+            GameObject selectedPrefab = availableMinors[randomIndex];
 
-            if (sr.sprite != null)
+            Vector3 spawnPosition = new Vector3(spawnX, spawnYPosition, 0f);
+            GameObject spawnedObj = Instantiate(selectedPrefab, spawnPosition, Quaternion.identity);
+            Obstaculo obstacleComponent = spawnedObj.GetComponent<Obstaculo>();
+            if (obstacleComponent != null)
             {
-                Vector3 centerOffset = sr.sprite.bounds.center;
-                visualObj.transform.localPosition = new Vector3(-centerOffset.x, -centerOffset.y, 0f);
+                obstacleComponent.SetScrollSpeed(levelScrollSpeed);
             }
-
-            BoxCollider2D col = obsObj.AddComponent<BoxCollider2D>();
-            col.isTrigger = true;
-            col.size = new Vector2(0.9f, 0.9f); // Collider más pequeño para el cono
-
-            Obstaculo obstacle = obsObj.AddComponent<Obstaculo>();
-            
-            var typeField = typeof(Obstaculo).GetField("type", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (typeField != null)
-            {
-                typeField.SetValue(obstacle, TipoObstaculo.Cone); // Tipo cono (ownSpeed = 0)
-            }
-
-            // Los conos no tienen velocidad propia, solo se mueven con la calle
-            obstacle.SetScrollSpeed(levelScrollSpeed);
         }
 
         private void SpawnVehicleInLane(float spawnX)
         {
-            if (carSprites == null || carSprites.Length == 0) return;
-
-            // Crear el GameObject del auto
-            GameObject carObj = new GameObject("Obstaculo_Auto");
-            carObj.tag = "Car"; // Es detectado por el ControladorJugador para muerte instantánea
-            carObj.transform.position = new Vector3(spawnX, spawnYPosition, 0f);
-            
-            // Sin rotación (los sprites originales en imagen_auto.png ya están orientados hacia abajo)
-            carObj.transform.rotation = Quaternion.identity;
-            
-            // Aumentar la escala de los autos a 1.95f para que sean grandes y realistas, y al estar centrados quepan justo dentro de la línea blanca
-            carObj.transform.localScale = new Vector3(1.95f, 1.95f, 1f);
-
-            // Crear el objeto visual hijo para poder centrar el sprite usando su bounds center (corrige pivots incorrectos)
-            GameObject visualObj = new GameObject("Visual");
-            visualObj.transform.SetParent(carObj.transform, false);
-
-            // Añadir SpriteRenderer al visual
-            SpriteRenderer sr = visualObj.AddComponent<SpriteRenderer>();
-            int randomSpriteIndex = Random.Range(0, carSprites.Length);
-            sr.sprite = carSprites[randomSpriteIndex];
-            sr.sortingOrder = 8; // Por encima de la calle, debajo del repartidor (sortingOrder 10)
-
-            // Centrar el sprite usando su centro geométrico local
-            if (sr.sprite != null)
+            if (autoPrefabs == null || autoPrefabs.Length == 0) return;
+            int randomPrefabIndex = Random.Range(0, autoPrefabs.Length);
+            GameObject selectedPrefab = autoPrefabs[randomPrefabIndex];
+            if (selectedPrefab != null)
             {
-                Vector3 centerOffset = sr.sprite.bounds.center;
-                visualObj.transform.localPosition = new Vector3(-centerOffset.x, -centerOffset.y, 0f);
+                SpawnVehicleWithPrefab(spawnX, selectedPrefab);
+            }
+        }
+
+        private void SpawnVehicleWithPrefab(float spawnX, GameObject prefab)
+        {
+            Vector3 spawnPosition = new Vector3(spawnX, spawnYPosition, 0f);
+            GameObject spawnedObj = Instantiate(prefab, spawnPosition, Quaternion.identity);
+            Obstaculo obstacleComponent = spawnedObj.GetComponent<Obstaculo>();
+            if (obstacleComponent != null)
+            {
+                obstacleComponent.SetMovementDirection(Vector2.up);
+                obstacleComponent.SetScrollSpeed(levelScrollSpeed);
+            }
+        }
+
+        /// <summary>
+        /// Predice si un vehículo a una velocidad específica causará que los tres carriles 
+        /// queden bloqueados en un mismo punto de la pantalla por alineación.
+        /// </summary>
+        private bool WillVehicleCreateBlockade(int proposedLane, float vehicleSpeed)
+        {
+            List<Obstaculo> activeObstacles = new List<Obstaculo>();
+            GameObject[] cones = GameObject.FindGameObjectsWithTag("Obstaculo");
+            GameObject[] cars = GameObject.FindGameObjectsWithTag("Car");
+
+            foreach (GameObject go in cones)
+            {
+                if (go == null) continue;
+                Obstaculo obs = go.GetComponent<Obstaculo>();
+                if (obs != null) activeObstacles.Add(obs);
+            }
+            foreach (GameObject go in cars)
+            {
+                if (go == null) continue;
+                Obstaculo obs = go.GetComponent<Obstaculo>();
+                if (obs != null) activeObstacles.Add(obs);
             }
 
-            // Añadir BoxCollider2D como Trigger al padre
-            BoxCollider2D col = carObj.AddComponent<BoxCollider2D>();
-            col.isTrigger = true;
-            if (sr.sprite != null)
+            int laneA = -1;
+            int laneB = -1;
+            for (int i = 0; i < lanePositionsX.Length; i++)
             {
-                // Ajustar el tamaño del collider para que cubra casi todo el sprite
-                col.size = new Vector2(sr.sprite.bounds.size.x * 0.85f, sr.sprite.bounds.size.y * 0.9f);
-                // Alinear el centro del collider al centro desplazado del sprite visual
-                col.offset = new Vector2(-sr.sprite.bounds.center.x, -sr.sprite.bounds.center.y);
-            }
-            else
-            {
-                col.size = new Vector2(1.2f, 1.4f);
+                if (i == proposedLane) continue;
+                if (laneA == -1) laneA = i;
+                else laneB = i;
             }
 
-            // Añadir componente Obstaculo al padre
-            Obstaculo obstacle = carObj.AddComponent<Obstaculo>();
-            
-            // Configurar el tipo de auto y velocidad en Obstaculo.cs por reflexión
-            var typeField = typeof(Obstaculo).GetField("type", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (typeField != null)
+            if (laneA == -1 || laneB == -1) return false;
+
+            List<Obstaculo> obstaclesInLaneA = new List<Obstaculo>();
+            List<Obstaculo> obstaclesInLaneB = new List<Obstaculo>();
+
+            foreach (Obstaculo obs in activeObstacles)
             {
-                // Alternar tipo de auto (BlackCar o GreenCar) según el sprite seleccionado
-                TipoObstaculo carType = (randomSpriteIndex % 2 == 0) ? TipoObstaculo.BlackCar : TipoObstaculo.GreenCar;
-                typeField.SetValue(obstacle, carType);
+                int lane = GetLaneIndexFromX(obs.transform.position.x);
+                if (lane == laneA) obstaclesInLaneA.Add(obs);
+                else if (lane == laneB) obstaclesInLaneB.Add(obs);
             }
 
-            // Los autos van en sentido contrario a el chico (Vector2.up en la ecuación final de Obstaculo bajan a scrollSpeed + ownSpeed)
-            obstacle.SetMovementDirection(Vector2.up);
-            obstacle.SetScrollSpeed(levelScrollSpeed);
+            foreach (Obstaculo obsA in obstaclesInLaneA)
+            {
+                float vA = obsA.GetSpeedWithoutMultiplier();
+                if (Mathf.Approximately(vehicleSpeed, vA) || vehicleSpeed < vA) continue;
+
+                float t = (spawnYPosition - obsA.transform.position.y) / (vehicleSpeed - vA);
+                if (t <= 0f) continue;
+
+                float yAlign = spawnYPosition - vehicleSpeed * t;
+                if (yAlign <= -10f) continue;
+
+                foreach (Obstaculo obsB in obstaclesInLaneB)
+                {
+                    float vB = obsB.GetSpeedWithoutMultiplier();
+                    float yBAtT = obsB.transform.position.y - vB * t;
+
+                    // Si están a menos de 2.5 unidades de distancia vertical, el carril queda tapado completamente
+                    if (Mathf.Abs(yBAtT - yAlign) < 2.5f)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void AdjustDifficultyBasedOnDay()
@@ -492,13 +577,19 @@ namespace DeliveryExpress
             SyncBackgroundSpeeds();
         }
 
-        private void SyncBackgroundSpeeds()
+                        private void SyncBackgroundSpeeds()
         {
-            CapaParallax[] fondos = FindObjectsOfType<CapaParallax>();
-            foreach (CapaParallax fondo in fondos)
+            if (fondosCacheados != null)
             {
-                fondo.SetBaseSpeed(levelScrollSpeed);
+                foreach (CapaParallax fondo in fondosCacheados)
+                {
+                    fondo.SetBaseSpeed(levelScrollSpeed);
+                }
             }
+            
+            // Actualizar la variable estática de Obstaculo para que todas las casas y autos ya spawneados 
+            // aceleren en perfecta sincronía con el fondo.
+            Obstaculo.SetGlobalScrollSpeed(levelScrollSpeed);
         }
 
         public void StopSpawning()
