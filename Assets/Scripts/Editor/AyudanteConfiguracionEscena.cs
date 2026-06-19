@@ -131,8 +131,15 @@ namespace DeliveryExpress.Editor
                 GameObject canvasObj = GameObject.Find("_Lienzo_UI") ?? GameObject.Find("_UI_Canvas");
                 if (canvasObj != null)
                 {
-                    // Nota: loseSprite puede ser null en Edit mode (serialized ref no cargada)
-                    // No validar sprite aquí para evitar rebuild infinito
+                    Transform tMonedas = canvasObj.transform.Find("Texto_Monedas");
+                    if (tMonedas == null)
+                    {
+                        needsFix = true;
+                    }
+                }
+                else
+                {
+                    needsFix = true;
                 }
             }
 
@@ -579,6 +586,12 @@ namespace DeliveryExpress.Editor
                 UnityEngine.Object.DestroyImmediate(oldGameOver.gameObject);
             }
 
+            Transform oldCoinsText = canvas.transform.Find("Texto_Monedas");
+            if (oldCoinsText != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldCoinsText.gameObject);
+            }
+
             GameObject livesContainerObj = new GameObject("Contenedor_Vidas", typeof(RectTransform));
             RectTransform rect = livesContainerObj.GetComponent<RectTransform>();
             rect.SetParent(canvas.transform, false);
@@ -760,11 +773,42 @@ namespace DeliveryExpress.Editor
             goTRect.pivot = new Vector2(0.5f, 0.5f);
             goTRect.anchoredPosition = Vector2.zero;
 
+            // 7.45 Crear el contador de monedas Texto_Monedas
+            GameObject coinsTextObj = new GameObject("Texto_Monedas", typeof(RectTransform));
+            RectTransform coinsRect = coinsTextObj.GetComponent<RectTransform>();
+            coinsRect.SetParent(canvas.transform, false);
+
+            Text coinsText = coinsTextObj.AddComponent<Text>();
+            coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            coinsText.fontSize = 24;
+            coinsText.color = new Color(1f, 0.84f, 0f); // Dorado
+            coinsText.alignment = TextAnchor.MiddleRight;
+            coinsText.text = "Monedas: 0";
+
+            coinsRect.anchorMin = new Vector2(1f, 1f);
+            coinsRect.anchorMax = new Vector2(1f, 1f);
+            coinsRect.pivot = new Vector2(1f, 1f);
+            coinsRect.anchoredPosition = new Vector2(-35f, -35f); // 35px de margen
+            coinsRect.sizeDelta = new Vector2(200f, 50f);
+
+            Shadow coinsShadow = coinsTextObj.AddComponent<Shadow>();
+            coinsShadow.effectColor = Color.black;
+            coinsShadow.effectDistance = new Vector2(1f, -1f);
+
             // 7.5 Configurar el AdministradorUI
             AdministradorUI uiManager = canvas.GetComponent<AdministradorUI>();
             if (uiManager == null)
             {
                 uiManager = canvas.gameObject.AddComponent<AdministradorUI>();
+            }
+
+            var coinsTextField = typeof(AdministradorUI).GetField("coinsText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (coinsTextField != null)
+            {
+                coinsTextField.SetValue(uiManager, coinsText);
+                EditorUtility.SetDirty(uiManager);
+                Debug.Log("✅ coinsText inyectado en AdministradorUI.");
             }
 
             // Asigna los corazones por reflexión

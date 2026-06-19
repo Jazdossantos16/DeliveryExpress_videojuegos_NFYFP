@@ -70,17 +70,19 @@ namespace DeliveryExpress
                     if (t != null)
                     {
                         coinsText = t.GetComponent<Text>();
+                        t.gameObject.layer = this.gameObject.layer;
                     }
                     else
                     {
                         // Crear automáticamente el objeto de texto para monedas en la parte superior derecha
                         GameObject coinsObj = new GameObject("Texto_Monedas", typeof(RectTransform));
+                        coinsObj.layer = this.gameObject.layer;
                         coinsObj.transform.SetParent(this.transform, false);
                         
                         coinsText = coinsObj.AddComponent<Text>();
                         
-                        // Copiar fuente de livesText si está disponible, o buscar cualquier texto
-                        Text anyText = GetComponentInChildren<Text>();
+                        // Copiar fuente de livesText si está disponible, o buscar cualquier texto (incluyendo inactivos)
+                        Text anyText = GetComponentInChildren<Text>(true);
                         if (anyText != null)
                         {
                             coinsText.font = anyText.font;
@@ -106,6 +108,11 @@ namespace DeliveryExpress
                         shadow.effectColor = Color.black;
                         shadow.effectDistance = new Vector2(1f, -1f);
                     }
+                }
+
+                if (coinsText != null)
+                {
+                    coinsText.gameObject.layer = this.gameObject.layer;
                 }
 
                 UpdateLivesUI(3);
