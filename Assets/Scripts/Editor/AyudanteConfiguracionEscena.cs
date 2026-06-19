@@ -1396,6 +1396,52 @@ namespace DeliveryExpress.Editor
                 hamburguesaPowerUpField.SetValue(spawner, powerUpPrefab);
             }
 
+            // 5. Crear Prefab de Moneda si no existe
+            string monedaPrefabPath = "Assets/Prefabs/Moneda.prefab";
+            GameObject monedaPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(monedaPrefabPath);
+            if (monedaPrefab == null)
+            {
+                GameObject tempObj = new GameObject("Moneda");
+                tempObj.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
+
+                CircleCollider2D col = tempObj.AddComponent<CircleCollider2D>();
+                col.isTrigger = true;
+                col.radius = 0.45f;
+
+                SpriteRenderer sr = tempObj.AddComponent<SpriteRenderer>();
+                sr.sortingOrder = 9;
+
+                // Cargar sprite estático de moneda.png
+                EnsureIsSprite("Assets/sprites/moneda.png");
+                Sprite singleCoinSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/moneda.png");
+                sr.sprite = singleCoinSprite;
+
+                Moneda coinScript = tempObj.AddComponent<Moneda>();
+                
+                // Intentar cargar fotogramas de la hoja de animación
+                EnsureIsSprite("Assets/sprites/moneda_spritesheet.png"); // Importar como sprite
+                Sprite[] animationFrames = LoadSpritesFromPath("Assets/sprites/moneda_spritesheet.png");
+                if (animationFrames != null && animationFrames.Length > 1)
+                {
+                    var animFramesField = typeof(Moneda).GetField("animationFrames", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (animFramesField != null)
+                    {
+                        animFramesField.SetValue(coinScript, animationFrames);
+                    }
+                }
+
+                monedaPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, monedaPrefabPath);
+                UnityEngine.Object.DestroyImmediate(tempObj);
+                Debug.Log("✅ Prefab de Moneda creado con éxito en Assets/Prefabs.");
+            }
+
+            // Asignar el prefab de moneda al spawner
+            var monedaPrefabField = typeof(GeneradorObstaculos).GetField("monedaPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (monedaPrefabField != null && monedaPrefab != null)
+            {
+                monedaPrefabField.SetValue(spawner, monedaPrefab);
+            }
+
             EditorUtility.SetDirty(spawner);
         }
 

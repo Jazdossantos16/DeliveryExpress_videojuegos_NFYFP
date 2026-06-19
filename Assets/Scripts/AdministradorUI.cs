@@ -74,7 +74,7 @@ namespace DeliveryExpress
                     else
                     {
                         // Crear automáticamente el objeto de texto para monedas en la parte superior derecha
-                        GameObject coinsObj = new GameObject("Texto_Monedas");
+                        GameObject coinsObj = new GameObject("Texto_Monedas", typeof(RectTransform));
                         coinsObj.transform.SetParent(this.transform, false);
                         
                         coinsText = coinsObj.AddComponent<Text>();
