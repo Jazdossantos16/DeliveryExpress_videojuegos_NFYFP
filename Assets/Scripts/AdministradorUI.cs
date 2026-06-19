@@ -103,8 +103,8 @@ namespace DeliveryExpress
                         rect.sizeDelta = new Vector2(200f, 50f);
                         
                         Shadow shadow = coinsObj.AddComponent<Shadow>();
-                        shadow.shadowColor = Color.black;
-                        shadow.shadowOffset = new Vector2(1f, -1f);
+                        shadow.effectColor = Color.black;
+                        shadow.effectDistance = new Vector2(1f, -1f);
                     }
                 }
 
