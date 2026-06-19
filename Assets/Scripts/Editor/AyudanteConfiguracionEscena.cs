@@ -1194,7 +1194,7 @@ namespace DeliveryExpress.Editor
             }
 
             // Cargar e inyectar el video de introducción
-            string videoPath = "Assets/sprites/videojuego_prueba_202606182214.mp4";
+            string videoPath = "Assets/StreamingAssets/videojuego_prueba_202606182214.mp4";
             UnityEngine.Video.VideoClip introVideo = AssetDatabase.LoadAssetAtPath<UnityEngine.Video.VideoClip>(videoPath);
             var introVideoField = typeof(AdministradorUI).GetField("introVideoClip", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (introVideoField != null && introVideo != null)

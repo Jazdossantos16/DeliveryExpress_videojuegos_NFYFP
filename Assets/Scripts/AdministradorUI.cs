@@ -251,8 +251,8 @@ namespace DeliveryExpress
             // Agregar VideoPlayer
             videoPlayer = videoGo.AddComponent<UnityEngine.Video.VideoPlayer>();
             videoPlayer.playOnAwake = false;
-            videoPlayer.source = UnityEngine.Video.VideoSource.VideoClip;
-            videoPlayer.clip = introVideoClip;
+            videoPlayer.source = UnityEngine.Video.VideoSource.Url;
+            videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath, "videojuego_prueba_202606182214.mp4");
             videoPlayer.renderMode = UnityEngine.Video.VideoRenderMode.RenderTexture;
             videoPlayer.targetTexture = videoTexture;
             
