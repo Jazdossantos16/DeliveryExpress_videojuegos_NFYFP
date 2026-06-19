@@ -122,8 +122,8 @@ namespace DeliveryExpress
             {
                 float progress = AdministradorJuego.Instance.LevelProgress;
 
-                // Aceleramos cuadráticamente la velocidad de scroll (hasta un +50% al final de la partida)
-                float speedMultiplier = 1f + (progress * progress * 0.5f);
+                // Aceleramos cuadráticamente la velocidad de scroll (hasta un +90% al final de la partida)
+                float speedMultiplier = 1f + (progress * progress * 0.9f);
                 levelScrollSpeed = baseLevelScrollSpeed * speedMultiplier;
 
                 // Reducimos los tiempos de spawn delay linealmente (hasta un 40% más rápido al final de la partida)
