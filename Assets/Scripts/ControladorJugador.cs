@@ -415,6 +415,7 @@ namespace DeliveryExpress
             // Los vehículos colisionados son letales e ignoran el estado de invulnerabilidad
             if (isCar)
             {
+                Debug.Log($"💥 [COLISIÓN LETAL] Choque con vehículo: {collision.gameObject.name}. ¡Muerte instantánea!");
                 TakeDamage(true); // Muerte instantánea
                 return;
             }
@@ -424,6 +425,14 @@ namespace DeliveryExpress
 
             if (collision.CompareTag("Obstaculo") || obs != null)
             {
+                // Si es un bache (pothole), no resta vidas (solo genera desequilibrio/animación manejada por el obstáculo)
+                if (obs != null && obs.Type == TipoObstaculo.Pothole)
+                {
+                    Debug.Log($"🕳️ [BACHES] Entró en bache: {collision.gameObject.name}. Genera desequilibrio temporal sin restar vidas.");
+                    return;
+                }
+
+                Debug.Log($"⚠️ [COLISIÓN MENOR] Choque con obstáculo: {collision.gameObject.name}. Resta 1 vida. Vidas restantes: {AdministradorJuego.Instance.CurrentLives - 1}");
                 TakeDamage(false);
             }
         }

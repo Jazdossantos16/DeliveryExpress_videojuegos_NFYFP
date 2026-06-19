@@ -58,6 +58,17 @@ namespace DeliveryExpress
         private void Start()
         {
             fondosCacheados = FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
+
+            // Destruir cualquier hamburguesa power-up pre-colocada en la jerarquía de la escena al iniciar
+            GameObject[] prePlacedBurgers = GameObject.FindGameObjectsWithTag("PowerUp");
+            foreach (GameObject burger in prePlacedBurgers)
+            {
+                if (burger != null && burger.scene.name != null)
+                {
+                    Destroy(burger);
+                }
+            }
+
             // Primer hamburguesa aparece entre 15 y 25 segundos desde el inicio
             tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
             // Primer moneda aparece entre 3 y 6 segundos desde el inicio
