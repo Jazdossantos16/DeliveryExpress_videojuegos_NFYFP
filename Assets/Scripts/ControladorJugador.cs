@@ -412,18 +412,10 @@ namespace DeliveryExpress
                         || objName.Contains("car") 
                         || (obs != null && (obs.Type == TipoObstaculo.BlackCar || obs.Type == TipoObstaculo.GreenCar));
 
-            // Los vehículos colisionados son letales e ignoran el estado de invulnerabilidad
-            if (isCar)
-            {
-                Debug.Log($"💥 [COLISIÓN LETAL] Choque con vehículo: {collision.gameObject.name}. ¡Muerte instantánea!");
-                TakeDamage(true); // Muerte instantánea
-                return;
-            }
-
-            // Si el obstáculo es menor (como un cono), el estado invulnerable absorbe el impacto
+            // Si el jugador está invulnerable, absorbe el impacto de cualquier colisión
             if (isInvulnerable) return;
 
-            if (collision.CompareTag("Obstaculo") || obs != null)
+            if (collision.CompareTag("Obstaculo") || obs != null || isCar)
             {
                 // Si es un bache (pothole), no resta vidas (solo genera desequilibrio/animación manejada por el obstáculo)
                 if (obs != null && obs.Type == TipoObstaculo.Pothole)
@@ -432,7 +424,15 @@ namespace DeliveryExpress
                     return;
                 }
 
-                Debug.Log($"⚠️ [COLISIÓN MENOR] Choque con obstáculo: {collision.gameObject.name}. Resta 1 vida. Vidas restantes: {AdministradorJuego.Instance.CurrentLives - 1}");
+                if (isCar)
+                {
+                    Debug.Log($"💥 [COLISIÓN VEHÍCULO] Choque con vehículo: {collision.gameObject.name}. Resta 1 vida. Vidas restantes: {AdministradorJuego.Instance.CurrentLives - 1}");
+                }
+                else
+                {
+                    Debug.Log($"⚠️ [COLISIÓN MENOR] Choque con obstáculo: {collision.gameObject.name}. Resta 1 vida. Vidas restantes: {AdministradorJuego.Instance.CurrentLives - 1}");
+                }
+
                 TakeDamage(false);
             }
         }
