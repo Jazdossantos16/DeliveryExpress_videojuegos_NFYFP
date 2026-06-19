@@ -1440,13 +1440,17 @@ namespace DeliveryExpress.Editor
                 hamburguesaPowerUpField.SetValue(spawner, powerUpPrefab);
             }
 
-            // 5. Crear Prefab de Moneda si no existe
+            // 5. Crear Prefab de Moneda si no existe o tiene escala incorrecta
             string monedaPrefabPath = "Assets/Prefabs/Moneda.prefab";
             GameObject monedaPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(monedaPrefabPath);
-            if (monedaPrefab == null)
+            if (monedaPrefab == null || Mathf.Abs(monedaPrefab.transform.localScale.x - 0.8f) > 0.01f)
             {
+                if (monedaPrefab != null)
+                {
+                    AssetDatabase.DeleteAsset(monedaPrefabPath);
+                }
                 GameObject tempObj = new GameObject("Moneda");
-                tempObj.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
+                tempObj.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
 
                 CircleCollider2D col = tempObj.AddComponent<CircleCollider2D>();
                 col.isTrigger = true;
