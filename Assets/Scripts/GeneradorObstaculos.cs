@@ -133,14 +133,22 @@ namespace DeliveryExpress
 
                 SyncBackgroundSpeeds();
 
-                // Spawn de hamburguesa power-up (temporizador independiente del spawn de obstáculos)
+                // Spawn de hamburguesa power-up (solo si al jugador le falta vida y el temporizador expira)
                 if (hamburguesaPowerUpPrefab != null && !AdministradorJuego.Instance.IsGameOver)
                 {
-                    tiempoParaSiguienteHamburguesa -= Time.deltaTime;
-                    if (tiempoParaSiguienteHamburguesa <= 0f)
+                    if (AdministradorJuego.Instance.CurrentLives >= AdministradorJuego.Instance.StartingLives)
                     {
-                        SpawnHamburguesa();
+                        // Si el jugador ya tiene todas las vidas, mantenemos el temporizador reiniciado
                         tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
+                    }
+                    else
+                    {
+                        tiempoParaSiguienteHamburguesa -= Time.deltaTime;
+                        if (tiempoParaSiguienteHamburguesa <= 0f)
+                        {
+                            SpawnHamburguesa();
+                            tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
+                        }
                     }
                 }
 

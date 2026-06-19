@@ -49,6 +49,8 @@ namespace DeliveryExpress
         public bool IsVictory => isVictory;
         public int CurrentDay => currentDay;
         public float TimeRemaining => timeRemaining;
+        public int CurrentLives => currentLives;
+        public int StartingLives => startingLives;
         public bool IsFinishLineReached { get; set; } = false;
         public float LevelProgress => totalLevelDuration > 0f ? Mathf.Clamp01(1f - (timeRemaining / totalLevelDuration)) : 0f;
 
