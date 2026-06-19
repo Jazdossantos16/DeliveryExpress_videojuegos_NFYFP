@@ -23,6 +23,14 @@ namespace DeliveryExpress
         [SerializeField] private GameObject gameOverPanel;
         [SerializeField] private Sprite loseSprite;
 
+        [Header("Pantalla de Inicio")]
+        [SerializeField] private GameObject startPanel;
+        private static bool skipStartPanel = false;
+
+        [Header("Pantalla de Victoria")]
+        [SerializeField] private GameObject victoryPanel;
+        [SerializeField] private Sprite victorySprite;
+
         private void Awake()
         {
             Instance = this;
@@ -30,7 +38,26 @@ namespace DeliveryExpress
 
         private void Start()
         {
-            Time.timeScale = 1f;
+            if (skipStartPanel)
+            {
+                skipStartPanel = false;
+                if (startPanel != null)
+                {
+                    startPanel.SetActive(false);
+                }
+                Time.timeScale = 1f;
+            }
+            else
+            {
+                if (startPanel != null && startPanel.activeSelf)
+                {
+                    Time.timeScale = 0f; // Pausa el juego mientras esté la pantalla de inicio activa
+                }
+                else
+                {
+                    Time.timeScale = 1f;
+                }
+            }
 
             if (AdministradorJuego.Instance != null)
             {
@@ -78,10 +105,10 @@ namespace DeliveryExpress
 
         private void Update()
         {
-            // Detecta el reinicio (tecla R o click) si terminó la partida
+            // Detecta el reinicio mediante la tecla R
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
             {
-                if (Input.GetKeyDown(KeyCode.R) || Input.GetMouseButtonDown(0))
+                if (Input.GetKeyDown(KeyCode.R))
                 {
                     RestartGame();
                 }
@@ -90,8 +117,26 @@ namespace DeliveryExpress
 
         public void RestartGame()
         {
-            // Carga la escena sin reiniciar el AdministradorJuego para que el fondo siga congelado en la carga
+            skipStartPanel = true;
+            Time.timeScale = 1f; // Asegura restablecer la escala de tiempo
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        public void CargarMenu()
+        {
+            skipStartPanel = false;
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        public void IniciarJuego()
+        {
+            Time.timeScale = 1f; // Reanuda el juego
+            if (startPanel != null)
+            {
+                startPanel.SetActive(false); // Oculta la pantalla de inicio
+            }
+            Debug.Log("✅ Juego Iniciado.");
         }
 
         public void ShowGameOver()
@@ -192,6 +237,29 @@ namespace DeliveryExpress
                     gameOverPanel.SetActive(false);
                 }
             }
+        }
+
+        public void ShowVictory()
+        {
+            if (victoryPanel != null)
+            {
+                victoryPanel.SetActive(true);
+
+                Image img = victoryPanel.GetComponent<Image>();
+                if (img != null && victorySprite != null)
+                {
+                    img.sprite = victorySprite;
+                    img.color = Color.white;
+                }
+            }
+            Time.timeScale = 0f;
+        }
+
+        public void AvanzarSiguienteDia()
+        {
+            skipStartPanel = true;
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 }

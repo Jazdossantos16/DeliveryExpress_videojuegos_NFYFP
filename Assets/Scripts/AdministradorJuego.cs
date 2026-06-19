@@ -76,6 +76,7 @@ namespace DeliveryExpress
             isGameOver = false;
             isVictory = false;
             isGameRunning = true;
+            IsFinishLineReached = false;
 
             // Restablecemos las vidas al iniciar el día
             currentLives = startingLives;
@@ -270,12 +271,19 @@ namespace DeliveryExpress
         private IEnumerator TransitionToUpgradeShop()
         {
             // Esperamos a que la senda peatonal de meta se detenga por completo
-            yield return new WaitForSeconds(4.5f);
+            yield return new WaitUntil(() => IsFinishLineReached);
+            
+            // Esperamos 1 segundo extra para que el jugador celebre la entrega frente a la casa final
+            yield return new WaitForSeconds(1.0f);
             
             // Avanzamos al siguiente día de trabajo
             currentDay++;
             
-            // Cargamos la escena de la tienda
+            // Mostramos la pantalla de victoria
+            if (AdministradorUI.Instance != null)
+            {
+                AdministradorUI.Instance.ShowVictory();
+            }
         }
 
         /// <summary>

@@ -116,10 +116,54 @@ namespace DeliveryExpress.Editor
                     {
                         needsFix = true;
                     }
-                    // Nota: goImg.sprite puede ser null en Edit mode (prefab stripped)
-                    // No validar sprite aquí para evitar rebuild infinito
+                    
+                    if (goPanelObj.transform.Find("BotonIntentoNuevo") == null ||
+                        goPanelObj.transform.Find("BotonMenu") == null)
+                    {
+                        needsFix = true;
+                    }
+                }
+            }
 
-                    if (goPanelObj.GetComponent<Button>() == null)
+            if (!needsFix)
+            {
+                GameObject startPanelObj = GameObject.Find("StartPanel");
+                if (startPanelObj == null)
+                {
+                    needsFix = true;
+                }
+                else
+                {
+                    Image startImg = startPanelObj.GetComponent<Image>();
+                    if (startImg == null)
+                    {
+                        needsFix = true;
+                    }
+                    else if (startPanelObj.transform.Find("BotonJugar") == null ||
+                             startPanelObj.transform.Find("BotonMapa") == null ||
+                             startPanelObj.transform.Find("BotonConfiguracion") == null)
+                    {
+                        needsFix = true;
+                    }
+                }
+            }
+
+            if (!needsFix)
+            {
+                GameObject victoryPanelObj = GameObject.Find("VictoryPanel");
+                if (victoryPanelObj == null)
+                {
+                    needsFix = true;
+                }
+                else
+                {
+                    Image vicImg = victoryPanelObj.GetComponent<Image>();
+                    if (vicImg == null)
+                    {
+                        needsFix = true;
+                    }
+                    else if (victoryPanelObj.transform.Find("BotonSiguiente") == null ||
+                             victoryPanelObj.transform.Find("BotonMenu") == null)
                     {
                         needsFix = true;
                     }
@@ -280,12 +324,11 @@ namespace DeliveryExpress.Editor
             }
         }
 
-        // Removido para no mostrar más el menú "Tools" en la barra de Unity
-        // [MenuItem("Tools/Delivery Express/Rebuild Scene UI")]
-        // public static void SetupNewStreetAndSidewalk()
-        // {
-        //     SetupNewStreetAndSidewalkInternal(false);
-        // }
+        [MenuItem("Tools/Delivery Express/Rebuild Scene UI")]
+        public static void SetupNewStreetAndSidewalk()
+        {
+            SetupNewStreetAndSidewalkInternal(true);
+        }
 
         public static void SetupNewStreetAndSidewalkInternal(bool silent)
         {
@@ -355,6 +398,33 @@ namespace DeliveryExpress.Editor
             // Aplica escala de 1.05x para evitar bordes negros
             Vector3 finalScale = new Vector3(1.05f, 1.05f, 1f);
             scrollScript.Setup(streetSprite, 1.0f, -10, new Vector3(0f, 0f, 0f), finalScale);
+
+            // Cargar sprite de la casa final
+            string finalHousePath = "Assets/sprites/casa_final.png";
+            Sprite finalHouseSprite = null;
+            try
+            {
+                if (System.IO.File.Exists(finalHousePath))
+                {
+                    var subAssets = AssetDatabase.LoadAllAssetsAtPath(finalHousePath);
+                    if (subAssets != null)
+                    {
+                        finalHouseSprite = System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.OfType<Sprite>(subAssets), s => s.name == "casa_final_0");
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning("Error al cargar sprite de casa final: " + ex.Message);
+            }
+
+            var finalHouseField = typeof(CapaParallax).GetField("finalHouseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (finalHouseField != null && finalHouseSprite != null)
+            {
+                finalHouseField.SetValue(scrollScript, finalHouseSprite);
+                EditorUtility.SetDirty(scrollScript);
+                Debug.Log("✅ Sprite de casa final asignado a CapaParallax.");
+            }
 
             GameObject riderObj = FindRiderGameObject();
 
@@ -702,7 +772,7 @@ namespace DeliveryExpress.Editor
             Image panelImage = panelObj.AddComponent<Image>();
 
             // Carga el sprite de derrota
-            string loseSpritePath = "Assets/sprites/portada_perdiste.png";
+            string loseSpritePath = "Assets/sprites/imagen_perdiste.jpg";
             Sprite loseSprite = null;
             try
             {
@@ -729,10 +799,10 @@ namespace DeliveryExpress.Editor
             else
             {
                 panelImage.color = new Color(0f, 0f, 0f, 0.85f);
-                Debug.LogWarning("⚠️ No se encontró 'portada_perdiste.png' para el fondo de derrota, usando fondo oscuro.");
+                Debug.LogWarning("⚠️ No se encontró 'imagen_perdiste.jpg' para el fondo de derrota, usando fondo oscuro.");
             }
 
-            panelObj.AddComponent<Button>();
+            // panelObj.AddComponent<Button>(); // Removido para que solo los botones sean cliqueables
 
             // Texto de fallback si no hay sprite
             GameObject goTextObj = new GameObject("GameOverText", typeof(RectTransform));
@@ -767,6 +837,57 @@ namespace DeliveryExpress.Editor
                 uiManager = canvas.gameObject.AddComponent<AdministradorUI>();
             }
 
+            // Crear los botones interactivos de Reintento y Menú
+            // Botón "Intentar de nuevo" (Abajo a la Derecha)
+            GameObject btnIntentoObj = new GameObject("BotonIntentoNuevo", typeof(RectTransform));
+            RectTransform btnIntentoRect = btnIntentoObj.GetComponent<RectTransform>();
+            btnIntentoRect.SetParent(pRect, false);
+            btnIntentoRect.anchorMin = new Vector2(1f, 0f); // Esquina inferior derecha
+            btnIntentoRect.anchorMax = new Vector2(1f, 0f);
+            btnIntentoRect.pivot = new Vector2(1f, 0f);     // Pivot en esquina inferior derecha
+            btnIntentoRect.anchoredPosition = new Vector2(-100f, 80f); // Separado del borde
+            btnIntentoRect.sizeDelta = new Vector2(300f, 105f); // Tamaño proporcional (390x136 nativo)
+
+            Image btnIntentoImg = btnIntentoObj.AddComponent<Image>();
+            Sprite spIntento = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_intenuevo.png");
+            if (spIntento != null)
+            {
+                btnIntentoImg.sprite = spIntento;
+                btnIntentoImg.color = Color.white;
+            }
+            else
+            {
+                btnIntentoImg.color = Color.gray;
+            }
+
+            Button btnIntento = btnIntentoObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnIntento.onClick, uiManager.RestartGame);
+
+            // Botón "Menú" (Abajo a la Izquierda)
+            GameObject btnMenuObj = new GameObject("BotonMenu", typeof(RectTransform));
+            RectTransform btnMenuRect = btnMenuObj.GetComponent<RectTransform>();
+            btnMenuRect.SetParent(pRect, false);
+            btnMenuRect.anchorMin = new Vector2(0f, 0f); // Esquina inferior izquierda
+            btnMenuRect.anchorMax = new Vector2(0f, 0f);
+            btnMenuRect.pivot = new Vector2(0f, 0f);     // Pivot en esquina inferior izquierda
+            btnMenuRect.anchoredPosition = new Vector2(100f, 80f); // Separado del borde
+            btnMenuRect.sizeDelta = new Vector2(300f, 105f); // Tamaño idéntico proporcional
+
+            Image btnMenuImg = btnMenuObj.AddComponent<Image>();
+            Sprite spMenu = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_menu.png");
+            if (spMenu != null)
+            {
+                btnMenuImg.sprite = spMenu;
+                btnMenuImg.color = Color.white;
+            }
+            else
+            {
+                btnMenuImg.color = Color.gray;
+            }
+
+            Button btnMenu = btnMenuObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnMenu.onClick, uiManager.CargarMenu);
+
             // Asigna los corazones por reflexión
             var heartField = typeof(AdministradorUI).GetField("heartImages", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (heartField != null)
@@ -800,6 +921,227 @@ namespace DeliveryExpress.Editor
 
             Debug.Log("✅ AdministradorUI configurado con corazones, HUD de texto y panel de GameOver.");
 
+            // 7.6 Crear o buscar StartPanel
+            Transform oldStartPanel = canvas.transform.Find("StartPanel");
+            if (oldStartPanel != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldStartPanel.gameObject);
+            }
+
+            GameObject startPanelObj = new GameObject("StartPanel", typeof(RectTransform));
+            RectTransform startPanelRect = startPanelObj.GetComponent<RectTransform>();
+            startPanelRect.SetParent(canvas.transform, false);
+            
+            // Set StartPanel to cover the whole screen
+            startPanelRect.anchorMin = Vector2.zero;
+            startPanelRect.anchorMax = Vector2.one;
+            startPanelRect.sizeDelta = Vector2.zero;
+
+            Image startPanelImage = startPanelObj.AddComponent<Image>();
+
+            // Carga el sprite de inicio
+            string startSpritePath = "Assets/sprites/imagen_inicio.jpg";
+            EnsureIsSprite(startSpritePath);
+            Sprite startSprite = AssetDatabase.LoadAssetAtPath<Sprite>(startSpritePath);
+            if (startSprite != null)
+            {
+                startPanelImage.sprite = startSprite;
+                startPanelImage.color = Color.white;
+                Debug.Log("✅ Pantalla de inicio asignada exitosamente.");
+            }
+            else
+            {
+                startPanelImage.color = new Color(0.1f, 0.1f, 0.1f, 1f);
+                Debug.LogWarning("⚠️ No se encontró 'imagen_inicio.jpg', usando fondo oscuro.");
+            }
+
+            // Asegurarse de que los botones estén importados como Sprites
+            EnsureIsSprite("Assets/sprites/boton_jugar.png");
+            EnsureIsSprite("Assets/sprites/boton_mapa.png");
+            EnsureIsSprite("Assets/sprites/boton_configuracion.png");
+
+            Sprite spriteJugar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_jugar.png");
+            Sprite spriteMapa = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_mapa.png");
+            Sprite spriteConfiguracion = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_configuracion.png");
+
+            // Crear Botón "BotonJugar" (Verde, Y: -50)
+            GameObject btnJugarObj = new GameObject("BotonJugar", typeof(RectTransform));
+            RectTransform btnJugarRect = btnJugarObj.GetComponent<RectTransform>();
+            btnJugarRect.SetParent(startPanelRect, false);
+            btnJugarRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnJugarRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnJugarRect.pivot = new Vector2(0.5f, 0.5f);
+            btnJugarRect.anchoredPosition = new Vector2(0f, -50f);
+            btnJugarRect.sizeDelta = new Vector2(300f, 102f);
+
+            Image btnJugarImg = btnJugarObj.AddComponent<Image>();
+            if (spriteJugar != null)
+            {
+                btnJugarImg.sprite = spriteJugar;
+                btnJugarImg.color = Color.white;
+            }
+            else
+            {
+                btnJugarImg.color = Color.green;
+            }
+
+            Button btnJugar = btnJugarObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnJugar.onClick, uiManager.IniciarJuego);
+
+            // Crear Botón "BotonMapa" (Amarillo, Y: -160)
+            GameObject btnMapaObj = new GameObject("BotonMapa", typeof(RectTransform));
+            RectTransform btnMapaRect = btnMapaObj.GetComponent<RectTransform>();
+            btnMapaRect.SetParent(startPanelRect, false);
+            btnMapaRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnMapaRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnMapaRect.pivot = new Vector2(0.5f, 0.5f);
+            btnMapaRect.anchoredPosition = new Vector2(0f, -160f);
+            btnMapaRect.sizeDelta = new Vector2(300f, 102f);
+
+            Image btnMapaImg = btnMapaObj.AddComponent<Image>();
+            if (spriteMapa != null)
+            {
+                btnMapaImg.sprite = spriteMapa;
+                btnMapaImg.color = Color.white;
+            }
+            else
+            {
+                btnMapaImg.color = Color.yellow;
+            }
+
+            Button btnMapa = btnMapaObj.AddComponent<Button>();
+
+            // Crear Botón "BotonConfiguracion" (Azul, Y: -270)
+            GameObject btnConfigObj = new GameObject("BotonConfiguracion", typeof(RectTransform));
+            RectTransform btnConfigRect = btnConfigObj.GetComponent<RectTransform>();
+            btnConfigRect.SetParent(startPanelRect, false);
+            btnConfigRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnConfigRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnConfigRect.pivot = new Vector2(0.5f, 0.5f);
+            btnConfigRect.anchoredPosition = new Vector2(0f, -270f);
+            btnConfigRect.sizeDelta = new Vector2(300f, 98f);
+
+            Image btnConfigImg = btnConfigObj.AddComponent<Image>();
+            if (spriteConfiguracion != null)
+            {
+                btnConfigImg.sprite = spriteConfiguracion;
+                btnConfigImg.color = Color.white;
+            }
+            else
+            {
+                btnConfigImg.color = Color.blue;
+            }
+
+            Button btnConfig = btnConfigObj.AddComponent<Button>();
+
+            // Asignar el startPanel en el AdministradorUI por reflexión
+            var startPanelField = typeof(AdministradorUI).GetField("startPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (startPanelField != null)
+            {
+                startPanelField.SetValue(uiManager, startPanelObj);
+                EditorUtility.SetDirty(uiManager);
+                Debug.Log("✅ startPanel inyectado en AdministradorUI.");
+            }
+
+            // 7.7 Crear o buscar VictoryPanel
+            Transform oldVictoryPanel = canvas.transform.Find("VictoryPanel");
+            if (oldVictoryPanel != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldVictoryPanel.gameObject);
+            }
+
+            GameObject victoryPanelObj = new GameObject("VictoryPanel", typeof(RectTransform));
+            RectTransform victoryPanelRect = victoryPanelObj.GetComponent<RectTransform>();
+            victoryPanelRect.SetParent(canvas.transform, false);
+            victoryPanelObj.SetActive(false); // Empieza desactivado
+
+            victoryPanelRect.anchorMin = Vector2.zero;
+            victoryPanelRect.anchorMax = Vector2.one;
+            victoryPanelRect.sizeDelta = Vector2.zero;
+
+            Image victoryPanelImage = victoryPanelObj.AddComponent<Image>();
+
+            // Carga el sprite de victoria
+            string victorySpritePath = "Assets/sprites/imagen_ganaste.jpg";
+            EnsureIsSprite(victorySpritePath);
+            Sprite victorySprite = AssetDatabase.LoadAssetAtPath<Sprite>(victorySpritePath);
+            if (victorySprite != null)
+            {
+                victoryPanelImage.sprite = victorySprite;
+                victoryPanelImage.color = Color.white;
+                Debug.Log("✅ Pantalla de victoria asignada exitosamente.");
+            }
+            else
+            {
+                victoryPanelImage.color = new Color(0f, 0.5f, 0f, 0.85f);
+                Debug.LogWarning("⚠️ No se encontró 'imagen_ganaste.jpg', usando fondo verde.");
+            }
+
+            // Crear Botón "Siguiente" (Verde, Jugar, abajo a la derecha)
+            GameObject btnSiguienteObj = new GameObject("BotonSiguiente", typeof(RectTransform));
+            RectTransform btnSiguienteRect = btnSiguienteObj.GetComponent<RectTransform>();
+            btnSiguienteRect.SetParent(victoryPanelRect, false);
+            btnSiguienteRect.anchorMin = new Vector2(1f, 0f); // Esquina inferior derecha
+            btnSiguienteRect.anchorMax = new Vector2(1f, 0f);
+            btnSiguienteRect.pivot = new Vector2(1f, 0f);     // Pivot en esquina inferior derecha
+            btnSiguienteRect.anchoredPosition = new Vector2(-100f, 80f); // Separado del borde
+            btnSiguienteRect.sizeDelta = new Vector2(300f, 102f); // Tamaño proporcional
+
+            Image btnSiguienteImg = btnSiguienteObj.AddComponent<Image>();
+            Sprite spSiguiente = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_jugar.png");
+            if (spSiguiente != null)
+            {
+                btnSiguienteImg.sprite = spSiguiente;
+                btnSiguienteImg.color = Color.white;
+            }
+            else
+            {
+                btnSiguienteImg.color = Color.green;
+            }
+
+            Button btnSiguiente = btnSiguienteObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnSiguiente.onClick, uiManager.AvanzarSiguienteDia);
+
+            // Botón "Menú" (Abajo a la Izquierda, blue Menu button)
+            GameObject btnVicMenuObj = new GameObject("BotonMenu", typeof(RectTransform));
+            RectTransform btnVicMenuRect = btnVicMenuObj.GetComponent<RectTransform>();
+            btnVicMenuRect.SetParent(victoryPanelRect, false);
+            btnVicMenuRect.anchorMin = new Vector2(0f, 0f); // Esquina inferior izquierda
+            btnVicMenuRect.anchorMax = new Vector2(0f, 0f);
+            btnVicMenuRect.pivot = new Vector2(0f, 0f);     // Pivot en esquina inferior izquierda
+            btnVicMenuRect.anchoredPosition = new Vector2(100f, 80f); // Separado del borde
+            btnVicMenuRect.sizeDelta = new Vector2(300f, 105f); // Tamaño proporcional
+
+            Image btnVicMenuImg = btnVicMenuObj.AddComponent<Image>();
+            Sprite spVicMenu = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_menu.png");
+            if (spVicMenu != null)
+            {
+                btnVicMenuImg.sprite = spVicMenu;
+                btnVicMenuImg.color = Color.white;
+            }
+            else
+            {
+                btnVicMenuImg.color = Color.blue;
+            }
+
+            Button btnVicMenu = btnVicMenuObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnVicMenu.onClick, uiManager.CargarMenu);
+
+            // Inyectar referencias en AdministradorUI por reflexión
+            var victoryPanelField = typeof(AdministradorUI).GetField("victoryPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (victoryPanelField != null)
+            {
+                victoryPanelField.SetValue(uiManager, victoryPanelObj);
+                EditorUtility.SetDirty(uiManager);
+            }
+
+            var victorySpriteField = typeof(AdministradorUI).GetField("victorySprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (victorySpriteField != null && victorySprite != null)
+            {
+                victorySpriteField.SetValue(uiManager, victorySprite);
+                EditorUtility.SetDirty(uiManager);
+            }
+
             // Asigna la capa UI de forma recursiva
             int uiLayer = LayerMask.NameToLayer("UI");
             if (uiLayer >= 0)
@@ -808,6 +1150,7 @@ namespace DeliveryExpress.Editor
             }
 
             canvas.gameObject.SetActive(true);
+
 
             // Marca la escena sucia y guarda en disco
             try
