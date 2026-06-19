@@ -40,6 +40,9 @@ namespace DeliveryExpress
         private Text skipText;
         private bool isPlayingVideo = false;
 
+        [Header("UI de Monedas")]
+        [SerializeField] private Text coinsText;
+
         private void Awake()
         {
             Instance = this;
@@ -77,6 +80,7 @@ namespace DeliveryExpress
                 }
 
                 AdministradorJuego.Instance.OnLivesChanged += UpdateLivesUI;
+                AdministradorJuego.Instance.OnCoinsChanged += UpdateCoinsUI;
                 
                 // Busca componentes si no están asignados en el Inspector
                 if (heartImages == null || heartImages.Length == 0)
@@ -96,7 +100,59 @@ namespace DeliveryExpress
                     if (t != null) gameOverPanel = t.gameObject;
                 }
 
+                if (coinsText == null)
+                {
+                    Transform t = transform.Find("Texto_Monedas");
+                    if (t != null)
+                    {
+                        coinsText = t.GetComponent<Text>();
+                        t.gameObject.layer = this.gameObject.layer;
+                    }
+                    else
+                    {
+                        // Crear automáticamente el objeto de texto para monedas en la parte superior derecha
+                        GameObject coinsObj = new GameObject("Texto_Monedas", typeof(RectTransform));
+                        coinsObj.layer = this.gameObject.layer;
+                        coinsObj.transform.SetParent(this.transform, false);
+                        
+                        coinsText = coinsObj.AddComponent<Text>();
+                        
+                        // Copiar fuente de livesText si está disponible, o buscar cualquier texto (incluyendo inactivos)
+                        Text anyText = GetComponentInChildren<Text>(true);
+                        if (anyText != null)
+                        {
+                            coinsText.font = anyText.font;
+                        }
+                        else
+                        {
+                            coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                            if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                        }
+                        
+                        coinsText.fontSize = 24;
+                        coinsText.color = new Color(1f, 0.84f, 0f); // Dorado
+                        coinsText.alignment = TextAnchor.MiddleRight;
+                        
+                        RectTransform rect = coinsObj.GetComponent<RectTransform>();
+                        rect.anchorMin = new Vector2(1f, 1f);
+                        rect.anchorMax = new Vector2(1f, 1f);
+                        rect.pivot = new Vector2(1f, 1f);
+                        rect.anchoredPosition = new Vector2(-35f, -35f); // 35px de margen
+                        rect.sizeDelta = new Vector2(200f, 50f);
+                        
+                        Shadow shadow = coinsObj.AddComponent<Shadow>();
+                        shadow.effectColor = Color.black;
+                        shadow.effectDistance = new Vector2(1f, -1f);
+                    }
+                }
+
+                if (coinsText != null)
+                {
+                    coinsText.gameObject.layer = this.gameObject.layer;
+                }
+
                 UpdateLivesUI(3);
+                UpdateCoinsUI(AdministradorJuego.Instance.Coins);
             }
         }
 
@@ -109,6 +165,7 @@ namespace DeliveryExpress
             if (AdministradorJuego.Instance != null)
             {
                 AdministradorJuego.Instance.OnLivesChanged -= UpdateLivesUI;
+                AdministradorJuego.Instance.OnCoinsChanged -= UpdateCoinsUI;
             }
         }
 
@@ -407,6 +464,14 @@ namespace DeliveryExpress
             skipStartPanel = true;
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        public void UpdateCoinsUI(int coins)
+        {
+            if (coinsText != null)
+            {
+                coinsText.text = "Monedas: " + coins;
+            }
         }
     }
 }

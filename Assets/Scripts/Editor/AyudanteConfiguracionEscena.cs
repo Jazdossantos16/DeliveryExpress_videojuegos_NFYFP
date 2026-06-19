@@ -175,8 +175,15 @@ namespace DeliveryExpress.Editor
                 GameObject canvasObj = GameObject.Find("_Lienzo_UI") ?? GameObject.Find("_UI_Canvas");
                 if (canvasObj != null)
                 {
-                    // Nota: loseSprite puede ser null en Edit mode (serialized ref no cargada)
-                    // No validar sprite aquí para evitar rebuild infinito
+                    Transform tMonedas = canvasObj.transform.Find("Texto_Monedas");
+                    if (tMonedas == null)
+                    {
+                        needsFix = true;
+                    }
+                }
+                else
+                {
+                    needsFix = true;
                 }
             }
 
@@ -201,6 +208,14 @@ namespace DeliveryExpress.Editor
                             needsFix = true;
                         }
                     }
+
+                    // Verificar que los prefabs requeridos estén asignados en el spawner
+                    var monField = typeof(GeneradorObstaculos).GetField("monedaPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var hamField = typeof(GeneradorObstaculos).GetField("hamburguesaPowerUpPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var potField = typeof(GeneradorObstaculos).GetField("potenciadorEnergiaPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (monField != null && monField.GetValue(spawnerObj) == null) needsFix = true;
+                    if (hamField != null && hamField.GetValue(spawnerObj) == null) needsFix = true;
+                    if (potField != null && potField.GetValue(spawnerObj) == null) needsFix = true;
                 }
             }
 
@@ -649,6 +664,12 @@ namespace DeliveryExpress.Editor
                 UnityEngine.Object.DestroyImmediate(oldGameOver.gameObject);
             }
 
+            Transform oldCoinsText = canvas.transform.Find("Texto_Monedas");
+            if (oldCoinsText != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldCoinsText.gameObject);
+            }
+
             GameObject livesContainerObj = new GameObject("Contenedor_Vidas", typeof(RectTransform));
             RectTransform rect = livesContainerObj.GetComponent<RectTransform>();
             rect.SetParent(canvas.transform, false);
@@ -830,6 +851,29 @@ namespace DeliveryExpress.Editor
             goTRect.pivot = new Vector2(0.5f, 0.5f);
             goTRect.anchoredPosition = Vector2.zero;
 
+            // 7.45 Crear el contador de monedas Texto_Monedas
+            GameObject coinsTextObj = new GameObject("Texto_Monedas", typeof(RectTransform));
+            RectTransform coinsRect = coinsTextObj.GetComponent<RectTransform>();
+            coinsRect.SetParent(canvas.transform, false);
+
+            Text coinsText = coinsTextObj.AddComponent<Text>();
+            coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            coinsText.fontSize = 24;
+            coinsText.color = new Color(1f, 0.84f, 0f); // Dorado
+            coinsText.alignment = TextAnchor.MiddleRight;
+            coinsText.text = "Monedas: 0";
+
+            coinsRect.anchorMin = new Vector2(1f, 1f);
+            coinsRect.anchorMax = new Vector2(1f, 1f);
+            coinsRect.pivot = new Vector2(1f, 1f);
+            coinsRect.anchoredPosition = new Vector2(-35f, -35f); // 35px de margen
+            coinsRect.sizeDelta = new Vector2(200f, 50f);
+
+            Shadow coinsShadow = coinsTextObj.AddComponent<Shadow>();
+            coinsShadow.effectColor = Color.black;
+            coinsShadow.effectDistance = new Vector2(1f, -1f);
+
             // 7.5 Configurar el AdministradorUI
             AdministradorUI uiManager = canvas.GetComponent<AdministradorUI>();
             if (uiManager == null)
@@ -888,6 +932,13 @@ namespace DeliveryExpress.Editor
             Button btnMenu = btnMenuObj.AddComponent<Button>();
             UnityEditor.Events.UnityEventTools.AddPersistentListener(btnMenu.onClick, uiManager.CargarMenu);
 
+            var coinsTextField = typeof(AdministradorUI).GetField("coinsText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (coinsTextField != null)
+            {
+                coinsTextField.SetValue(uiManager, coinsText);
+                EditorUtility.SetDirty(uiManager);
+                Debug.Log("✅ coinsText inyectado en AdministradorUI.");
+            }
             // Asigna los corazones por reflexión
             var heartField = typeof(AdministradorUI).GetField("heartImages", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (heartField != null)
@@ -1327,6 +1378,58 @@ namespace DeliveryExpress.Editor
             }
         }
 
+        private static void EnsureSpritesheetSliced(string path, int columns, int rows)
+        {
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            TextureImporter importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer != null)
+            {
+                bool needsReimport = false;
+                if (importer.textureType != TextureImporterType.Sprite || importer.spriteImportMode != SpriteImportMode.Multiple)
+                {
+                    importer.textureType = TextureImporterType.Sprite;
+                    importer.spriteImportMode = SpriteImportMode.Multiple;
+                    needsReimport = true;
+                }
+
+                // Check if already sliced
+                var currentSheet = importer.spritesheet;
+                if (currentSheet == null || currentSheet.Length != columns * rows)
+                {
+                    needsReimport = true;
+                }
+
+                if (needsReimport)
+                {
+                    Texture2D tex = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+                    if (tex != null)
+                    {
+                        int width = tex.width;
+                        int height = tex.height;
+                        int frameWidth = width / columns;
+                        int frameHeight = height / rows;
+                        
+                        SpriteMetaData[] metas = new SpriteMetaData[columns * rows];
+                        int idx = 0;
+                        for (int r = rows - 1; r >= 0; r--) // Unity grid starts from bottom-left
+                        {
+                            for (int c = 0; c < columns; c++)
+                            {
+                                metas[idx] = new SpriteMetaData();
+                                metas[idx].rect = new Rect(c * frameWidth, r * frameHeight, frameWidth, frameHeight);
+                                metas[idx].name = $"{tex.name}_{idx}";
+                                metas[idx].alignment = 0; // Center
+                                idx++;
+                            }
+                        }
+                        importer.spritesheet = metas;
+                        importer.SaveAndReimport();
+                        AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                    }
+                }
+            }
+        }
+
         private static void SetLayerRecursively(GameObject go, int layer)
         {
             if (go == null) return;
@@ -1748,6 +1851,107 @@ namespace DeliveryExpress.Editor
             if (hamburguesaPowerUpField != null && powerUpPrefab != null)
             {
                 hamburguesaPowerUpField.SetValue(spawner, powerUpPrefab);
+            }
+
+            // 5. Crear Prefab de Moneda si no existe o tiene escala incorrecta
+            string monedaPrefabPath = "Assets/Prefabs/Moneda.prefab";
+            GameObject monedaPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(monedaPrefabPath);
+            if (monedaPrefab == null || Mathf.Abs(monedaPrefab.transform.localScale.x - 0.8f) > 0.01f)
+            {
+                if (monedaPrefab != null)
+                {
+                    AssetDatabase.DeleteAsset(monedaPrefabPath);
+                }
+                GameObject tempObj = new GameObject("Moneda");
+                tempObj.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
+
+                CircleCollider2D col = tempObj.AddComponent<CircleCollider2D>();
+                col.isTrigger = true;
+                col.radius = 0.45f;
+
+                SpriteRenderer sr = tempObj.AddComponent<SpriteRenderer>();
+                sr.sortingOrder = 9;
+
+                // Cargar sprite estático de moneda.png
+                EnsureIsSprite("Assets/sprites/moneda.png");
+                Sprite singleCoinSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/moneda.png");
+                sr.sprite = singleCoinSprite;
+
+                Moneda coinScript = tempObj.AddComponent<Moneda>();
+                
+                // Intentar cargar fotogramas de la hoja de animación (8 columnas, 1 fila)
+                EnsureSpritesheetSliced("Assets/sprites/moneda_spritesheet.png", 8, 1);
+                Sprite[] animationFrames = LoadSpritesFromPath("Assets/sprites/moneda_spritesheet.png");
+                if (animationFrames != null && animationFrames.Length > 1)
+                {
+                    var animFramesField = typeof(Moneda).GetField("animationFrames", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (animFramesField != null)
+                    {
+                        animFramesField.SetValue(coinScript, animationFrames);
+                    }
+                }
+
+                monedaPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, monedaPrefabPath);
+                UnityEngine.Object.DestroyImmediate(tempObj);
+                Debug.Log("✅ Prefab de Moneda creado con éxito en Assets/Prefabs.");
+            }
+
+            // Asignar el prefab de moneda al spawner
+            var monedaPrefabField = typeof(GeneradorObstaculos).GetField("monedaPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (monedaPrefabField != null && monedaPrefab != null)
+            {
+                monedaPrefabField.SetValue(spawner, monedaPrefab);
+            }
+
+            // 6. Crear Prefab de Potenciador_Energia si no existe o tiene escala incorrecta
+            string potenciadorPrefabPath = "Assets/Prefabs/Potenciador_Energia.prefab";
+            GameObject potenciadorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(potenciadorPrefabPath);
+            if (potenciadorPrefab == null || Mathf.Abs(potenciadorPrefab.transform.localScale.x - 0.8f) > 0.01f)
+            {
+                if (potenciadorPrefab != null)
+                {
+                    AssetDatabase.DeleteAsset(potenciadorPrefabPath);
+                }
+                GameObject tempObj = new GameObject("Potenciador_Energia");
+                tempObj.tag = "PowerUp";
+                tempObj.transform.localScale = new Vector3(0.8f, 0.8f, 1f);
+
+                CircleCollider2D col = tempObj.AddComponent<CircleCollider2D>();
+                col.isTrigger = true;
+                col.radius = 0.45f;
+
+                SpriteRenderer sr = tempObj.AddComponent<SpriteRenderer>();
+                sr.sortingOrder = 9;
+
+                // Cargar sprite estático de potenciador_energia.png
+                EnsureIsSprite("Assets/sprites/potenciador_energia.png");
+                Sprite singlePowerUpSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/potenciador_energia.png");
+                sr.sprite = singlePowerUpSprite;
+
+                PotenciadorEnergia powerScript = tempObj.AddComponent<PotenciadorEnergia>();
+                
+                // Intentar cargar fotogramas de la hoja de animación (8 columnas, 1 fila)
+                EnsureSpritesheetSliced("Assets/sprites/potenciador_energia_spritesheet.png", 8, 1);
+                Sprite[] animationFrames = LoadSpritesFromPath("Assets/sprites/potenciador_energia_spritesheet.png");
+                if (animationFrames != null && animationFrames.Length > 1)
+                {
+                    var animFramesField = typeof(PotenciadorEnergia).GetField("animationFrames", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (animFramesField != null)
+                    {
+                        animFramesField.SetValue(powerScript, animationFrames);
+                    }
+                }
+
+                potenciadorPrefab = PrefabUtility.SaveAsPrefabAsset(tempObj, potenciadorPrefabPath);
+                UnityEngine.Object.DestroyImmediate(tempObj);
+                Debug.Log("✅ Prefab de Potenciador_Energia creado con éxito en Assets/Prefabs.");
+            }
+
+            // Asignar el prefab de potenciador al spawner
+            var potenciadorPrefabField = typeof(GeneradorObstaculos).GetField("potenciadorEnergiaPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (potenciadorPrefabField != null && potenciadorPrefab != null)
+            {
+                potenciadorPrefabField.SetValue(spawner, potenciadorPrefab);
             }
 
             EditorUtility.SetDirty(spawner);

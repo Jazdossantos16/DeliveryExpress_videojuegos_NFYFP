@@ -3,26 +3,34 @@ using UnityEngine;
 namespace DeliveryExpress
 {
     /// <summary>
-    /// Hamburguesa coleccionable que aparece en la calle y restaura 1 vida al jugador.
+    /// Moneda coleccionable que aparece en la calle y suma 1 moneda al contador.
     /// Se mueve hacia abajo como el tráfico y desaparece al ser recogida o salir de pantalla.
+    /// Soporta animación por sprites.
     /// </summary>
-    public class HamburguesaVida : MonoBehaviour
+    public class Moneda : MonoBehaviour
     {
         [Header("Movimiento")]
         [SerializeField] private float scrollSpeed = 5f;
 
-        [Header("Efectos")]
-        [SerializeField] private float bobAmplitude = 0.12f;   // amplitud del efecto de flotación
-        [SerializeField] private float bobFrequency = 2.5f;    // frecuencia del efecto de flotación
-        [SerializeField] private float rotationSpeed = 60f;    // grados por segundo de rotación
+        [Header("Animación por Sprites")]
+        [SerializeField] private Sprite[] animationFrames;
+        [SerializeField] private float frameRate = 0.1f;
 
-        private float baseY;
-        private float timeOffset;
+        private SpriteRenderer spriteRenderer;
+        private int currentFrameIndex;
+        private float timer;
 
         private void Start()
         {
-            baseY = transform.position.y;
-            timeOffset = Random.Range(0f, Mathf.PI * 2f);
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            
+            // Si el objeto no tiene BoxCollider2D, lo creamos y lo configuramos como Trigger
+            BoxCollider2D col = GetComponent<BoxCollider2D>();
+            if (col == null)
+            {
+                col = gameObject.AddComponent<BoxCollider2D>();
+            }
+            col.isTrigger = true;
         }
 
         private void Update()
@@ -37,16 +45,17 @@ namespace DeliveryExpress
             float finalSpeed = Obstaculo.GlobalStreetScrollSpeed * speedMultiplier;
             transform.position += Vector3.down * finalSpeed * Time.deltaTime;
 
-            // Efecto flotante suave
-            float bobOffset = Mathf.Sin((Time.time + timeOffset) * bobFrequency) * bobAmplitude;
-            transform.position = new Vector3(
-                transform.position.x,
-                transform.position.y,
-                transform.position.z
-            );
-
-            // Rotación visual
-            transform.Rotate(0f, 0f, rotationSpeed * Time.deltaTime);
+            // Animación frame a frame
+            if (animationFrames != null && animationFrames.Length > 0 && spriteRenderer != null)
+            {
+                timer += Time.deltaTime;
+                if (timer >= frameRate)
+                {
+                    timer -= frameRate;
+                    currentFrameIndex = (currentFrameIndex + 1) % animationFrames.Length;
+                    spriteRenderer.sprite = animationFrames[currentFrameIndex];
+                }
+            }
 
             // Destruir si sale de pantalla por abajo
             if (transform.position.y < -10f)
@@ -69,7 +78,7 @@ namespace DeliveryExpress
             {
                 if (AdministradorJuego.Instance != null)
                 {
-                    AdministradorJuego.Instance.GainLife();
+                    AdministradorJuego.Instance.AddCoins(1);
                 }
                 Destroy(gameObject);
             }

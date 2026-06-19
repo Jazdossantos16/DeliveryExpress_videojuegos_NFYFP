@@ -23,6 +23,7 @@ namespace DeliveryExpress
         // Variables de juego en tiempo real
         private int currentLives;
         private float timeRemaining;
+        private float totalLevelDuration = 60f;
         private int coinsAccumulated = 0;
         private int activeOrders = 0;
         private int totalDeliveriesRequired = 0;
@@ -48,7 +49,10 @@ namespace DeliveryExpress
         public bool IsVictory => isVictory;
         public int CurrentDay => currentDay;
         public float TimeRemaining => timeRemaining;
+        public int CurrentLives => currentLives;
+        public int StartingLives => startingLives;
         public bool IsFinishLineReached { get; set; } = false;
+        public float LevelProgress => totalLevelDuration > 0f ? Mathf.Clamp01(1f - (timeRemaining / totalLevelDuration)) : 0f;
 
         private void Awake()
         {
@@ -83,7 +87,8 @@ namespace DeliveryExpress
             
             baseLevelDuration = 60f;
             // Sumamos el tiempo de las mejoras adquiridas
-            timeRemaining = baseLevelDuration + extraTimeUpgrade;
+            totalLevelDuration = baseLevelDuration + extraTimeUpgrade;
+            timeRemaining = totalLevelDuration;
 
             // No hay entregas intermedias en este modo
             totalDeliveriesRequired = 0;
