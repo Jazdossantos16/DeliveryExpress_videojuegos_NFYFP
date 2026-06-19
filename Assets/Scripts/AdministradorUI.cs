@@ -26,6 +26,23 @@ namespace DeliveryExpress
         [Header("UI de Monedas")]
         [SerializeField] private Text coinsText;
 
+        [Header("Pantalla de Inicio")]
+        [SerializeField] private GameObject startPanel;
+        private static bool skipStartPanel = false;
+
+        [Header("Pantalla de Victoria")]
+        [SerializeField] private GameObject victoryPanel;
+        [SerializeField] private Sprite victorySprite;
+
+        [Header("Configuración de Video Intro")]
+        [SerializeField] private UnityEngine.Video.VideoClip introVideoClip;
+
+        private UnityEngine.Video.VideoPlayer videoPlayer;
+        private RenderTexture videoTexture;
+        private RawImage videoRawImage;
+        private Text skipText;
+        private bool isPlayingVideo = false;
+
         private void Awake()
         {
             Instance = this;
@@ -33,7 +50,26 @@ namespace DeliveryExpress
 
         private void Start()
         {
-            Time.timeScale = 1f;
+            if (skipStartPanel)
+            {
+                skipStartPanel = false;
+                if (startPanel != null)
+                {
+                    startPanel.SetActive(false);
+                }
+                Time.timeScale = 1f;
+            }
+            else
+            {
+                if (startPanel != null && startPanel.activeSelf)
+                {
+                    Time.timeScale = 0f; // Pausa el juego mientras esté la pantalla de inicio activa
+                }
+                else
+                {
+                    Time.timeScale = 1f;
+                }
+            }
 
             if (AdministradorJuego.Instance != null)
             {
@@ -135,10 +171,19 @@ namespace DeliveryExpress
 
         private void Update()
         {
-            // Detecta el reinicio (tecla R o click) si terminó la partida
+            if (isPlayingVideo)
+            {
+                if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
+                {
+                    FinalizarIntroVideo();
+                    return;
+                }
+            }
+
+            // Detecta el reinicio mediante la tecla R
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver)
             {
-                if (Input.GetKeyDown(KeyCode.R) || Input.GetMouseButtonDown(0))
+                if (Input.GetKeyDown(KeyCode.R))
                 {
                     RestartGame();
                 }
@@ -147,8 +192,155 @@ namespace DeliveryExpress
 
         public void RestartGame()
         {
-            // Carga la escena sin reiniciar el AdministradorJuego para que el fondo siga congelado en la carga
+            skipStartPanel = true;
+            Time.timeScale = 1f; // Asegura restablecer la escala de tiempo
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        public void CargarMenu()
+        {
+            skipStartPanel = false;
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        public void IniciarJuego()
+        {
+            if (introVideoClip != null)
+            {
+                PlayIntroVideo();
+            }
+            else
+            {
+                ComenzarPartidaReal();
+            }
+        }
+
+        private void PlayIntroVideo()
+        {
+            isPlayingVideo = true;
+            Time.timeScale = 0f; // Asegurar que el juego esté pausado
+
+            // Ocultamos la pantalla de inicio
+            if (startPanel != null)
+            {
+                startPanel.SetActive(false);
+            }
+
+            // Creamos un objeto UI para mostrar el video
+            GameObject videoGo = new GameObject("IntroVideo_RawImage");
+            videoGo.transform.SetParent(transform, false); // transform es el Canvas
+            videoGo.transform.SetAsLastSibling(); // Poner al frente
+
+            videoRawImage = videoGo.AddComponent<RawImage>();
+            videoRawImage.color = Color.white;
+            
+            // Configurar RectTransform a pantalla completa
+            RectTransform rect = videoRawImage.rectTransform;
+            rect.anchorMin = new Vector2(0f, 0f);
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            // Crear RenderTexture dinámico
+            videoTexture = new RenderTexture(1920, 1080, 16, RenderTextureFormat.ARGB32);
+            videoTexture.Create();
+            videoRawImage.texture = videoTexture;
+
+            // Agregar VideoPlayer
+            videoPlayer = videoGo.AddComponent<UnityEngine.Video.VideoPlayer>();
+            videoPlayer.playOnAwake = false;
+            videoPlayer.source = UnityEngine.Video.VideoSource.VideoClip;
+            videoPlayer.clip = introVideoClip;
+            videoPlayer.renderMode = UnityEngine.Video.VideoRenderMode.RenderTexture;
+            videoPlayer.targetTexture = videoTexture;
+            
+            // Configurar audio
+            videoPlayer.audioOutputMode = UnityEngine.Video.VideoAudioOutputMode.Direct;
+            
+            // Suscribirse al evento de finalización
+            videoPlayer.loopPointReached += AlTerminarVideo;
+
+            // Agregar texto de Skip
+            GameObject skipTextGo = new GameObject("IntroVideo_SkipText");
+            skipTextGo.transform.SetParent(videoGo.transform, false);
+            skipText = skipTextGo.AddComponent<Text>();
+            
+            // Cargar una fuente estándar
+            Font standardFont = null;
+            Text existingText = GetComponentInChildren<Text>(true);
+            if (existingText != null)
+            {
+                standardFont = existingText.font;
+            }
+            if (standardFont == null)
+            {
+                standardFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            }
+            if (standardFont == null)
+            {
+                standardFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            }
+            skipText.font = standardFont;
+            
+            skipText.text = "Presiona ESPACIO para omitir";
+            skipText.fontSize = 24;
+            skipText.alignment = TextAnchor.LowerRight;
+            skipText.color = new Color(1f, 1f, 1f, 0.7f);
+            
+            // Configurar RectTransform para el texto en la esquina inferior derecha
+            RectTransform skipRect = skipText.rectTransform;
+            skipRect.anchorMin = new Vector2(0.5f, 0f);
+            skipRect.anchorMax = new Vector2(1f, 0.2f);
+            skipRect.pivot = new Vector2(1f, 0f);
+            skipRect.anchoredPosition = new Vector2(-40f, 40f);
+            skipRect.sizeDelta = new Vector2(400f, 50f);
+
+            // Iniciar reproducción
+            videoPlayer.Play();
+            Debug.Log("🎬 Reproduciendo video de intro: " + introVideoClip.name);
+        }
+
+        private void AlTerminarVideo(UnityEngine.Video.VideoPlayer vp)
+        {
+            FinalizarIntroVideo();
+        }
+
+        private void FinalizarIntroVideo()
+        {
+            if (!isPlayingVideo) return;
+            isPlayingVideo = false;
+
+            if (videoPlayer != null)
+            {
+                videoPlayer.loopPointReached -= AlTerminarVideo;
+            }
+
+            // Destruir elementos del video
+            if (videoRawImage != null)
+            {
+                Destroy(videoRawImage.gameObject);
+            }
+
+            if (videoTexture != null)
+            {
+                videoTexture.Release();
+                Destroy(videoTexture);
+            }
+
+            Debug.Log("🎬 Video de intro finalizado o salteado.");
+            ComenzarPartidaReal();
+        }
+
+        private void ComenzarPartidaReal()
+        {
+            Time.timeScale = 1f; // Reanuda el juego
+            if (startPanel != null)
+            {
+                startPanel.SetActive(false); // Oculta la pantalla de inicio
+            }
+            Debug.Log("✅ Juego Iniciado.");
         }
 
         public void ShowGameOver()
@@ -257,6 +449,29 @@ namespace DeliveryExpress
             {
                 coinsText.text = "Monedas: " + coins;
             }
+        }
+
+        public void ShowVictory()
+        {
+            if (victoryPanel != null)
+            {
+                victoryPanel.SetActive(true);
+
+                Image img = victoryPanel.GetComponent<Image>();
+                if (img != null && victorySprite != null)
+                {
+                    img.sprite = victorySprite;
+                    img.color = Color.white;
+                }
+            }
+            Time.timeScale = 0f;
+        }
+
+        public void AvanzarSiguienteDia()
+        {
+            skipStartPanel = true;
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 }
