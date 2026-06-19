@@ -448,14 +448,14 @@ namespace DeliveryExpress
 
                 if (isCar)
                 {
-                    Debug.Log($"💥 [COLISIÓN VEHÍCULO] Choque con vehículo: {collision.gameObject.name}. Resta 1 vida. Vidas restantes: {AdministradorJuego.Instance.CurrentLives - 1}");
+                    Debug.Log($"💥 [COLISIÓN VEHÍCULO] Choque con vehículo: {collision.gameObject.name}. Muerte instantánea.");
+                    TakeDamage(true);
                 }
                 else
                 {
                     Debug.Log($"⚠️ [COLISIÓN MENOR] Choque con obstáculo: {collision.gameObject.name}. Resta 1 vida. Vidas restantes: {AdministradorJuego.Instance.CurrentLives - 1}");
+                    TakeDamage(false);
                 }
-
-                TakeDamage(false);
             }
         }
 
