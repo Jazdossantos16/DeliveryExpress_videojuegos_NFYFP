@@ -28,6 +28,15 @@ namespace DeliveryExpress
         [Header("Sprites de Casas (Entorno Vereda)")]
         [SerializeField] private Sprite[] houseSprites;
 
+        [Header("Monedas")]
+        [SerializeField] private GameObject monedaPrefab;
+        [SerializeField] private float minTiempoEntreMonedas = 4f;
+        [SerializeField] private float maxTiempoEntreMonedas = 7f;
+        [SerializeField] private int minMonedasPorFila = 3;
+        [SerializeField] private int maxMonedasPorFila = 5;
+
+        private float tiempoParaSiguienteMoneda = 0f;
+
         [Header("Configuración de Carriles (Posiciones X)")]
         [SerializeField] private float[] lanePositionsX = new float[] { -4f, 0f, 4f }; // Izquierdo, Centro, Derecho
         [SerializeField] private float spawnYPosition = 12f; // Posición de entrada superior en pantalla
@@ -51,6 +60,8 @@ namespace DeliveryExpress
             fondosCacheados = FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
             // Primer hamburguesa aparece entre 15 y 25 segundos desde el inicio
             tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
+            // Primer moneda aparece entre 3 y 6 segundos desde el inicio
+            tiempoParaSiguienteMoneda = Random.Range(minTiempoEntreMonedas, maxTiempoEntreMonedas);
             StartCoroutine(SpawnRoutine());
         }
 
@@ -130,6 +141,17 @@ namespace DeliveryExpress
                     {
                         SpawnHamburguesa();
                         tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
+                    }
+                }
+
+                // Spawn de monedas (temporizador independiente)
+                if (monedaPrefab != null && !AdministradorJuego.Instance.IsGameOver)
+                {
+                    tiempoParaSiguienteMoneda -= Time.deltaTime;
+                    if (tiempoParaSiguienteMoneda <= 0f)
+                    {
+                        SpawnMonedaRow();
+                        tiempoParaSiguienteMoneda = Random.Range(minTiempoEntreMonedas, maxTiempoEntreMonedas);
                     }
                 }
             }
@@ -331,6 +353,36 @@ namespace DeliveryExpress
             }
 
             Debug.Log($"🍔 Hamburguesa power-up generada en carril {randomLane} (x={spawnX:F2})");
+        }
+
+        /// <summary>
+        /// Genera una fila vertical de monedas en un carril aleatorio libre.
+        /// </summary>
+        private void SpawnMonedaRow()
+        {
+            if (monedaPrefab == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
+
+            // Elegir carril aleatorio
+            int randomLane = Random.Range(0, lanePositionsX.Length);
+            float spawnX = lanePositionsX[randomLane];
+
+            // Cantidad de monedas en la fila
+            int count = Random.Range(minMonedasPorFila, maxMonedasPorFila + 1);
+
+            // Spawneamos las monedas una tras otra separadas verticalmente
+            float spacingY = 1.4f;
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 spawnPos = new Vector3(spawnX, spawnYPosition + (i * spacingY), 0f);
+                GameObject coinObj = Instantiate(monedaPrefab, spawnPos, Quaternion.identity);
+                Moneda coinComponent = coinObj.GetComponent<Moneda>();
+                if (coinComponent != null)
+                {
+                    coinComponent.SetScrollSpeed(levelScrollSpeed);
+                }
+            }
+
+            Debug.Log($"🪙 Fila de {count} monedas generada en carril {randomLane} (x={spawnX:F2})");
         }
 
         private void SpawnTrafficWave()

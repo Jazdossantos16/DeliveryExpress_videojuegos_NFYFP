@@ -23,6 +23,9 @@ namespace DeliveryExpress
         [SerializeField] private GameObject gameOverPanel;
         [SerializeField] private Sprite loseSprite;
 
+        [Header("UI de Monedas")]
+        [SerializeField] private Text coinsText;
+
         private void Awake()
         {
             Instance = this;
@@ -41,6 +44,7 @@ namespace DeliveryExpress
                 }
 
                 AdministradorJuego.Instance.OnLivesChanged += UpdateLivesUI;
+                AdministradorJuego.Instance.OnCoinsChanged += UpdateCoinsUI;
                 
                 // Busca componentes si no están asignados en el Inspector
                 if (heartImages == null || heartImages.Length == 0)
@@ -60,7 +64,52 @@ namespace DeliveryExpress
                     if (t != null) gameOverPanel = t.gameObject;
                 }
 
+                if (coinsText == null)
+                {
+                    Transform t = transform.Find("Texto_Monedas");
+                    if (t != null)
+                    {
+                        coinsText = t.GetComponent<Text>();
+                    }
+                    else
+                    {
+                        // Crear automáticamente el objeto de texto para monedas en la parte superior derecha
+                        GameObject coinsObj = new GameObject("Texto_Monedas");
+                        coinsObj.transform.SetParent(this.transform, false);
+                        
+                        coinsText = coinsObj.AddComponent<Text>();
+                        
+                        // Copiar fuente de livesText si está disponible, o buscar cualquier texto
+                        Text anyText = GetComponentInChildren<Text>();
+                        if (anyText != null)
+                        {
+                            coinsText.font = anyText.font;
+                        }
+                        else
+                        {
+                            coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                            if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                        }
+                        
+                        coinsText.fontSize = 24;
+                        coinsText.color = new Color(1f, 0.84f, 0f); // Dorado
+                        coinsText.alignment = TextAnchor.MiddleRight;
+                        
+                        RectTransform rect = coinsObj.GetComponent<RectTransform>();
+                        rect.anchorMin = new Vector2(1f, 1f);
+                        rect.anchorMax = new Vector2(1f, 1f);
+                        rect.pivot = new Vector2(1f, 1f);
+                        rect.anchoredPosition = new Vector2(-35f, -35f); // 35px de margen
+                        rect.sizeDelta = new Vector2(200f, 50f);
+                        
+                        Shadow shadow = coinsObj.AddComponent<Shadow>();
+                        shadow.shadowColor = Color.black;
+                        shadow.shadowOffset = new Vector2(1f, -1f);
+                    }
+                }
+
                 UpdateLivesUI(3);
+                UpdateCoinsUI(AdministradorJuego.Instance.Coins);
             }
         }
 
@@ -73,6 +122,7 @@ namespace DeliveryExpress
             if (AdministradorJuego.Instance != null)
             {
                 AdministradorJuego.Instance.OnLivesChanged -= UpdateLivesUI;
+                AdministradorJuego.Instance.OnCoinsChanged -= UpdateCoinsUI;
             }
         }
 
@@ -191,6 +241,14 @@ namespace DeliveryExpress
                 {
                     gameOverPanel.SetActive(false);
                 }
+            }
+        }
+
+        public void UpdateCoinsUI(int coins)
+        {
+            if (coinsText != null)
+            {
+                coinsText.text = "Monedas: " + coins;
             }
         }
     }
