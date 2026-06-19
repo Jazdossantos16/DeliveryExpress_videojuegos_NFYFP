@@ -31,9 +31,6 @@ namespace DeliveryExpress
         [SerializeField] private GameObject victoryPanel;
         [SerializeField] private Sprite victorySprite;
 
-        [Header("Configuración de Video Intro")]
-        [SerializeField] private UnityEngine.Video.VideoClip introVideoClip;
-
         private UnityEngine.Video.VideoPlayer videoPlayer;
         private RenderTexture videoTexture;
         private RawImage videoRawImage;
@@ -305,7 +302,7 @@ namespace DeliveryExpress
 
             // Iniciar reproducción
             videoPlayer.Play();
-            Debug.Log("🎬 Reproduciendo video de intro: " + introVideoClip.name);
+            Debug.Log("🎬 Reproduciendo video de intro.");
         }
 
         private void AlTerminarVideo(UnityEngine.Video.VideoPlayer vp)
