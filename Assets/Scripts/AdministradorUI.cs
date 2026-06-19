@@ -206,14 +206,20 @@ namespace DeliveryExpress
 
         public void IniciarJuego()
         {
-            if (introVideoClip != null)
+#if UNITY_WEBGL && !UNITY_EDITOR
+            PlayIntroVideo();
+#else
+            string videoPath = System.IO.Path.Combine(Application.streamingAssetsPath, "videojuego_prueba_202606182214.mp4");
+            if (System.IO.File.Exists(videoPath))
             {
                 PlayIntroVideo();
             }
             else
             {
+                Debug.LogWarning("⚠️ No se encontró el video de intro en StreamingAssets: " + videoPath);
                 ComenzarPartidaReal();
             }
+#endif
         }
 
         private void PlayIntroVideo()
