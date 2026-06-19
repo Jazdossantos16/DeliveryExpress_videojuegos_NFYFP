@@ -24,6 +24,7 @@ namespace DeliveryExpress
 
 
         private static float globalStreetScrollSpeed = 4f; // Velocidad del scroll de la calle
+        public static float GlobalStreetScrollSpeed => globalStreetScrollSpeed;
         private float destroyYBound = -10f;       // Límite inferior para reciclar/destruir el objeto
 
         private Vector2 movementDirection = Vector2.down;

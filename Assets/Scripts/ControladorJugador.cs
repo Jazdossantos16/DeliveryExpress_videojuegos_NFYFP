@@ -225,7 +225,17 @@ namespace DeliveryExpress
             float activeSpeedPenalty = weightSpeedPenalty * backpackUpgradeFactor;
             float speedMultiplier = Mathf.Max(0.3f, 1f - (currentOrders * activeSpeedPenalty));
             
-            float currentLateralSpeed = laneTransitionSpeed * speedUpgradeFactor * speedMultiplier;
+            // Escalamos sutilmente la velocidad lateral según la velocidad actual del scroll para mantener el control responsivo
+            float currentScrollSpeed = Obstaculo.GlobalStreetScrollSpeed;
+            float baseReferenceSpeed = 5.0f;
+            float speedScale = 1f;
+            if (baseReferenceSpeed > 0f && currentScrollSpeed > baseReferenceSpeed)
+            {
+                // Aumenta hasta un 40% la respuesta lateral a máxima velocidad
+                speedScale = Mathf.Lerp(1f, 1.4f, (currentScrollSpeed - baseReferenceSpeed) / baseReferenceSpeed);
+            }
+            
+            float currentLateralSpeed = laneTransitionSpeed * speedUpgradeFactor * speedMultiplier * speedScale;
 
             float targetLaneX = lanePositionsX[currentLaneIndex];
 
@@ -371,7 +381,12 @@ namespace DeliveryExpress
                 animator.SetInteger(StateHash, 0);
             }
 
-            animator.speed = IsBraking ? 0.5f : 1f;
+            // Escalar la velocidad del animator con la velocidad global de scroll
+            float currentScrollSpeedAnim = Obstaculo.GlobalStreetScrollSpeed;
+            float baseReferenceSpeedAnim = 5.0f; // Velocidad base de referencia (día 1)
+            float speedRatioAnim = baseReferenceSpeedAnim > 0f ? (currentScrollSpeedAnim / baseReferenceSpeedAnim) : 1f;
+
+            animator.speed = (IsBraking ? 0.5f : 1f) * speedRatioAnim;
         }
 
         /// Ejecuta la secuencia de animación de entrega cuando pasa cerca del cliente

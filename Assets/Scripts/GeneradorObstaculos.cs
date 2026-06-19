@@ -42,6 +42,10 @@ namespace DeliveryExpress
         private bool canSpawn = true;
         private float tiempoParaSiguienteHamburguesa = 0f;
 
+        private float baseLevelScrollSpeed = 5f;
+        private float baseMinSpawnDelay = 1.8f;
+        private float baseMaxSpawnDelay = 3.5f;
+
         private void Start()
         {
             fondosCacheados = FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
@@ -105,10 +109,17 @@ namespace DeliveryExpress
             // Incremento progresivo de velocidad durante la partida
             if (AdministradorJuego.Instance != null && !AdministradorJuego.Instance.IsGameOver)
             {
-                float speedIncrement = 0.05f * Time.deltaTime; // Aumenta 3.0 unidades por minuto
-                levelScrollSpeed += speedIncrement;
-                minSpawnDelay = Mathf.Max(0.4f, minSpawnDelay - (speedIncrement * 0.1f));
-                maxSpawnDelay = Mathf.Max(0.7f, maxSpawnDelay - (speedIncrement * 0.1f));
+                float progress = AdministradorJuego.Instance.LevelProgress;
+
+                // Aceleramos cuadráticamente la velocidad de scroll (hasta un +50% al final de la partida)
+                float speedMultiplier = 1f + (progress * progress * 0.5f);
+                levelScrollSpeed = baseLevelScrollSpeed * speedMultiplier;
+
+                // Reducimos los tiempos de spawn delay linealmente (hasta un 40% más rápido al final de la partida)
+                float spawnDelayMultiplier = Mathf.Lerp(1f, 0.6f, progress);
+                minSpawnDelay = Mathf.Max(0.4f, baseMinSpawnDelay * spawnDelayMultiplier);
+                maxSpawnDelay = Mathf.Max(0.7f, baseMaxSpawnDelay * spawnDelayMultiplier);
+
                 SyncBackgroundSpeeds();
 
                 // Spawn de hamburguesa power-up (temporizador independiente del spawn de obstáculos)
@@ -557,22 +568,26 @@ namespace DeliveryExpress
             // Jornadas finales: Máxima presión, más tráfico, mayor velocidad del scroll.
             if (day == 1)
             {
-                levelScrollSpeed = 5.0f;
-                minSpawnDelay = 1.3f;
-                maxSpawnDelay = 2.2f;
+                baseLevelScrollSpeed = 5.0f;
+                baseMinSpawnDelay = 1.3f;
+                baseMaxSpawnDelay = 2.2f;
             }
             else if (day >= 2 && day <= 4)
             {
-                levelScrollSpeed = 6.5f;
-                minSpawnDelay = 1.0f;
-                maxSpawnDelay = 1.8f;
+                baseLevelScrollSpeed = 6.5f;
+                baseMinSpawnDelay = 1.0f;
+                baseMaxSpawnDelay = 1.8f;
             }
             else // Jornadas finales (Day >= 5)
             {
-                levelScrollSpeed = 8.0f;
-                minSpawnDelay = 0.8f;
-                maxSpawnDelay = 1.4f;
+                baseLevelScrollSpeed = 8.0f;
+                baseMinSpawnDelay = 0.8f;
+                baseMaxSpawnDelay = 1.4f;
             }
+
+            levelScrollSpeed = baseLevelScrollSpeed;
+            minSpawnDelay = baseMinSpawnDelay;
+            maxSpawnDelay = baseMaxSpawnDelay;
 
             SyncBackgroundSpeeds();
         }
