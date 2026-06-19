@@ -279,18 +279,18 @@ namespace DeliveryExpress
                 float currentMinDelay = minSpawnDelay;
                 float currentMaxDelay = maxSpawnDelay;
 
-                // Reducimos los tiempos de espera a medida que avanzan los días para aumentar la densidad del tráfico
+                // Reducimos los tiempos de espera de forma moderada a medida que avanzan los días para aumentar la densidad del tráfico
                 if (AdministradorJuego.Instance != null)
                 {
                     int day = AdministradorJuego.Instance.CurrentDay;
-                    float difficultyFactor = Mathf.Clamp(1f - ((day - 1) * 0.12f), 0.45f, 1f);
+                    float difficultyFactor = Mathf.Clamp(1f - ((day - 1) * 0.05f), 0.8f, 1f);
                     currentMinDelay *= difficultyFactor;
                     currentMaxDelay *= difficultyFactor;
                 }
 
                 // ACELERACIÓN PROGRESIVA: Partidas de 60 segundos.
-                // Reducimos el tiempo de espera hasta la mitad (0.5x) al final de la jornada.
-                float inGameTimeFactor = Mathf.Clamp(1f - (timeElapsed / 60f), 0.5f, 1f);
+                // Reducimos el tiempo de espera hasta un 0.65x al final de la jornada.
+                float inGameTimeFactor = Mathf.Clamp(1f - (timeElapsed / 60f), 0.65f, 1f);
                 currentMinDelay *= inGameTimeFactor;
                 currentMaxDelay *= inGameTimeFactor;
 
@@ -424,8 +424,8 @@ namespace DeliveryExpress
             // Si todos los carriles están ocupados (o hay peligro de choque), cancelamos el spawn esta vez
             if (availableLaneIndices.Count == 0) return;
 
-            // Decidir cuántos autos spawnear
-            int spawnCount = hasConesOnScreen ? 1 : Random.Range(1, 3);
+            // Decidir cuántos autos spawnear (85% de probabilidad de 1 auto, 15% de 2 autos)
+            int spawnCount = hasConesOnScreen ? 1 : (Random.value < 0.15f ? 2 : 1);
             if (spawnCount > availableLaneIndices.Count) spawnCount = availableLaneIndices.Count;
 
             bool spawnedConeInThisWave = false;
@@ -621,20 +621,20 @@ namespace DeliveryExpress
             if (day == 1)
             {
                 baseLevelScrollSpeed = 5.0f;
-                baseMinSpawnDelay = 1.3f;
-                baseMaxSpawnDelay = 2.2f;
+                baseMinSpawnDelay = 1.8f;
+                baseMaxSpawnDelay = 2.8f;
             }
             else if (day >= 2 && day <= 4)
             {
                 baseLevelScrollSpeed = 6.5f;
-                baseMinSpawnDelay = 1.0f;
-                baseMaxSpawnDelay = 1.8f;
+                baseMinSpawnDelay = 1.4f;
+                baseMaxSpawnDelay = 2.2f;
             }
             else // Jornadas finales (Day >= 5)
             {
                 baseLevelScrollSpeed = 8.0f;
-                baseMinSpawnDelay = 0.8f;
-                baseMaxSpawnDelay = 1.4f;
+                baseMinSpawnDelay = 1.1f;
+                baseMaxSpawnDelay = 1.7f;
             }
 
             levelScrollSpeed = baseLevelScrollSpeed;
