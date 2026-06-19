@@ -37,6 +37,13 @@ namespace DeliveryExpress
 
         private float tiempoParaSiguienteMoneda = 0f;
 
+        [Header("Potenciador de Velocidad (Rayo)")]
+        [SerializeField] private GameObject potenciadorEnergiaPrefab;
+        [SerializeField] private float minTiempoEntrePotenciadores = 15f;
+        [SerializeField] private float maxTiempoEntrePotenciadores = 30f;
+
+        private float tiempoParaSiguientePotenciador = 0f;
+
         [Header("Configuración de Carriles (Posiciones X)")]
         [SerializeField] private float[] lanePositionsX = new float[] { -4f, 0f, 4f }; // Izquierdo, Centro, Derecho
         [SerializeField] private float spawnYPosition = 12f; // Posición de entrada superior en pantalla
@@ -73,6 +80,8 @@ namespace DeliveryExpress
             tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
             // Primer moneda aparece entre 3 y 6 segundos desde el inicio
             tiempoParaSiguienteMoneda = Random.Range(minTiempoEntreMonedas, maxTiempoEntreMonedas);
+            // Primer potenciador de velocidad aparece entre 15 y 30 segundos desde el inicio
+            tiempoParaSiguientePotenciador = Random.Range(minTiempoEntrePotenciadores, maxTiempoEntrePotenciadores);
             StartCoroutine(SpawnRoutine());
         }
 
@@ -137,6 +146,12 @@ namespace DeliveryExpress
                 float speedMultiplier = 1f + (progress * progress * 0.9f);
                 levelScrollSpeed = baseLevelScrollSpeed * speedMultiplier;
 
+                // Aplicamos el boost del potenciador de velocidad si está activo
+                if (ControladorJugador.Instance != null)
+                {
+                    levelScrollSpeed *= ControladorJugador.Instance.SpeedBoostMultiplier;
+                }
+
                 // Reducimos los tiempos de spawn delay linealmente (hasta un 40% más rápido al final de la partida)
                 float spawnDelayMultiplier = Mathf.Lerp(1f, 0.6f, progress);
                 minSpawnDelay = Mathf.Max(0.4f, baseMinSpawnDelay * spawnDelayMultiplier);
@@ -171,6 +186,17 @@ namespace DeliveryExpress
                     {
                         SpawnMonedaRow();
                         tiempoParaSiguienteMoneda = Random.Range(minTiempoEntreMonedas, maxTiempoEntreMonedas);
+                    }
+                }
+
+                // Spawn de potenciador de velocidad (temporizador independiente)
+                if (potenciadorEnergiaPrefab != null && !AdministradorJuego.Instance.IsGameOver)
+                {
+                    tiempoParaSiguientePotenciador -= Time.deltaTime;
+                    if (tiempoParaSiguientePotenciador <= 0f)
+                    {
+                        SpawnPotenciadorEnergia();
+                        tiempoParaSiguientePotenciador = Random.Range(minTiempoEntrePotenciadores, maxTiempoEntrePotenciadores);
                     }
                 }
             }
@@ -404,6 +430,29 @@ namespace DeliveryExpress
             Debug.Log($"🪙 Fila de {count} monedas generada en carril {randomLane} (x={spawnX:F2})");
         }
 
+        /// <summary>
+        /// Genera un potenciador de velocidad en un carril aleatorio libre.
+        /// </summary>
+        private void SpawnPotenciadorEnergia()
+        {
+            if (potenciadorEnergiaPrefab == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
+
+            // Elegir carril aleatorio
+            int randomLane = Random.Range(0, lanePositionsX.Length);
+            float spawnX = lanePositionsX[randomLane];
+
+            Vector3 spawnPos = new Vector3(spawnX, spawnYPosition, 0f);
+            GameObject powerUpObj = Instantiate(potenciadorEnergiaPrefab, spawnPos, Quaternion.identity);
+
+            PotenciadorEnergia powerUpComponent = powerUpObj.GetComponent<PotenciadorEnergia>();
+            if (powerUpComponent != null)
+            {
+                powerUpComponent.SetScrollSpeed(levelScrollSpeed);
+            }
+
+            Debug.Log($"⚡ Potenciador de velocidad generado en carril {randomLane} (x={spawnX:F2})");
+        }
+
         private void SpawnTrafficWave()
         {
             if (lanePositionsX == null || lanePositionsX.Length == 0) return;
@@ -516,7 +565,6 @@ namespace DeliveryExpress
         {
             List<GameObject> availableMinors = new List<GameObject>();
             if (conoPrefab != null) availableMinors.Add(conoPrefab);
-            if (bachePrefab != null) availableMinors.Add(bachePrefab);
             if (basuraPrefab != null) availableMinors.Add(basuraPrefab);
 
             if (availableMinors.Count == 0) return;

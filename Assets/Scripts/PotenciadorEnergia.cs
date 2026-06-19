@@ -3,14 +3,18 @@ using UnityEngine;
 namespace DeliveryExpress
 {
     /// <summary>
-    /// Moneda coleccionable que aparece en la calle y suma 1 moneda al contador.
-    /// Se mueve hacia abajo como el tráfico y desaparece al ser recogida o salir de pantalla.
-    /// Soporta animación por sprites.
+    /// Potenciador de velocidad (energía/rayo) coleccionable que aparece en la calle.
+    /// Al recogerlo, incrementa la velocidad del scroll y otorga invulnerabilidad al jugador durante unos segundos.
+    /// Se mueve hacia abajo y soporta animación por sprites.
     /// </summary>
-    public class Moneda : MonoBehaviour
+    public class PotenciadorEnergia : MonoBehaviour
     {
         [Header("Movimiento")]
         [SerializeField] private float scrollSpeed = 5f;
+
+        [Header("Efectos del Potenciador")]
+        [SerializeField] private float duration = 4.5f;       // Duración del potenciador
+        [SerializeField] private float speedMultiplier = 1.6f; // Aumento de velocidad (1.6x)
 
         [Header("Animación por Sprites")]
         [SerializeField] private Sprite[] animationFrames;
@@ -76,10 +80,12 @@ namespace DeliveryExpress
         {
             if (other.CompareTag("Player"))
             {
-                if (AdministradorJuego.Instance != null)
+                ControladorJugador player = other.GetComponent<ControladorJugador>();
+                if (player != null)
                 {
-                    AdministradorJuego.Instance.AddCoins(1);
+                    player.ActivarPotenciadorVelocidad(duration, speedMultiplier);
                 }
+                
                 Destroy(gameObject);
             }
         }

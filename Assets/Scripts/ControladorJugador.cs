@@ -62,6 +62,16 @@ namespace DeliveryExpress
         public float CurrentTiltAngle => currentTiltAngle;
         public bool IsBraking { get; private set; }
 
+        // Estado del potenciador de velocidad (energía/rayo)
+        private bool isSpeedBoostActive = false;
+        private float speedBoostDurationRemaining = 0f;
+        private float speedBoostMultiplier = 1.5f;
+
+        public bool IsSpeedBoostActive => isSpeedBoostActive;
+        public float SpeedBoostMultiplier => isSpeedBoostActive ? speedBoostMultiplier : 1f;
+
+        public static ControladorJugador Instance { get; private set; }
+
         // Variables de estado interno de mejoras (permanentemente actualizadas por el AdministradorMejoras)
         [HideInInspector] public float speedUpgradeFactor = 1f;       // Mejor Bicicleta
         [HideInInspector] public float suspensionUpgradeFactor = 1f;  // Mejor Suspensión (reduce wobble)
@@ -84,6 +94,8 @@ namespace DeliveryExpress
 
         private void Start()
         {
+            Instance = this;
+
             // Recuperamos el componente Rigidbody2D o lo creamos dinámicamente si no existe
             rb2d = GetComponent<Rigidbody2D>();
             if (rb2d == null)
@@ -163,6 +175,16 @@ namespace DeliveryExpress
 
         private void Update()
         {
+            // Decrementar duración del potenciador de velocidad si está activo
+            if (isSpeedBoostActive)
+            {
+                speedBoostDurationRemaining -= Time.deltaTime;
+                if (speedBoostDurationRemaining <= 0f)
+                {
+                    DesactivarPotenciadorVelocidad();
+                }
+            }
+
             // Si la partida terminó en derrota, bloqueamos el movimiento lateral.
             // Si es victoria, permitimos movimiento durante el transcurso de la secuencia final.
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver && !AdministradorJuego.Instance.IsVictory)
@@ -412,8 +434,8 @@ namespace DeliveryExpress
                         || objName.Contains("car") 
                         || (obs != null && (obs.Type == TipoObstaculo.BlackCar || obs.Type == TipoObstaculo.GreenCar));
 
-            // Si el jugador está invulnerable, absorbe el impacto de cualquier colisión
-            if (isInvulnerable) return;
+            // Si el jugador está invulnerable o tiene el potenciador de velocidad activo, absorbe el impacto de cualquier colisión
+            if (isInvulnerable || isSpeedBoostActive) return;
 
             if (collision.CompareTag("Obstaculo") || obs != null || isCar)
             {
@@ -504,6 +526,33 @@ namespace DeliveryExpress
             {
                 animator.updateMode = AnimatorUpdateMode.Normal;
             }
+        }
+
+        public void ActivarPotenciadorVelocidad(float duracion, float multiplicador)
+        {
+            isSpeedBoostActive = true;
+            speedBoostDurationRemaining = duracion;
+            speedBoostMultiplier = multiplicador;
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = new Color(0.3f, 0.8f, 1f, 1f);
+            }
+
+            Debug.Log($"⚡ Potenciador de velocidad activado por {duracion} segundos con multiplicador {multiplicador}x!");
+        }
+
+        private void DesactivarPotenciadorVelocidad()
+        {
+            isSpeedBoostActive = false;
+            speedBoostDurationRemaining = 0f;
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = Color.white;
+            }
+
+            Debug.Log("⚡ Potenciador de velocidad terminado.");
         }
     }
 }
