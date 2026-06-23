@@ -646,6 +646,12 @@ namespace DeliveryExpress.Editor
             var fillImageField = typeof(AdministradorUI).GetField("balanceFillImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (fillImageField != null) fillImageField.SetValue(tempUiManager, fillImage);
 
+            Transform oldMarco = canvas.transform.Find("Marco_HUD");
+            if (oldMarco != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldMarco.gameObject);
+            }
+
             Transform oldContainer = canvas.transform.Find("Contenedor_Vidas");
             if (oldContainer != null)
             {
@@ -670,21 +676,71 @@ namespace DeliveryExpress.Editor
                 UnityEngine.Object.DestroyImmediate(oldCoinsText.gameObject);
             }
 
+            // 1. Crear el Panel Marco/Borde para Vidas
+            GameObject livesPanelObj = new GameObject("Marco_HUD", typeof(RectTransform));
+            RectTransform panelRect = livesPanelObj.GetComponent<RectTransform>();
+            panelRect.SetParent(canvas.transform, false);
+            panelRect.anchorMin = new Vector2(0f, 1f);
+            panelRect.anchorMax = new Vector2(0f, 1f);
+            panelRect.pivot = new Vector2(0f, 1f);
+            panelRect.anchoredPosition = new Vector2(35f, -35f);
+            panelRect.sizeDelta = new Vector2(350f, 140f);
+
+            // Agregar fondo oscuro semi-transparente
+            Image panelImage = livesPanelObj.AddComponent<Image>();
+            panelImage.color = new Color(0.1f, 0.1f, 0.1f, 0.75f);
+
+            // Agregar borde outline Pedime Ya Red
+            Outline panelOutline = livesPanelObj.AddComponent<Outline>();
+            panelOutline.effectColor = new Color(0.88f, 0.1f, 0.13f, 0.9f); // Borde rojo
+            panelOutline.effectDistance = new Vector2(3f, -3f);
+
+            // 2. Agregar texto "VIDAS"
+            GameObject titleObj = new GameObject("Texto_Titulo_Vidas", typeof(RectTransform));
+            titleObj.transform.SetParent(livesPanelObj.transform, false);
+            Text titleText = titleObj.AddComponent<Text>();
+            
+            // Buscar la fuente disponible
+            Text anyText = canvas.GetComponentInChildren<Text>(true);
+            if (anyText != null) titleText.font = anyText.font;
+            else titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (titleText.font == null) titleText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+
+            titleText.text = "VIDAS";
+            titleText.fontSize = 20;
+            titleText.fontStyle = FontStyle.Bold;
+            titleText.color = new Color(1f, 0.84f, 0f); // Dorado/Amarillo para contrastar
+            titleText.alignment = TextAnchor.MiddleLeft;
+
+            // Agregar sombra al texto para legibilidad
+            Shadow textShadow = titleObj.AddComponent<Shadow>();
+            textShadow.effectColor = Color.black;
+            textShadow.effectDistance = new Vector2(1f, -1f);
+
+            RectTransform titleRect = titleObj.GetComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0f, 1f);
+            titleRect.anchorMax = new Vector2(1f, 1f);
+            titleRect.pivot = new Vector2(0f, 1f);
+            titleRect.anchoredPosition = new Vector2(15f, -10f);
+            titleRect.sizeDelta = new Vector2(-30f, 30f); // 15px de margen izquierdo y derecho
+
+            // 3. Crear el contenedor interno de hamburguesas
             GameObject livesContainerObj = new GameObject("Contenedor_Vidas", typeof(RectTransform));
             RectTransform rect = livesContainerObj.GetComponent<RectTransform>();
-            rect.SetParent(canvas.transform, false);
-            rect.anchorMin = new Vector2(0f, 1f);
-            rect.anchorMax = new Vector2(0f, 1f);
-            rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(35f, -35f);
-            rect.sizeDelta = new Vector2(450f, 100f);
+            rect.SetParent(panelRect, false);
+            rect.anchorMin = new Vector2(0f, 0f);
+            rect.anchorMax = new Vector2(1f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 15f); // Centrado abajo
+            rect.sizeDelta = new Vector2(-30f, 75f); // 15px de margen izquierdo y derecho
 
             HorizontalLayoutGroup layout = livesContainerObj.AddComponent<HorizontalLayoutGroup>();
-            layout.spacing = 18f;
+            layout.spacing = 15f;
             layout.childControlWidth = false;
             layout.childControlHeight = false;
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
+            layout.childAlignment = TextAnchor.MiddleCenter;
 
             // Carga los sprites de hamburguesas
             string hamburgerSpritePath = "Assets/sprites/hamburguesa_ui.png";
@@ -733,7 +789,7 @@ namespace DeliveryExpress.Editor
 
                 RectTransform hRect = heartObj.GetComponent<RectTransform>();
                 hRect.SetParent(rect, false);
-                hRect.sizeDelta = new Vector2(115f, 85f);
+                hRect.sizeDelta = new Vector2(90f, 66f);
 
                 Image img = heartObj.GetComponent<Image>();
                 if (img == null)
@@ -1775,7 +1831,7 @@ namespace DeliveryExpress.Editor
             {
                 GameObject tempObj = new GameObject("Hamburguesa_Vida", typeof(RectTransform));
                 RectTransform rTrans = tempObj.GetComponent<RectTransform>();
-                rTrans.sizeDelta = new Vector2(115f, 85f);
+                rTrans.sizeDelta = new Vector2(90f, 66f);
 
                 Image img = tempObj.AddComponent<Image>();
                 img.preserveAspect = true;
