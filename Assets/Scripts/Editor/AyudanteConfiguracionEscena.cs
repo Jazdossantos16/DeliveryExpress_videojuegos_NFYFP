@@ -884,28 +884,85 @@ namespace DeliveryExpress.Editor
             goTRect.pivot = new Vector2(0.5f, 0.5f);
             goTRect.anchoredPosition = Vector2.zero;
 
-            // 7.45 Crear el contador de monedas Texto_Monedas
+            // 7.45 Crear el recuadro de monedas Marco_Monedas
+            Transform oldMarcoMonedas = canvas.transform.Find("Marco_Monedas");
+            if (oldMarcoMonedas != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldMarcoMonedas.gameObject);
+            }
+
+            GameObject coinsPanelObj = new GameObject("Marco_Monedas", typeof(RectTransform));
+            RectTransform coinsPanelRect = coinsPanelObj.GetComponent<RectTransform>();
+            coinsPanelRect.SetParent(canvas.transform, false);
+            coinsPanelRect.anchorMin = new Vector2(0f, 1f);
+            coinsPanelRect.anchorMax = new Vector2(0f, 1f);
+            coinsPanelRect.pivot = new Vector2(0f, 1f);
+            // Posicionado al lado de Marco_HUD (x: 35 + 350 + 15 = 400)
+            coinsPanelRect.anchoredPosition = new Vector2(400f, -35f);
+            coinsPanelRect.sizeDelta = new Vector2(180f, 100f);
+
+            // Fondo redondeado estándar igual al de vidas
+            Image coinsPanelImage = coinsPanelObj.AddComponent<Image>();
+            coinsPanelImage.sprite = roundedBoxSprite;
+            coinsPanelImage.type = Image.Type.Sliced;
+            coinsPanelImage.color = new Color(0.08f, 0.08f, 0.08f, 0.85f);
+
+            // Sombra
+            Shadow coinsPanelShadow = coinsPanelObj.AddComponent<Shadow>();
+            coinsPanelShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            coinsPanelShadow.effectDistance = new Vector2(5f, -5f);
+
+            // Agregar imagen/icono de moneda
+            GameObject coinIconObj = new GameObject("Imagen_Icono_Moneda", typeof(RectTransform));
+            coinIconObj.transform.SetParent(coinsPanelObj.transform, false);
+            Image coinIconImage = coinIconObj.AddComponent<Image>();
+            coinIconImage.preserveAspect = true;
+
+            Sprite coinSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/moneda.png");
+            if (coinSprite != null)
+            {
+                coinIconImage.sprite = coinSprite;
+                coinIconImage.color = Color.white;
+            }
+            else
+            {
+                coinIconImage.color = Color.yellow; // Fallback
+            }
+
+            RectTransform coinIconRect = coinIconObj.GetComponent<RectTransform>();
+            coinIconRect.anchorMin = new Vector2(0f, 0.5f);
+            coinIconRect.anchorMax = new Vector2(0f, 0.5f);
+            coinIconRect.pivot = new Vector2(0f, 0.5f);
+            coinIconRect.anchoredPosition = new Vector2(15f, 0f);
+            coinIconRect.sizeDelta = new Vector2(50f, 50f);
+
+            // Crear el texto de las monedas Texto_Monedas
             GameObject coinsTextObj = new GameObject("Texto_Monedas", typeof(RectTransform));
-            RectTransform coinsRect = coinsTextObj.GetComponent<RectTransform>();
-            coinsRect.SetParent(canvas.transform, false);
+            coinsTextObj.transform.SetParent(coinsPanelObj.transform, false);
 
             Text coinsText = coinsTextObj.AddComponent<Text>();
-            coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            
+            // Buscar la fuente disponible
+            if (anyText != null) coinsText.font = anyText.font;
+            else coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            coinsText.fontSize = 24;
-            coinsText.color = new Color(1f, 0.84f, 0f); // Dorado
-            coinsText.alignment = TextAnchor.MiddleRight;
-            coinsText.text = "Monedas: 0";
 
-            coinsRect.anchorMin = new Vector2(1f, 1f);
-            coinsRect.anchorMax = new Vector2(1f, 1f);
-            coinsRect.pivot = new Vector2(1f, 1f);
-            coinsRect.anchoredPosition = new Vector2(-35f, -35f); // 35px de margen
-            coinsRect.sizeDelta = new Vector2(200f, 50f);
+            coinsText.fontSize = 28;
+            coinsText.fontStyle = FontStyle.Bold;
+            coinsText.color = new Color(1f, 0.84f, 0f); // Dorado
+            coinsText.alignment = TextAnchor.MiddleLeft;
+            coinsText.text = "0";
+
+            RectTransform coinsRect = coinsTextObj.GetComponent<RectTransform>();
+            coinsRect.anchorMin = new Vector2(0f, 0.5f);
+            coinsRect.anchorMax = new Vector2(1f, 0.5f);
+            coinsRect.pivot = new Vector2(0f, 0.5f);
+            coinsRect.anchoredPosition = new Vector2(75f, 0f); // Ubicado a la derecha de la moneda (15 + 50 + 10 = 75)
+            coinsRect.sizeDelta = new Vector2(-90f, 60f); // Ocupa el resto del espacio
 
             Shadow coinsShadow = coinsTextObj.AddComponent<Shadow>();
             coinsShadow.effectColor = Color.black;
-            coinsShadow.effectDistance = new Vector2(1f, -1f);
+            coinsShadow.effectDistance = new Vector2(1.5f, -1.5f);
 
             // 7.5 Configurar el AdministradorUI
             AdministradorUI uiManager = canvas.GetComponent<AdministradorUI>();
