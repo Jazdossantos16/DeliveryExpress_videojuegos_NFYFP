@@ -36,6 +36,8 @@ namespace DeliveryExpress
         private RawImage videoRawImage;
         private Text skipText;
         private bool isPlayingVideo = false;
+        private RawImage fadeOverlay;
+        private bool isTransitioning = false;
 
         [Header("UI de Monedas")]
         [SerializeField] private Text coinsText;
@@ -168,11 +170,15 @@ namespace DeliveryExpress
 
         private void Update()
         {
-            if (isPlayingVideo)
+            if (isPlayingVideo && !isTransitioning)
             {
                 if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
                 {
-                    FinalizarIntroVideo();
+                    isTransitioning = true;
+                    StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => {
+                        isTransitioning = false;
+                        FinalizarIntroVideo();
+                    }));
                     return;
                 }
             }
@@ -204,12 +210,12 @@ namespace DeliveryExpress
         public void IniciarJuego()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
-            PlayIntroVideo();
+            StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
 #else
             string videoPath = System.IO.Path.Combine(Application.streamingAssetsPath, "videojuego_prueba_202606182214.mp4");
             if (System.IO.File.Exists(videoPath))
             {
-                PlayIntroVideo();
+                StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
             }
             else
             {
@@ -303,11 +309,19 @@ namespace DeliveryExpress
             // Iniciar reproducción
             videoPlayer.Play();
             Debug.Log("🎬 Reproduciendo video de intro.");
+
+            // Hacemos fade-out del overlay negro para revelar el video
+            StartCoroutine(FadeScreen(1f, 0f, 0.8f));
         }
 
         private void AlTerminarVideo(UnityEngine.Video.VideoPlayer vp)
         {
-            FinalizarIntroVideo();
+            if (isTransitioning) return;
+            isTransitioning = true;
+            StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => {
+                isTransitioning = false;
+                FinalizarIntroVideo();
+            }));
         }
 
         private void FinalizarIntroVideo()
@@ -334,6 +348,9 @@ namespace DeliveryExpress
 
             Debug.Log("🎬 Video de intro finalizado o salteado.");
             ComenzarPartidaReal();
+
+            // Hacemos fade-out del overlay negro para revelar el juego real
+            StartCoroutine(FadeScreen(1f, 0f, 0.8f));
         }
 
         private void ComenzarPartidaReal()
@@ -344,6 +361,50 @@ namespace DeliveryExpress
                 startPanel.SetActive(false); // Oculta la pantalla de inicio
             }
             Debug.Log("✅ Juego Iniciado.");
+        }
+
+        private IEnumerator FadeScreen(float startAlpha, float endAlpha, float duration, System.Action onComplete = null)
+        {
+            if (fadeOverlay == null)
+            {
+                GameObject fadeGo = new GameObject("IntroVideo_FadeOverlay");
+                fadeGo.transform.SetParent(transform, false);
+                fadeGo.transform.SetAsLastSibling();
+                
+                fadeOverlay = fadeGo.AddComponent<RawImage>();
+                fadeOverlay.color = Color.clear;
+                
+                RectTransform rect = fadeOverlay.rectTransform;
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+            }
+            
+            fadeOverlay.gameObject.SetActive(true);
+            fadeOverlay.transform.SetAsLastSibling();
+            
+            float elapsed = 0f;
+            Color c = Color.black;
+            
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
+                c.a = alpha;
+                fadeOverlay.color = c;
+                yield return null;
+            }
+            
+            c.a = endAlpha;
+            fadeOverlay.color = c;
+            
+            if (endAlpha <= 0f)
+            {
+                fadeOverlay.gameObject.SetActive(false);
+            }
+            
+            onComplete?.Invoke();
         }
 
         public void ShowGameOver()
