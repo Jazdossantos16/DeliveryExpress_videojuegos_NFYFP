@@ -686,14 +686,14 @@ namespace DeliveryExpress.Editor
             panelRect.anchoredPosition = new Vector2(35f, -35f);
             panelRect.sizeDelta = new Vector2(350f, 140f);
 
-            // Agregar fondo oscuro semi-transparente
+            // Agregar fondo oscuro del recuadro
             Image hudPanelImage = livesPanelObj.AddComponent<Image>();
-            hudPanelImage.color = new Color(0.1f, 0.1f, 0.1f, 0.75f);
+            hudPanelImage.color = new Color(0.08f, 0.08f, 0.08f, 0.85f); // Recuadro elegante
 
-            // Agregar borde outline Pedime Ya Red
-            Outline panelOutline = livesPanelObj.AddComponent<Outline>();
-            panelOutline.effectColor = new Color(0.88f, 0.1f, 0.13f, 0.9f); // Borde rojo
-            panelOutline.effectDistance = new Vector2(3f, -3f);
+            // Agregar sombra al recuadro para darle profundidad en lugar de un borde
+            Shadow panelShadow = livesPanelObj.AddComponent<Shadow>();
+            panelShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            panelShadow.effectDistance = new Vector2(5f, -5f);
 
             // 2. Agregar texto "VIDAS"
             GameObject titleObj = new GameObject("Texto_Titulo_Vidas", typeof(RectTransform));
