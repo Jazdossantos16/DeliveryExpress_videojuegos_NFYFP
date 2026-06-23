@@ -684,7 +684,7 @@ namespace DeliveryExpress.Editor
             panelRect.anchorMax = new Vector2(0f, 1f);
             panelRect.pivot = new Vector2(0f, 1f);
             panelRect.anchoredPosition = new Vector2(35f, -35f);
-            panelRect.sizeDelta = new Vector2(350f, 140f);
+            panelRect.sizeDelta = new Vector2(350f, 100f);
 
             // Obtener sprite de fondo redondeado estándar de Unity
             UnityEngine.UI.DefaultControls.Resources uiResources = new UnityEngine.UI.DefaultControls.Resources();
@@ -701,44 +701,15 @@ namespace DeliveryExpress.Editor
             panelShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
             panelShadow.effectDistance = new Vector2(5f, -5f);
 
-            // 2. Agregar texto "VIDAS"
-            GameObject titleObj = new GameObject("Texto_Titulo_Vidas", typeof(RectTransform));
-            titleObj.transform.SetParent(livesPanelObj.transform, false);
-            Text titleText = titleObj.AddComponent<Text>();
-            
-            // Buscar la fuente disponible
-            Text anyText = canvas.GetComponentInChildren<Text>(true);
-            if (anyText != null) titleText.font = anyText.font;
-            else titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (titleText.font == null) titleText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-
-            titleText.text = "VIDAS";
-            titleText.fontSize = 20;
-            titleText.fontStyle = FontStyle.Bold;
-            titleText.color = new Color(1f, 0.84f, 0f); // Dorado/Amarillo para contrastar
-            titleText.alignment = TextAnchor.MiddleLeft;
-
-            // Agregar sombra al texto para legibilidad
-            Shadow textShadow = titleObj.AddComponent<Shadow>();
-            textShadow.effectColor = Color.black;
-            textShadow.effectDistance = new Vector2(1f, -1f);
-
-            RectTransform titleRect = titleObj.GetComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0f, 1f);
-            titleRect.anchorMax = new Vector2(1f, 1f);
-            titleRect.pivot = new Vector2(0f, 1f);
-            titleRect.anchoredPosition = new Vector2(15f, -10f);
-            titleRect.sizeDelta = new Vector2(-30f, 30f); // 15px de margen izquierdo y derecho
-
-            // 3. Crear el contenedor interno de hamburguesas
+            // 2. Crear el contenedor interno de hamburguesas (centrado en el recuadro)
             GameObject livesContainerObj = new GameObject("Contenedor_Vidas", typeof(RectTransform));
             RectTransform rect = livesContainerObj.GetComponent<RectTransform>();
             rect.SetParent(panelRect, false);
             rect.anchorMin = new Vector2(0f, 0f);
-            rect.anchorMax = new Vector2(1f, 0f);
-            rect.pivot = new Vector2(0.5f, 0f);
-            rect.anchoredPosition = new Vector2(0f, 15f); // Centrado abajo
-            rect.sizeDelta = new Vector2(-30f, 75f); // 15px de margen izquierdo y derecho
+            rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = new Vector2(0f, 0f);
+            rect.sizeDelta = new Vector2(-30f, -20f); // 15px de margen izquierdo/derecho, 10px arriba/abajo
 
             HorizontalLayoutGroup layout = livesContainerObj.AddComponent<HorizontalLayoutGroup>();
             layout.spacing = 15f;
