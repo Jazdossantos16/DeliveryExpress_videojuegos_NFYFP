@@ -48,6 +48,28 @@ namespace DeliveryExpress
         [SerializeField] private Sprite playSprite;
         private Image pausePlayButtonImage;
 
+        [Header("UI de Configuración")]
+        [SerializeField] private GameObject configPanel;
+        [SerializeField] private Image configBackgroundImage;
+        [SerializeField] private Sprite imgConfigBoth;
+        [SerializeField] private Sprite imgConfigNoMusic;
+        [SerializeField] private Sprite imgConfigNoSound;
+        [SerializeField] private Sprite imgConfigNone;
+        [SerializeField] private InputField usernameInputField;
+
+        [Header("Iconos de Configuración")]
+        [SerializeField] private Image musicIconImage;
+        [SerializeField] private Image soundIconImage;
+        [SerializeField] private Sprite iconMusicOn;
+        [SerializeField] private Sprite iconMusicOff;
+        [SerializeField] private Sprite iconSoundOn;
+        [SerializeField] private Sprite iconSoundOff;
+        [SerializeField] private Text musicStateText;
+        [SerializeField] private Text soundStateText;
+
+        private bool musicEnabled = true;
+        private bool soundEnabled = true;
+
         private void Awake()
         {
             Instance = this;
@@ -55,6 +77,11 @@ namespace DeliveryExpress
 
         private void Start()
         {
+            // Cargar y aplicar configuraciones de audio al iniciar
+            soundEnabled = PlayerPrefs.GetInt("SoundEnabled", 1) == 1;
+            musicEnabled = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
+            AudioListener.volume = soundEnabled ? 1f : 0f;
+
             if (skipStartPanel)
             {
                 skipStartPanel = false;
@@ -295,6 +322,8 @@ namespace DeliveryExpress
             
             // Configurar audio
             videoPlayer.audioOutputMode = UnityEngine.Video.VideoAudioOutputMode.Direct;
+            bool musicOn = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
+            videoPlayer.SetDirectAudioMute(0, !musicOn);
             
             // Suscribirse al evento de finalización
             videoPlayer.loopPointReached += AlTerminarVideo;
@@ -616,6 +645,94 @@ namespace DeliveryExpress
             if (coinsText != null)
             {
                 coinsText.text = coins.ToString();
+            }
+        }
+
+        public void AbrirConfiguracion()
+        {
+            if (configPanel != null)
+            {
+                configPanel.SetActive(true);
+                
+                string savedUser = PlayerPrefs.GetString("Username", "User123");
+                musicEnabled = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
+                soundEnabled = PlayerPrefs.GetInt("SoundEnabled", 1) == 1;
+
+                if (usernameInputField != null)
+                {
+                    usernameInputField.text = savedUser;
+                }
+
+                ActualizarPanelConfiguracion();
+                Debug.Log("⚙️ Panel de configuración abierto.");
+            }
+        }
+
+        public void CerrarConfiguracion()
+        {
+            if (usernameInputField != null)
+            {
+                PlayerPrefs.SetString("Username", usernameInputField.text);
+            }
+            PlayerPrefs.Save();
+
+            if (configPanel != null)
+            {
+                configPanel.SetActive(false);
+            }
+            Debug.Log("⚙️ Panel de configuración cerrado.");
+        }
+
+        public void ToggleMusica()
+        {
+            musicEnabled = !musicEnabled;
+            PlayerPrefs.SetInt("MusicEnabled", musicEnabled ? 1 : 0);
+            PlayerPrefs.Save();
+            ActualizarPanelConfiguracion();
+            Debug.Log("🎵 Música toggled: " + musicEnabled);
+        }
+
+        public void ToggleSonido()
+        {
+            soundEnabled = !soundEnabled;
+            PlayerPrefs.SetInt("SoundEnabled", soundEnabled ? 1 : 0);
+            PlayerPrefs.Save();
+            AudioListener.volume = soundEnabled ? 1f : 0f;
+            ActualizarPanelConfiguracion();
+            Debug.Log("🔊 Sonido toggled: " + soundEnabled);
+        }
+
+        public void OnUsernameChanged(string newName)
+        {
+            PlayerPrefs.SetString("Username", newName);
+            PlayerPrefs.Save();
+        }
+
+        private void ActualizarPanelConfiguracion()
+        {
+            if (configBackgroundImage != null && imgConfigBoth != null)
+            {
+                configBackgroundImage.sprite = imgConfigBoth;
+            }
+
+            // Actualizar iconos dinámicos
+            if (musicIconImage != null)
+            {
+                musicIconImage.sprite = musicEnabled ? iconMusicOn : iconMusicOff;
+            }
+            if (soundIconImage != null)
+            {
+                soundIconImage.sprite = soundEnabled ? iconSoundOn : iconSoundOff;
+            }
+
+            // Actualizar textos dinámicos "Si" / "No"
+            if (musicStateText != null)
+            {
+                musicStateText.text = musicEnabled ? "Si" : "No";
+            }
+            if (soundStateText != null)
+            {
+                soundStateText.text = soundEnabled ? "Si" : "No";
             }
         }
     }

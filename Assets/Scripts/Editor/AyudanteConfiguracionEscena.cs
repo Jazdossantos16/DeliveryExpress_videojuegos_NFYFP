@@ -172,6 +172,59 @@ namespace DeliveryExpress.Editor
 
             if (!needsFix)
             {
+                GameObject configPanelObj = GameObject.Find("ConfigPanel");
+                if (configPanelObj == null)
+                {
+                    needsFix = true;
+                }
+                else
+                {
+                    Transform iconUser = configPanelObj.transform.Find("IconoUsuario");
+                    Transform iconMusic = configPanelObj.transform.Find("IconoMusica");
+                    Transform iconSound = configPanelObj.transform.Find("IconoSonido");
+                    Transform maskUser = configPanelObj.transform.Find("Mascara_Texto_Usuario");
+                    Transform maskMusic = configPanelObj.transform.Find("Mascara_Texto_Musica");
+                    Transform maskSound = configPanelObj.transform.Find("Mascara_Texto_Sonido");
+
+                    if (iconUser == null || iconMusic == null || iconSound == null || 
+                        maskUser == null || maskMusic == null || maskSound == null)
+                    {
+                        needsFix = true;
+                    }
+                    else
+                    {
+                        RectTransform iconUserRect = iconUser.GetComponent<RectTransform>();
+                        RectTransform iconSoundRect = iconSound.GetComponent<RectTransform>();
+                        RectTransform maskUserRect = maskUser.GetComponent<RectTransform>();
+                        RectTransform maskMusicRect = maskMusic.GetComponent<RectTransform>();
+                        RectTransform maskSoundRect = maskSound.GetComponent<RectTransform>();
+                        
+                        if (iconUserRect != null && (Mathf.Abs(iconUserRect.anchoredPosition.x - (-251.5f)) > 1.0f || Mathf.Abs(iconUserRect.anchoredPosition.y - 110.0f) > 1.0f))
+                        {
+                            needsFix = true;
+                        }
+                        else if (iconSoundRect != null && Mathf.Abs(iconSoundRect.anchoredPosition.y - (-200.0f)) > 1.0f)
+                        {
+                            needsFix = true;
+                        }
+                        else if (maskUserRect != null && (Mathf.Abs(maskUserRect.anchoredPosition.y - 58.0f) > 1.0f || Mathf.Abs(maskUserRect.sizeDelta.x - 100f) > 1.0f))
+                        {
+                            needsFix = true;
+                        }
+                         else if (maskMusicRect != null && (Mathf.Abs(maskMusicRect.anchoredPosition.x - (-183.5f)) > 1.0f || Mathf.Abs(maskMusicRect.sizeDelta.x - 32f) > 1.0f || Mathf.Abs(maskMusicRect.anchoredPosition.y - (-75.0f)) > 1.0f || Mathf.Abs(maskMusicRect.sizeDelta.y - 40f) > 1.0f))
+                        {
+                            needsFix = true;
+                        }
+                        else if (maskSoundRect != null && (Mathf.Abs(maskSoundRect.anchoredPosition.x - (-183.5f)) > 1.0f || Mathf.Abs(maskSoundRect.sizeDelta.x - 32f) > 1.0f || Mathf.Abs(maskSoundRect.anchoredPosition.y - (-224.0f)) > 1.0f || Mathf.Abs(maskSoundRect.sizeDelta.y - 26f) > 1.0f))
+                        {
+                            needsFix = true;
+                        }
+                    }
+                }
+            }
+
+            if (!needsFix)
+            {
                 GameObject canvasObj = GameObject.Find("_Lienzo_UI") ?? GameObject.Find("_UI_Canvas");
                 if (canvasObj != null)
                 {
@@ -1130,6 +1183,10 @@ namespace DeliveryExpress.Editor
             startPanelRect.anchorMin = Vector2.zero;
             startPanelRect.anchorMax = Vector2.one;
             startPanelRect.sizeDelta = Vector2.zero;
+            startPanelRect.pivot = new Vector2(0.5f, 0.5f);
+            startPanelRect.anchoredPosition = Vector2.zero;
+            startPanelRect.localScale = Vector3.one;
+            startPanelRect.localRotation = Quaternion.identity;
 
             Image startPanelImage = startPanelObj.AddComponent<Image>();
 
@@ -1214,7 +1271,6 @@ namespace DeliveryExpress.Editor
             btnConfigRect.pivot = new Vector2(0.5f, 0.5f);
             btnConfigRect.anchoredPosition = new Vector2(0f, -270f);
             btnConfigRect.sizeDelta = new Vector2(300f, 98f);
-
             Image btnConfigImg = btnConfigObj.AddComponent<Image>();
             if (spriteConfiguracion != null)
             {
@@ -1227,6 +1283,7 @@ namespace DeliveryExpress.Editor
             }
 
             Button btnConfig = btnConfigObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnConfig.onClick, uiManager.AbrirConfiguracion);
 
             // Asignar el startPanel en el AdministradorUI por reflexión
             var startPanelField = typeof(AdministradorUI).GetField("startPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -1236,6 +1293,353 @@ namespace DeliveryExpress.Editor
                 EditorUtility.SetDirty(uiManager);
                 Debug.Log("✅ startPanel inyectado en AdministradorUI.");
             }
+
+            // 7.6.1 Crear o buscar ConfigPanel
+            Transform oldConfigPanel = canvas.transform.Find("ConfigPanel");
+            if (oldConfigPanel != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldConfigPanel.gameObject);
+            }
+
+            GameObject configPanelObj = new GameObject("ConfigPanel", typeof(RectTransform));
+            RectTransform configPanelRect = configPanelObj.GetComponent<RectTransform>();
+            configPanelRect.SetParent(canvas.transform, false);
+            configPanelObj.SetActive(false); // Empieza desactivado
+
+            // Set ConfigPanel to cover the whole screen with an average -5.5px X shift to align backgrounds perfectly
+            configPanelRect.anchorMin = Vector2.zero;
+            configPanelRect.anchorMax = Vector2.one;
+            configPanelRect.offsetMin = new Vector2(-5.5f, 0f);
+            configPanelRect.offsetMax = new Vector2(-5.5f, 0f);
+            configPanelRect.pivot = new Vector2(0.5f, 0.5f);
+            configPanelRect.localScale = Vector3.one;
+            configPanelRect.localRotation = Quaternion.identity;
+
+            Image configPanelImage = configPanelObj.AddComponent<Image>();
+
+            // Cargar los 4 sprites para configuración
+            string pathBoth = "Assets/sprites/imagen_config.jpg";
+            string pathNoMusic = "Assets/sprites/imagen_nomusica.jpg";
+            string pathNoSound = "Assets/sprites/imagen_nosonido.jpg";
+            string pathNone = "Assets/sprites/imagen_noambas.jpg";
+
+            EnsureIsSprite(pathBoth);
+            EnsureIsSprite(pathNoMusic);
+            EnsureIsSprite(pathNoSound);
+            EnsureIsSprite(pathNone);
+
+            Sprite spriteBoth = AssetDatabase.LoadAssetAtPath<Sprite>(pathBoth);
+            Sprite spriteNoMusic = AssetDatabase.LoadAssetAtPath<Sprite>(pathNoMusic);
+            Sprite spriteNoSound = AssetDatabase.LoadAssetAtPath<Sprite>(pathNoSound);
+            Sprite spriteNone = AssetDatabase.LoadAssetAtPath<Sprite>(pathNone);
+
+            if (spriteBoth != null)
+            {
+                configPanelImage.sprite = spriteBoth;
+                configPanelImage.color = Color.white;
+            }
+            else
+            {
+                configPanelImage.color = new Color(0.2f, 0.2f, 0.2f, 0.95f);
+            }
+
+            // Cargar los sprites de los iconos de configuración
+            EnsureIsSprite("Assets/sprites/imagen_usuario.png");
+            EnsureIsSprite("Assets/sprites/boton_musica.png");
+            EnsureIsSprite("Assets/sprites/boton_nomusica.png");
+            EnsureIsSprite("Assets/sprites/boton_sonido.png");
+            EnsureIsSprite("Assets/sprites/boton_nosonido.png");
+
+            Sprite spriteUser = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/imagen_usuario.png");
+            Sprite spriteMusicOn = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_musica.png");
+            Sprite spriteMusicOff = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_nomusica.png");
+            Sprite spriteSoundOn = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_sonido.png");
+            Sprite spriteSoundOff = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_nosonido.png");
+
+            // Cargar fuente estándar para los textos de la interfaz
+            Font standardFont = null;
+            Text existingText = canvas.GetComponentInChildren<Text>(true);
+            if (existingText != null)
+            {
+                standardFont = existingText.font;
+            }
+            if (standardFont == null)
+            {
+                standardFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            }
+            if (standardFont == null)
+            {
+                standardFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            }
+
+            // Crear GameObject para el Icono de Usuario (X: -251.5, Y: 110.0, size 84x88)
+            GameObject iconUserObj = new GameObject("IconoUsuario", typeof(RectTransform));
+            RectTransform iconUserRect = iconUserObj.GetComponent<RectTransform>();
+            iconUserRect.SetParent(configPanelRect, false);
+            iconUserRect.anchorMin = new Vector2(0.5f, 0.5f);
+            iconUserRect.anchorMax = new Vector2(0.5f, 0.5f);
+            iconUserRect.pivot = new Vector2(0.5f, 0.5f);
+            iconUserRect.anchoredPosition = new Vector2(-251.5f, 110.0f);
+            iconUserRect.sizeDelta = new Vector2(84f, 88f);
+            Image iconUserImg = iconUserObj.AddComponent<Image>();
+            if (spriteUser != null)
+            {
+                iconUserImg.sprite = spriteUser;
+                iconUserImg.color = Color.white;
+            }
+
+            // Crear GameObject para el Icono de Música (X: -251.5, Y: -40.0, size 84x88)
+            GameObject iconMusicObj = new GameObject("IconoMusica", typeof(RectTransform));
+            RectTransform iconMusicRect = iconMusicObj.GetComponent<RectTransform>();
+            iconMusicRect.SetParent(configPanelRect, false);
+            iconMusicRect.anchorMin = new Vector2(0.5f, 0.5f);
+            iconMusicRect.anchorMax = new Vector2(0.5f, 0.5f);
+            iconMusicRect.pivot = new Vector2(0.5f, 0.5f);
+            iconMusicRect.anchoredPosition = new Vector2(-251.5f, -40.0f);
+            iconMusicRect.sizeDelta = new Vector2(84f, 88f);
+            Image iconMusicImg = iconMusicObj.AddComponent<Image>();
+            bool startMusicOn = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
+            if (startMusicOn && spriteMusicOn != null)
+            {
+                iconMusicImg.sprite = spriteMusicOn;
+            }
+            else if (!startMusicOn && spriteMusicOff != null)
+            {
+                iconMusicImg.sprite = spriteMusicOff;
+            }
+            iconMusicImg.color = Color.white;
+            Button btnIconoMusica = iconMusicObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnIconoMusica.onClick, uiManager.ToggleMusica);
+
+            // Crear GameObject para el Icono de Sonido (X: -251.5, Y: -200.0, size 84x88)
+            GameObject iconSoundObj = new GameObject("IconoSonido", typeof(RectTransform));
+            RectTransform iconSoundRect = iconSoundObj.GetComponent<RectTransform>();
+            iconSoundRect.SetParent(configPanelRect, false);
+            iconSoundRect.anchorMin = new Vector2(0.5f, 0.5f);
+            iconSoundRect.anchorMax = new Vector2(0.5f, 0.5f);
+            iconSoundRect.pivot = new Vector2(0.5f, 0.5f);
+            iconSoundRect.anchoredPosition = new Vector2(-251.5f, -200.0f);
+            iconSoundRect.sizeDelta = new Vector2(84f, 88f);
+            Image iconSoundImg = iconSoundObj.AddComponent<Image>();
+            bool startSoundOn = PlayerPrefs.GetInt("SoundEnabled", 1) == 1;
+            if (startSoundOn && spriteSoundOn != null)
+            {
+                iconSoundImg.sprite = spriteSoundOn;
+            }
+            else if (!startSoundOn && spriteSoundOff != null)
+            {
+                iconSoundImg.sprite = spriteSoundOff;
+            }
+            iconSoundImg.color = Color.white;
+            Button btnIconoSonido = iconSoundObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnIconoSonido.onClick, uiManager.ToggleSonido);
+
+            // Botón de Cerrar (Círculo/Cuadrado rojo arriba a la derecha de la ventana blanca)
+            // X aproximada: 333, Y aproximada: 259
+            GameObject btnCerrarObj = new GameObject("BotonCerrar", typeof(RectTransform));
+            RectTransform btnCerrarRect = btnCerrarObj.GetComponent<RectTransform>();
+            btnCerrarRect.SetParent(configPanelRect, false);
+            btnCerrarRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnCerrarRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnCerrarRect.pivot = new Vector2(0.5f, 0.5f);
+            btnCerrarRect.anchoredPosition = new Vector2(333f, 259f);
+            btnCerrarRect.sizeDelta = new Vector2(60f, 60f);
+
+            Image btnCerrarImg = btnCerrarObj.AddComponent<Image>();
+            EnsureIsSprite("Assets/sprites/boton_cerrar.png");
+            Sprite spriteCerrar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_cerrar.png");
+            if (spriteCerrar != null)
+            {
+                btnCerrarImg.sprite = spriteCerrar;
+                btnCerrarImg.color = Color.white;
+            }
+            else
+            {
+                btnCerrarImg.color = Color.red;
+            }
+
+            Button btnCerrar = btnCerrarObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnCerrar.onClick, uiManager.CerrarConfiguracion);
+
+            // Botón de Música (Clic invisible sobre la fila de música, X: 0, Y: -40.0, 500x90)
+            GameObject btnMusicaObj = new GameObject("BotonMusica", typeof(RectTransform));
+            RectTransform btnMusicaRect = btnMusicaObj.GetComponent<RectTransform>();
+            btnMusicaRect.SetParent(configPanelRect, false);
+            btnMusicaRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnMusicaRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnMusicaRect.pivot = new Vector2(0.5f, 0.5f);
+            btnMusicaRect.anchoredPosition = new Vector2(0f, -40.0f);
+            btnMusicaRect.sizeDelta = new Vector2(500f, 90f);
+
+            Image btnMusicaImg = btnMusicaObj.AddComponent<Image>();
+            btnMusicaImg.color = Color.clear; // Clic zone transparente
+            Button btnMusica = btnMusicaObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnMusica.onClick, uiManager.ToggleMusica);
+
+            // Botón de Sonido (Clic invisible sobre la fila de sonido, X: 0, Y: -200.0, 500x90)
+            GameObject btnSonidoObj = new GameObject("BotonSonido", typeof(RectTransform));
+            RectTransform btnSonidoRect = btnSonidoObj.GetComponent<RectTransform>();
+            btnSonidoRect.SetParent(configPanelRect, false);
+            btnSonidoRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnSonidoRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnSonidoRect.pivot = new Vector2(0.5f, 0.5f);
+            btnSonidoRect.anchoredPosition = new Vector2(0f, -200.0f);
+            btnSonidoRect.sizeDelta = new Vector2(500f, 90f);
+
+            Image btnSonidoImg = btnSonidoObj.AddComponent<Image>();
+            btnSonidoImg.color = Color.clear; // Clic zone transparente
+            Button btnSonido = btnSonidoObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnSonido.onClick, uiManager.ToggleSonido);
+
+            // Máscara blanca para tapar el "User123" pre-renderizado del fondo
+            GameObject maskObj = new GameObject("Mascara_Texto_Usuario", typeof(RectTransform));
+            RectTransform maskRect = maskObj.GetComponent<RectTransform>();
+            maskRect.SetParent(configPanelRect, false);
+            maskRect.anchorMin = new Vector2(0.5f, 0.5f);
+            maskRect.anchorMax = new Vector2(0.5f, 0.5f);
+            maskRect.pivot = new Vector2(0.5f, 0.5f);
+            maskRect.anchoredPosition = new Vector2(-145f, 58.0f);
+            maskRect.sizeDelta = new Vector2(100f, 35f);
+            Image maskImg = maskObj.AddComponent<Image>();
+            maskImg.color = Color.white;
+
+            // InputField para nombre de usuario (X: -94, Y: 58.0, tamaño 200x40)
+            GameObject inputFieldObj = new GameObject("InputField_Usuario", typeof(RectTransform));
+            RectTransform inputFieldRect = inputFieldObj.GetComponent<RectTransform>();
+            inputFieldRect.SetParent(configPanelRect, false);
+            inputFieldRect.anchorMin = new Vector2(0.5f, 0.5f);
+            inputFieldRect.anchorMax = new Vector2(0.5f, 0.5f);
+            inputFieldRect.pivot = new Vector2(0.5f, 0.5f);
+            inputFieldRect.anchoredPosition = new Vector2(-94f, 58.0f);
+            inputFieldRect.sizeDelta = new Vector2(200f, 40f);
+
+            Image inputFieldBg = inputFieldObj.AddComponent<Image>();
+            inputFieldBg.color = Color.clear; // Fondo transparente
+            InputField inputField = inputFieldObj.AddComponent<InputField>();
+
+            // Texto de InputField
+            GameObject textObj = new GameObject("Text", typeof(RectTransform));
+            RectTransform textRect = textObj.GetComponent<RectTransform>();
+            textRect.SetParent(inputFieldRect, false);
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+
+            Text textComp = textObj.AddComponent<Text>();
+            textComp.font = standardFont;
+            textComp.fontSize = 24;
+            textComp.color = new Color(0.15f, 0.15f, 0.15f, 1f); // Gris oscuro
+            textComp.alignment = TextAnchor.MiddleLeft;
+
+            inputField.textComponent = textComp;
+            inputField.targetGraphic = inputFieldBg;
+
+            // Máscara blanca para tapar el "Si" de música pre-renderizado del fondo
+            GameObject maskMusicObj = new GameObject("Mascara_Texto_Musica", typeof(RectTransform));
+            RectTransform maskMusicRect = maskMusicObj.GetComponent<RectTransform>();
+            maskMusicRect.SetParent(configPanelRect, false);
+            maskMusicRect.anchorMin = new Vector2(0.5f, 0.5f);
+            maskMusicRect.anchorMax = new Vector2(0.5f, 0.5f);
+            maskMusicRect.pivot = new Vector2(0.5f, 0.5f);
+            maskMusicRect.anchoredPosition = new Vector2(-183.5f, -75.0f);
+            maskMusicRect.sizeDelta = new Vector2(32f, 40f);
+            Image maskMusicImg = maskMusicObj.AddComponent<Image>();
+            maskMusicImg.color = Color.white;
+
+            // Texto dinámico para el estado de la música
+            GameObject textMusicObj = new GameObject("Texto_Estado_Musica", typeof(RectTransform));
+            RectTransform textMusicRect = textMusicObj.GetComponent<RectTransform>();
+            textMusicRect.SetParent(configPanelRect, false);
+            textMusicRect.anchorMin = new Vector2(0.5f, 0.5f);
+            textMusicRect.anchorMax = new Vector2(0.5f, 0.5f);
+            textMusicRect.pivot = new Vector2(0.5f, 0.5f);
+            textMusicRect.anchoredPosition = new Vector2(-183.5f, -75.0f);
+            textMusicRect.sizeDelta = new Vector2(60f, 40f);
+            Text textMusicComp = textMusicObj.AddComponent<Text>();
+            textMusicComp.font = standardFont;
+            textMusicComp.fontSize = 24;
+            textMusicComp.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+            textMusicComp.alignment = TextAnchor.MiddleCenter;
+            textMusicComp.text = startMusicOn ? "Si" : "No";
+
+            // Máscara blanca para tapar el "Si" de sonido pre-renderizado del fondo
+            GameObject maskSoundObj = new GameObject("Mascara_Texto_Sonido", typeof(RectTransform));
+            RectTransform maskSoundRect = maskSoundObj.GetComponent<RectTransform>();
+            maskSoundRect.SetParent(configPanelRect, false);
+            maskSoundRect.anchorMin = new Vector2(0.5f, 0.5f);
+            maskSoundRect.anchorMax = new Vector2(0.5f, 0.5f);
+            maskSoundRect.pivot = new Vector2(0.5f, 0.5f);
+            maskSoundRect.anchoredPosition = new Vector2(-183.5f, -224.0f);
+            maskSoundRect.sizeDelta = new Vector2(32f, 26f);
+            Image maskSoundImg = maskSoundObj.AddComponent<Image>();
+            maskSoundImg.color = Color.white;
+
+            // Texto dinámico para el estado del sonido
+            GameObject textSoundObj = new GameObject("Texto_Estado_Sonido", typeof(RectTransform));
+            RectTransform textSoundRect = textSoundObj.GetComponent<RectTransform>();
+            textSoundRect.SetParent(configPanelRect, false);
+            textSoundRect.anchorMin = new Vector2(0.5f, 0.5f);
+            textSoundRect.anchorMax = new Vector2(0.5f, 0.5f);
+            textSoundRect.pivot = new Vector2(0.5f, 0.5f);
+            textSoundRect.anchoredPosition = new Vector2(-183.5f, -224.0f);
+            textSoundRect.sizeDelta = new Vector2(60f, 26f);
+            Text textSoundComp = textSoundObj.AddComponent<Text>();
+            textSoundComp.font = standardFont;
+            textSoundComp.fontSize = 24;
+            textSoundComp.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+            textSoundComp.alignment = TextAnchor.MiddleCenter;
+            textSoundComp.text = startSoundOn ? "Si" : "No";
+
+            // Inyectar referencias en AdministradorUI
+            var configPanelField = typeof(AdministradorUI).GetField("configPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (configPanelField != null) configPanelField.SetValue(uiManager, configPanelObj);
+
+            var configBgField = typeof(AdministradorUI).GetField("configBackgroundImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (configBgField != null) configBgField.SetValue(uiManager, configPanelImage);
+
+            var imgConfigBothField = typeof(AdministradorUI).GetField("imgConfigBoth", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (imgConfigBothField != null) imgConfigBothField.SetValue(uiManager, spriteBoth);
+
+            var imgConfigNoMusicField = typeof(AdministradorUI).GetField("imgConfigNoMusic", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (imgConfigNoMusicField != null) imgConfigNoMusicField.SetValue(uiManager, spriteNoMusic);
+
+            var imgConfigNoSoundField = typeof(AdministradorUI).GetField("imgConfigNoSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (imgConfigNoSoundField != null) imgConfigNoSoundField.SetValue(uiManager, spriteNoSound);
+
+            var imgConfigNoneField = typeof(AdministradorUI).GetField("imgConfigNone", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (imgConfigNoneField != null) imgConfigNoneField.SetValue(uiManager, spriteNone);
+
+            var inputFieldField = typeof(AdministradorUI).GetField("usernameInputField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (inputFieldField != null) inputFieldField.SetValue(uiManager, inputField);
+
+            // Inyectar referencias de iconos e imágenes en AdministradorUI
+            var musicIconImageField = typeof(AdministradorUI).GetField("musicIconImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (musicIconImageField != null) musicIconImageField.SetValue(uiManager, iconMusicImg);
+
+            var soundIconImageField = typeof(AdministradorUI).GetField("soundIconImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (soundIconImageField != null) soundIconImageField.SetValue(uiManager, iconSoundImg);
+
+            var iconMusicOnField = typeof(AdministradorUI).GetField("iconMusicOn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (iconMusicOnField != null) iconMusicOnField.SetValue(uiManager, spriteMusicOn);
+
+            var iconMusicOffField = typeof(AdministradorUI).GetField("iconMusicOff", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (iconMusicOffField != null) iconMusicOffField.SetValue(uiManager, spriteMusicOff);
+
+            var iconSoundOnField = typeof(AdministradorUI).GetField("iconSoundOn", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (iconSoundOnField != null) iconSoundOnField.SetValue(uiManager, spriteSoundOn);
+
+            var iconSoundOffField = typeof(AdministradorUI).GetField("iconSoundOff", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (iconSoundOffField != null) iconSoundOffField.SetValue(uiManager, spriteSoundOff);
+
+            var musicStateTextField = typeof(AdministradorUI).GetField("musicStateText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (musicStateTextField != null) musicStateTextField.SetValue(uiManager, textMusicComp);
+
+            var soundStateTextField = typeof(AdministradorUI).GetField("soundStateText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (soundStateTextField != null) soundStateTextField.SetValue(uiManager, textSoundComp);
+
+            EditorUtility.SetDirty(uiManager);
+            Debug.Log("✅ ConfigPanel creado e inyectado en AdministradorUI.");
 
             // 7.7 Crear o buscar VictoryPanel
             Transform oldVictoryPanel = canvas.transform.Find("VictoryPanel");
