@@ -686,11 +686,17 @@ namespace DeliveryExpress.Editor
             panelRect.anchoredPosition = new Vector2(35f, -35f);
             panelRect.sizeDelta = new Vector2(350f, 140f);
 
-            // Agregar fondo oscuro del recuadro
-            Image hudPanelImage = livesPanelObj.AddComponent<Image>();
-            hudPanelImage.color = new Color(0.08f, 0.08f, 0.08f, 0.85f); // Recuadro elegante
+            // Obtener sprite de fondo redondeado estándar de Unity
+            UnityEngine.UI.DefaultControls.Resources uiResources = new UnityEngine.UI.DefaultControls.Resources();
+            Sprite roundedBoxSprite = uiResources.background;
 
-            // Agregar sombra al recuadro para darle profundidad en lugar de un borde
+            // Agregar fondo oscuro redondeado del recuadro
+            Image hudPanelImage = livesPanelObj.AddComponent<Image>();
+            hudPanelImage.sprite = roundedBoxSprite;
+            hudPanelImage.type = Image.Type.Sliced;
+            hudPanelImage.color = new Color(0.08f, 0.08f, 0.08f, 0.85f); // Recuadro elegante y oscuro
+
+            // Agregar sombra al recuadro para darle profundidad
             Shadow panelShadow = livesPanelObj.AddComponent<Shadow>();
             panelShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
             panelShadow.effectDistance = new Vector2(5f, -5f);
