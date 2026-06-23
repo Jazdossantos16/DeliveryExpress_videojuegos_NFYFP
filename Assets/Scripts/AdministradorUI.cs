@@ -58,16 +58,19 @@ namespace DeliveryExpress
                     startPanel.SetActive(false);
                 }
                 Time.timeScale = 1f;
+                SetHUDActive(true);
             }
             else
             {
                 if (startPanel != null && startPanel.activeSelf)
                 {
                     Time.timeScale = 0f; // Pausa el juego mientras esté la pantalla de inicio activa
+                    SetHUDActive(false);
                 }
                 else
                 {
                     Time.timeScale = 1f;
+                    SetHUDActive(true);
                 }
             }
 
@@ -361,6 +364,7 @@ namespace DeliveryExpress
             {
                 startPanel.SetActive(false); // Oculta la pantalla de inicio
             }
+            SetHUDActive(true);
             Debug.Log("✅ Juego Iniciado.");
         }
 
@@ -410,6 +414,7 @@ namespace DeliveryExpress
 
         public void ShowGameOver()
         {
+            SetHUDActive(false);
             if (gameOverPanel != null)
             {
                 gameOverPanel.SetActive(true);
@@ -510,6 +515,7 @@ namespace DeliveryExpress
 
         public void ShowVictory()
         {
+            SetHUDActive(false);
             if (victoryPanel != null)
             {
                 victoryPanel.SetActive(true);
@@ -522,6 +528,21 @@ namespace DeliveryExpress
                 }
             }
             Time.timeScale = 0f;
+        }
+
+        private void SetHUDActive(bool active)
+        {
+            Transform hudLives = transform.Find("Marco_HUD");
+            if (hudLives != null) hudLives.gameObject.SetActive(active);
+
+            Transform hudCoins = transform.Find("Marco_Monedas");
+            if (hudCoins != null) hudCoins.gameObject.SetActive(active);
+
+            Transform hudBalance = transform.Find("Barra_Equilibrio");
+            if (hudBalance != null) hudBalance.gameObject.SetActive(active);
+
+            if (coinsText != null && coinsText.transform.parent == transform) 
+                coinsText.gameObject.SetActive(active);
         }
 
         public void AvanzarSiguienteDia()
