@@ -943,6 +943,7 @@ namespace DeliveryExpress.Editor
             Text coinsText = coinsTextObj.AddComponent<Text>();
             
             // Buscar la fuente disponible
+            Text anyText = canvas.GetComponentInChildren<Text>(true);
             if (anyText != null) coinsText.font = anyText.font;
             else coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
