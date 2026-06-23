@@ -43,6 +43,11 @@ namespace DeliveryExpress
         [Header("UI de Monedas")]
         [SerializeField] private Text coinsText;
 
+        [Header("Sprites de Pausa y Play")]
+        [SerializeField] private Sprite pauseSprite;
+        [SerializeField] private Sprite playSprite;
+        private Image pausePlayButtonImage;
+
         private void Awake()
         {
             Instance = this;
@@ -89,6 +94,16 @@ namespace DeliveryExpress
                 if (heartImages == null || heartImages.Length == 0)
                 {
                     FindHeartImages();
+                }
+
+                Transform pauseBtnTrans = transform.Find("Boton_PausaPlay");
+                if (pauseBtnTrans != null)
+                {
+                    pausePlayButtonImage = pauseBtnTrans.GetComponent<Image>();
+                    if (pausePlayButtonImage != null && pauseSprite != null)
+                    {
+                        pausePlayButtonImage.sprite = pauseSprite;
+                    }
                 }
 
                 if (livesText == null)
@@ -193,6 +208,15 @@ namespace DeliveryExpress
                 if (Input.GetKeyDown(KeyCode.R))
                 {
                     RestartGame();
+                }
+            }
+
+            // Tecla P o Esc para pausar/reanudar
+            if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
+            {
+                if (startPanel == null || !startPanel.activeSelf)
+                {
+                    AlternarPausa();
                 }
             }
         }
@@ -363,6 +387,10 @@ namespace DeliveryExpress
             if (startPanel != null)
             {
                 startPanel.SetActive(false); // Oculta la pantalla de inicio
+            }
+            if (pausePlayButtonImage != null && pauseSprite != null)
+            {
+                pausePlayButtonImage.sprite = pauseSprite;
             }
             SetHUDActive(true);
             Debug.Log("✅ Juego Iniciado.");
@@ -541,8 +569,39 @@ namespace DeliveryExpress
             Transform hudBalance = transform.Find("Barra_Equilibrio");
             if (hudBalance != null) hudBalance.gameObject.SetActive(active);
 
+            Transform hudPause = transform.Find("Boton_PausaPlay");
+            if (hudPause != null) hudPause.gameObject.SetActive(active);
+
             if (coinsText != null && coinsText.transform.parent == transform) 
                 coinsText.gameObject.SetActive(active);
+        }
+
+        public void AlternarPausa()
+        {
+            // No permitir pausar si el juego ya terminó o está en la pantalla de inicio o reproduciendo video
+            if (AdministradorJuego.Instance != null && (AdministradorJuego.Instance.IsGameOver || isPlayingVideo))
+                return;
+
+            if (Time.timeScale > 0f)
+            {
+                // Pausar
+                Time.timeScale = 0f;
+                if (pausePlayButtonImage != null && playSprite != null)
+                {
+                    pausePlayButtonImage.sprite = playSprite;
+                }
+                Debug.Log("⏸️ Juego Pausado.");
+            }
+            else
+            {
+                // Reanudar
+                Time.timeScale = 1f;
+                if (pausePlayButtonImage != null && pauseSprite != null)
+                {
+                    pausePlayButtonImage.sprite = pauseSprite;
+                }
+                Debug.Log("▶️ Juego Reanudado.");
+            }
         }
 
         public void AvanzarSiguienteDia()
