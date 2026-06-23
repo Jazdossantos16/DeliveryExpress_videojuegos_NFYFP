@@ -687,8 +687,8 @@ namespace DeliveryExpress.Editor
             panelRect.sizeDelta = new Vector2(350f, 140f);
 
             // Agregar fondo oscuro semi-transparente
-            Image panelImage = livesPanelObj.AddComponent<Image>();
-            panelImage.color = new Color(0.1f, 0.1f, 0.1f, 0.75f);
+            Image hudPanelImage = livesPanelObj.AddComponent<Image>();
+            hudPanelImage.color = new Color(0.1f, 0.1f, 0.1f, 0.75f);
 
             // Agregar borde outline Pedime Ya Red
             Outline panelOutline = livesPanelObj.AddComponent<Outline>();
