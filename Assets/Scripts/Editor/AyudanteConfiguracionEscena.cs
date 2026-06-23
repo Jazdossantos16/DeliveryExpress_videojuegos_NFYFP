@@ -676,6 +676,12 @@ namespace DeliveryExpress.Editor
                 UnityEngine.Object.DestroyImmediate(oldCoinsText.gameObject);
             }
 
+            Transform oldPausePlay = canvas.transform.Find("Boton_PausaPlay");
+            if (oldPausePlay != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldPausePlay.gameObject);
+            }
+
             // 1. Crear el Panel Marco/Borde para Vidas
             GameObject livesPanelObj = new GameObject("Marco_HUD", typeof(RectTransform));
             RectTransform panelRect = livesPanelObj.GetComponent<RectTransform>();
@@ -965,12 +971,58 @@ namespace DeliveryExpress.Editor
             coinsShadow.effectColor = Color.black;
             coinsShadow.effectDistance = new Vector2(1.5f, -1.5f);
 
+            // 7.47 Crear el botón de pausa y play Boton_PausaPlay
+            GameObject pauseBtnObj = new GameObject("Boton_PausaPlay", typeof(RectTransform));
+            RectTransform pauseBtnRect = pauseBtnObj.GetComponent<RectTransform>();
+            pauseBtnRect.SetParent(canvas.transform, false);
+            pauseBtnRect.anchorMin = new Vector2(1f, 1f); // Esquina superior derecha
+            pauseBtnRect.anchorMax = new Vector2(1f, 1f);
+            pauseBtnRect.pivot = new Vector2(1f, 1f);
+            pauseBtnRect.anchoredPosition = new Vector2(-35f, -35f); // 35px del borde
+            pauseBtnRect.sizeDelta = new Vector2(65f, 65f); // Tamaño del botón
+
+            Image pauseBtnImage = pauseBtnObj.AddComponent<Image>();
+            Sprite spPausa = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_pausa.png");
+            Sprite spPlay = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_play.png");
+            if (spPausa != null)
+            {
+                pauseBtnImage.sprite = spPausa;
+                pauseBtnImage.color = Color.white;
+            }
+            else
+            {
+                pauseBtnImage.color = Color.blue; // Fallback
+            }
+
+            Button pauseBtn = pauseBtnObj.AddComponent<Button>();
+
             // 7.5 Configurar el AdministradorUI
             AdministradorUI uiManager = canvas.GetComponent<AdministradorUI>();
             if (uiManager == null)
             {
                 uiManager = canvas.gameObject.AddComponent<AdministradorUI>();
             }
+
+            // Asignar los métodos a ejecutar al hacer click
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(pauseBtn.onClick, uiManager.AlternarPausa);
+
+            // Inyectar los sprites y el botón mediante reflexión en el AdministradorUI
+            var pauseSpriteField = typeof(AdministradorUI).GetField("pauseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (pauseSpriteField != null && spPausa != null)
+            {
+                pauseSpriteField.SetValue(uiManager, spPausa);
+            }
+            var playSpriteField = typeof(AdministradorUI).GetField("playSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (playSpriteField != null && spPlay != null)
+            {
+                playSpriteField.SetValue(uiManager, spPlay);
+            }
+            var pausePlayImageField = typeof(AdministradorUI).GetField("pausePlayButtonImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (pausePlayImageField != null)
+            {
+                pausePlayImageField.SetValue(uiManager, pauseBtnImage);
+            }
+            EditorUtility.SetDirty(uiManager);
 
             // Crear los botones interactivos de Reintento y Menú
             // Botón "Intentar de nuevo" (Abajo a la Derecha)
