@@ -151,7 +151,7 @@ namespace DeliveryExpress
                     coinsText.gameObject.layer = this.gameObject.layer;
                 }
 
-                UpdateLivesUI(3);
+                UpdateLivesUI(AdministradorJuego.Instance.CurrentLives);
                 UpdateCoinsUI(AdministradorJuego.Instance.Coins);
             }
         }
@@ -535,7 +535,7 @@ namespace DeliveryExpress
         {
             if (coinsText != null)
             {
-                coinsText.text = "Monedas: " + coins;
+                coinsText.text = coins.ToString();
             }
         }
     }
