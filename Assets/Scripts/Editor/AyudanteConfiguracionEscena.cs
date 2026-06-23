@@ -677,7 +677,7 @@ namespace DeliveryExpress.Editor
             rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
             rect.anchoredPosition = new Vector2(35f, -35f);
-            rect.sizeDelta = new Vector2(400f, 90f);
+            rect.sizeDelta = new Vector2(450f, 100f);
 
             HorizontalLayoutGroup layout = livesContainerObj.AddComponent<HorizontalLayoutGroup>();
             layout.spacing = 18f;
@@ -733,7 +733,7 @@ namespace DeliveryExpress.Editor
 
                 RectTransform hRect = heartObj.GetComponent<RectTransform>();
                 hRect.SetParent(rect, false);
-                hRect.sizeDelta = new Vector2(95f, 70f);
+                hRect.sizeDelta = new Vector2(115f, 85f);
 
                 Image img = heartObj.GetComponent<Image>();
                 if (img == null)
@@ -1775,7 +1775,7 @@ namespace DeliveryExpress.Editor
             {
                 GameObject tempObj = new GameObject("Hamburguesa_Vida", typeof(RectTransform));
                 RectTransform rTrans = tempObj.GetComponent<RectTransform>();
-                rTrans.sizeDelta = new Vector2(95f, 70f);
+                rTrans.sizeDelta = new Vector2(115f, 85f);
 
                 Image img = tempObj.AddComponent<Image>();
                 img.preserveAspect = true;
