@@ -250,11 +250,35 @@ namespace DeliveryExpress.Editor
                     {
                         needsFix = true;
                     }
-
-                    Transform tBooster = canvasObj.transform.Find("Barra_Potenciador");
-                    if (tBooster == null || tBooster.GetComponent<UnityEngine.UI.Image>() == null)
+                    else
                     {
-                        needsFix = true;
+                        RectTransform rt = tBalance.GetComponent<RectTransform>();
+                        if (rt != null && (Mathf.Abs(rt.anchoredPosition.y - 40f) > 0.1f || 
+                                           Mathf.Abs(rt.sizeDelta.x - 270f) > 0.1f || 
+                                           Mathf.Abs(rt.sizeDelta.y - 69f) > 0.1f))
+                        {
+                            needsFix = true;
+                        }
+                    }
+
+                    if (!needsFix)
+                    {
+                        Transform tBooster = canvasObj.transform.Find("Barra_Potenciador");
+                        if (tBooster == null || tBooster.GetComponent<UnityEngine.UI.Image>() == null)
+                        {
+                            needsFix = true;
+                        }
+                        else
+                        {
+                            RectTransform rt = tBooster.GetComponent<RectTransform>();
+                            if (rt != null && (Mathf.Abs(rt.anchoredPosition.y - 40f) > 0.1f || 
+                                               Mathf.Abs(rt.anchoredPosition.x - 170f) > 0.1f ||
+                                               Mathf.Abs(rt.sizeDelta.x - 270f) > 0.1f || 
+                                               Mathf.Abs(rt.sizeDelta.y - 69f) > 0.1f))
+                            {
+                                needsFix = true;
+                            }
+                        }
                     }
                 }
             }
@@ -750,10 +774,10 @@ namespace DeliveryExpress.Editor
             RectTransform boosterRect = boosterObj.GetComponent<RectTransform>();
             boosterRect.anchorMin = new Vector2(0f, 0f);
             boosterRect.anchorMax = new Vector2(0f, 0f);
-            boosterRect.pivot = new Vector2(0f, 0f);
+            boosterRect.pivot = new Vector2(0.5f, 0f); // Mismo pivot de Y y de alineación que la barra de equilibrio
             // Tamaño de la barra de potenciador igual que la de equilibrio: 270x69
             boosterRect.sizeDelta = new Vector2(270f, 69f);
-            boosterRect.anchoredPosition = new Vector2(35f, 40f); // Esquina izquierda inferior, alineada con la barra de equilibrio
+            boosterRect.anchoredPosition = new Vector2(170f, 40f); // 170 - (270/2) = 35 de margen izquierdo, alineación Y=40 idéntica
 
             // Cargar los sprites múltiples de la barra de potenciador
             string boosterSpritePath = "Assets/sprites/barra_potenciador.png";
