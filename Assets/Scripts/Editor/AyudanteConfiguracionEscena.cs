@@ -242,6 +242,30 @@ namespace DeliveryExpress.Editor
 
             if (!needsFix)
             {
+                GameObject canvasObj = GameObject.Find("_Lienzo_UI") ?? GameObject.Find("_UI_Canvas");
+                if (canvasObj != null)
+                {
+                    Transform tBalance = canvasObj.transform.Find("Barra_Equilibrio");
+                    if (tBalance == null)
+                    {
+                        needsFix = true;
+                    }
+                    else
+                    {
+                        if (tBalance.GetComponent<UnityEngine.UI.Image>() == null)
+                        {
+                            needsFix = true;
+                        }
+                        else if (tBalance.Find("Texto_Aclaracion_Equilibrio") == null)
+                        {
+                            needsFix = true;
+                        }
+                    }
+                }
+            }
+
+            if (!needsFix)
+            {
                 GeneradorObstaculos spawnerObj = GameObject.FindFirstObjectByType<GeneradorObstaculos>();
                 if (spawnerObj == null)
                 {
@@ -666,38 +690,66 @@ namespace DeliveryExpress.Editor
                 UnityEngine.Object.DestroyImmediate(oldBalance.gameObject);
             }
 
-            GameObject sliderObj = UnityEngine.UI.DefaultControls.CreateSlider(new UnityEngine.UI.DefaultControls.Resources());
-            sliderObj.name = "Barra_Equilibrio";
-            sliderObj.transform.SetParent(canvas.transform, false);
+            GameObject balanceObj = new GameObject("Barra_Equilibrio");
+            balanceObj.transform.SetParent(canvas.transform, false);
             
-            UnityEngine.UI.Slider slider = sliderObj.GetComponent<UnityEngine.UI.Slider>();
-            slider.interactable = false;
-            slider.value = 1f;
+            UnityEngine.UI.Image balanceImage = balanceObj.AddComponent<UnityEngine.UI.Image>();
             
-            RectTransform sliderRect = slider.GetComponent<RectTransform>();
+            RectTransform balanceRect = balanceObj.GetComponent<RectTransform>();
             // Ancla la barra en el centro inferior, ideal para monitorearla con visión periférica
-            sliderRect.anchorMin = new Vector2(0.5f, 0f);
-            sliderRect.anchorMax = new Vector2(0.5f, 0f);
-            sliderRect.pivot = new Vector2(0.5f, 0f);
-            sliderRect.anchoredPosition = new Vector2(0f, 35f);
-            sliderRect.sizeDelta = new Vector2(220f, 16f);
+            balanceRect.anchorMin = new Vector2(0.5f, 0f);
+            balanceRect.anchorMax = new Vector2(0.5f, 0f);
+            balanceRect.pivot = new Vector2(0.5f, 0f);
+            // Tamaño de la barra escalado a 270x69 (50% del original de 540x138)
+            balanceRect.sizeDelta = new Vector2(270f, 69f);
+            balanceRect.anchoredPosition = new Vector2(0f, 40f);
 
-            UnityEngine.UI.Image fillImage = slider.fillRect.GetComponent<UnityEngine.UI.Image>();
-            fillImage.color = Color.green;
+            // Cargar los sprites múltiples
+            string spritePath = "Assets/sprites/barra_equilibrio.png";
+            Sprite[] balanceSprites = AssetDatabase.LoadAllAssetsAtPath(spritePath)
+                .OfType<Sprite>()
+                .OrderBy(s => s.name)
+                .ToArray();
 
-            // Oculta la perilla del slider
-            Transform handleSlideArea = sliderObj.transform.Find("Handle Slide Area");
-            if (handleSlideArea != null) handleSlideArea.gameObject.SetActive(false);
+            if (balanceSprites != null && balanceSprites.Length > 0)
+            {
+                // Asignar el sprite barra_equilibrio_0 (index 0) que corresponde a lleno
+                balanceImage.sprite = balanceSprites[0];
+            }
+            balanceImage.preserveAspect = true;
+
+            // Crear el texto de aclaración
+            GameObject textAclaracionObj = new GameObject("Texto_Aclaracion_Equilibrio");
+            textAclaracionObj.transform.SetParent(balanceObj.transform, false);
+            
+            UnityEngine.UI.Text textAclaracion = textAclaracionObj.AddComponent<UnityEngine.UI.Text>();
+            textAclaracion.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            textAclaracion.text = "Usa A/D o ← / → para no perder el equilibrio";
+            textAclaracion.fontSize = 13;
+            textAclaracion.alignment = TextAnchor.MiddleCenter;
+            textAclaracion.color = Color.white;
+            
+            // Añadir Outline para que sea legible en cualquier fondo
+            UnityEngine.UI.Outline outline = textAclaracionObj.AddComponent<UnityEngine.UI.Outline>();
+            outline.effectColor = Color.black;
+            outline.effectDistance = new Vector2(1f, -1f);
+            
+            RectTransform textRect = textAclaracionObj.GetComponent<RectTransform>();
+            textRect.anchorMin = new Vector2(0.5f, 1f);
+            textRect.anchorMax = new Vector2(0.5f, 1f);
+            textRect.pivot = new Vector2(0.5f, 0.5f);
+            textRect.sizeDelta = new Vector2(300f, 20f);
+            textRect.anchoredPosition = new Vector2(0f, 18f); // 18 píxeles por encima del borde superior de la barra de equilibrio
 
             AdministradorUI tempUiManager = canvas.gameObject.GetComponent<AdministradorUI>();
             if (tempUiManager == null) tempUiManager = canvas.gameObject.AddComponent<AdministradorUI>();
 
-            // Asigna el slider por reflexión
-            var sliderField = typeof(AdministradorUI).GetField("balanceSlider", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (sliderField != null) sliderField.SetValue(tempUiManager, slider);
+            // Asigna los nuevos campos por reflexión
+            var balanceImageField = typeof(AdministradorUI).GetField("balanceImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (balanceImageField != null) balanceImageField.SetValue(tempUiManager, balanceImage);
 
-            var fillImageField = typeof(AdministradorUI).GetField("balanceFillImage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (fillImageField != null) fillImageField.SetValue(tempUiManager, fillImage);
+            var balanceSpritesField = typeof(AdministradorUI).GetField("balanceSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (balanceSpritesField != null) balanceSpritesField.SetValue(tempUiManager, balanceSprites);
 
             Transform oldMarco = canvas.transform.Find("Marco_HUD");
             if (oldMarco != null)

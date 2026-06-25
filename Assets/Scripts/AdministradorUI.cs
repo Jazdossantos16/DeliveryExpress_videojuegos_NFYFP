@@ -19,6 +19,8 @@ namespace DeliveryExpress
         [Header("UI de Equilibrio")]
         [SerializeField] private Slider balanceSlider;
         [SerializeField] private Image balanceFillImage;
+        [SerializeField] private Image balanceImage;
+        [SerializeField] private Sprite[] balanceSprites;
 
         [Header("Pantalla de Fin de Juego")]
         [SerializeField] private GameObject gameOverPanel;
@@ -526,12 +528,43 @@ namespace DeliveryExpress
         /// </summary>
         public void UpdateBalanceUI(float current, float max)
         {
-            if (balanceSlider != null && balanceFillImage != null)
+            float fillPercentage = Mathf.Clamp01(current / max);
+
+            // Actualizar la imagen con el sprite correspondiente según el nivel de equilibrio
+            if (balanceImage != null && balanceSprites != null && balanceSprites.Length >= 7)
             {
-                float fillPercentage = Mathf.Clamp01(current / max);
-                balanceSlider.value = fillPercentage;
+                // Mapeo:
+                // barra_equilibrio_0 (index 0) -> 6 celdas (equilibrio > 85%)
+                // barra_equilibrio_2 (index 2) -> 5 celdas (equilibrio entre 68% y 85%)
+                // barra_equilibrio_3 (index 3) -> 4 celdas (equilibrio entre 51% y 68%)
+                // barra_equilibrio_4 (index 4) -> 3 celdas (equilibrio entre 34% y 51%)
+                // barra_equilibrio_5 (index 5) -> 2 celdas (equilibrio entre 17% y 34%)
+                // barra_equilibrio_6 (index 6) -> 1 celda (equilibrio entre 0% y 17%)
+                // barra_equilibrio_1 (index 1) -> vacío (equilibrio = 0%)
                 
-                balanceFillImage.color = Color.Lerp(Color.red, Color.green, fillPercentage);
+                int spriteIndex = 1; // vacío por defecto
+                if (fillPercentage > 0.85f) spriteIndex = 0;
+                else if (fillPercentage > 0.68f) spriteIndex = 2;
+                else if (fillPercentage > 0.51f) spriteIndex = 3;
+                else if (fillPercentage > 0.34f) spriteIndex = 4;
+                else if (fillPercentage > 0.17f) spriteIndex = 5;
+                else if (fillPercentage > 0.0f) spriteIndex = 6;
+                else spriteIndex = 1;
+
+                if (spriteIndex < balanceSprites.Length && balanceSprites[spriteIndex] != null)
+                {
+                    balanceImage.sprite = balanceSprites[spriteIndex];
+                }
+            }
+
+            // Retrocompatibilidad con el Slider convencional
+            if (balanceSlider != null)
+            {
+                balanceSlider.value = fillPercentage;
+                if (balanceFillImage != null)
+                {
+                    balanceFillImage.color = Color.Lerp(Color.red, Color.green, fillPercentage);
+                }
             }
         }
 
