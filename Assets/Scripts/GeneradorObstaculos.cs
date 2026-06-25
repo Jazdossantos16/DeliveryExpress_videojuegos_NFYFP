@@ -378,14 +378,153 @@ namespace DeliveryExpress
         }
 
         /// <summary>
-        /// Genera una hamburguesa coleccionable en un carril aleatorio libre.
+        /// Obtiene un carril que esté libre de obstáculos y otros coleccionables cerca del área de spawn.
+        /// Si todos están ocupados, elige el carril que tenga el obstáculo más lejano.
+        /// </summary>
+        private int GetSafeLaneForPowerUp()
+        {
+            if (lanePositionsX == null || lanePositionsX.Length == 0) return 0;
+
+            List<int> safeLanes = new List<int>();
+            for (int i = 0; i < lanePositionsX.Length; i++)
+            {
+                safeLanes.Add(i);
+            }
+
+            // Buscar todos los obstáculos activos
+            Obstaculo[] activeObstacles = FindObjectsByType<Obstaculo>(FindObjectsSortMode.None);
+            
+            // Buscar coleccionables activos para evitar encimarlos
+            Moneda[] activeCoins = FindObjectsByType<Moneda>(FindObjectsSortMode.None);
+            PotenciadorEnergia[] activeBoosts = FindObjectsByType<PotenciadorEnergia>(FindObjectsSortMode.None);
+            HamburguesaVida[] activeBurgers = FindObjectsByType<HamburguesaVida>(FindObjectsSortMode.None);
+
+            // Verificar obstáculos
+            foreach (Obstaculo obs in activeObstacles)
+            {
+                if (obs == null) continue;
+                // Si el obstáculo está cerca de la zona de spawn (Y > 6f)
+                if (obs.transform.position.y > 6.0f)
+                {
+                    int lane = GetLaneIndexFromX(obs.transform.position.x);
+                    if (lane != -1 && safeLanes.Contains(lane))
+                    {
+                        safeLanes.Remove(lane);
+                    }
+                }
+            }
+
+            // Verificar coleccionables
+            foreach (Moneda coin in activeCoins)
+            {
+                if (coin == null) continue;
+                if (coin.transform.position.y > 6.0f)
+                {
+                    int lane = GetLaneIndexFromX(coin.transform.position.x);
+                    if (lane != -1 && safeLanes.Contains(lane))
+                    {
+                        safeLanes.Remove(lane);
+                    }
+                }
+            }
+
+            foreach (PotenciadorEnergia boost in activeBoosts)
+            {
+                if (boost == null) continue;
+                if (boost.transform.position.y > 6.0f)
+                {
+                    int lane = GetLaneIndexFromX(boost.transform.position.x);
+                    if (lane != -1 && safeLanes.Contains(lane))
+                    {
+                        safeLanes.Remove(lane);
+                    }
+                }
+            }
+
+            foreach (HamburguesaVida burger in activeBurgers)
+            {
+                if (burger == null) continue;
+                if (burger.transform.position.y > 6.0f)
+                {
+                    int lane = GetLaneIndexFromX(burger.transform.position.x);
+                    if (lane != -1 && safeLanes.Contains(lane))
+                    {
+                        safeLanes.Remove(lane);
+                    }
+                }
+            }
+
+            // Si hay carriles seguros, elegir uno al azar
+            if (safeLanes.Count > 0)
+            {
+                return safeLanes[Random.Range(0, safeLanes.Count)];
+            }
+
+            // Fallback: Si todos están ocupados cerca de la zona de spawn, buscar el carril cuyo objeto más alto esté lo más bajo posible (máximo Y en cada carril)
+            int bestLane = Random.Range(0, lanePositionsX.Length);
+            float minMaxY = float.MaxValue;
+
+            for (int i = 0; i < lanePositionsX.Length; i++)
+            {
+                float maxYInLane = float.MinValue;
+                
+                // Verificar obstáculos en el carril i
+                foreach (Obstaculo obs in activeObstacles)
+                {
+                    if (obs == null) continue;
+                    if (GetLaneIndexFromX(obs.transform.position.x) == i)
+                    {
+                        if (obs.transform.position.y > maxYInLane) maxYInLane = obs.transform.position.y;
+                    }
+                }
+                
+                // Verificar coleccionables en el carril i
+                foreach (Moneda coin in activeCoins)
+                {
+                    if (coin == null) continue;
+                    if (GetLaneIndexFromX(coin.transform.position.x) == i)
+                    {
+                        if (coin.transform.position.y > maxYInLane) maxYInLane = coin.transform.position.y;
+                    }
+                }
+                
+                foreach (PotenciadorEnergia boost in activeBoosts)
+                {
+                    if (boost == null) continue;
+                    if (GetLaneIndexFromX(boost.transform.position.x) == i)
+                    {
+                        if (boost.transform.position.y > maxYInLane) maxYInLane = boost.transform.position.y;
+                    }
+                }
+
+                foreach (HamburguesaVida burger in activeBurgers)
+                {
+                    if (burger == null) continue;
+                    if (GetLaneIndexFromX(burger.transform.position.x) == i)
+                    {
+                        if (burger.transform.position.y > maxYInLane) maxYInLane = burger.transform.position.y;
+                    }
+                }
+
+                if (maxYInLane < minMaxY)
+                {
+                    minMaxY = maxYInLane;
+                    bestLane = i;
+                }
+            }
+
+            return bestLane;
+        }
+
+        /// <summary>
+        /// Genera una hamburguesa coleccionable en un carril seguro libre de obstáculos.
         /// </summary>
         private void SpawnHamburguesa()
         {
             if (hamburguesaPowerUpPrefab == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
 
-            // Elegir carril aleatorio
-            int randomLane = Random.Range(0, lanePositionsX.Length);
+            // Elegir carril seguro
+            int randomLane = GetSafeLaneForPowerUp();
             float spawnX = lanePositionsX[randomLane];
 
             Vector3 spawnPos = new Vector3(spawnX, spawnYPosition, 0f);
@@ -401,14 +540,14 @@ namespace DeliveryExpress
         }
 
         /// <summary>
-        /// Genera una fila vertical de monedas en un carril aleatorio libre.
+        /// Genera una fila vertical de monedas en un carril seguro libre de obstáculos.
         /// </summary>
         private void SpawnMonedaRow()
         {
             if (monedaPrefab == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
 
-            // Elegir carril aleatorio
-            int randomLane = Random.Range(0, lanePositionsX.Length);
+            // Elegir carril seguro
+            int randomLane = GetSafeLaneForPowerUp();
             float spawnX = lanePositionsX[randomLane];
 
             // Cantidad de monedas en la fila
@@ -431,14 +570,14 @@ namespace DeliveryExpress
         }
 
         /// <summary>
-        /// Genera un potenciador de velocidad en un carril aleatorio libre.
+        /// Genera un potenciador de velocidad en un carril seguro libre de obstáculos.
         /// </summary>
         private void SpawnPotenciadorEnergia()
         {
             if (potenciadorEnergiaPrefab == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
 
-            // Elegir carril aleatorio
-            int randomLane = Random.Range(0, lanePositionsX.Length);
+            // Elegir carril seguro
+            int randomLane = GetSafeLaneForPowerUp();
             float spawnX = lanePositionsX[randomLane];
 
             Vector3 spawnPos = new Vector3(spawnX, spawnYPosition, 0f);
