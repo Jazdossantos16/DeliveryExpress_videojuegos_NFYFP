@@ -389,20 +389,35 @@ namespace DeliveryExpress
             {
                 standardFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
             }
+            if (standardFont == null)
+            {
+                Font[] allFonts = Resources.FindObjectsOfTypeAll<Font>();
+                if (allFonts != null && allFonts.Length > 0)
+                {
+                    standardFont = allFonts[0];
+                }
+            }
             skipText.font = standardFont;
             
             skipText.text = "Presiona E para omitir";
-            skipText.fontSize = 24;
+            skipText.fontSize = 28;
             skipText.alignment = TextAnchor.LowerRight;
             skipText.color = Color.black;
+            skipText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            skipText.verticalOverflow = VerticalWrapMode.Overflow;
+            
+            // Agregar una sombra blanca para resaltar sobre fondo oscuro
+            Shadow shadow = skipTextGo.AddComponent<Shadow>();
+            shadow.effectColor = new Color(1f, 1f, 1f, 0.8f);
+            shadow.effectDistance = new Vector2(1.5f, -1.5f);
             
             // Configurar RectTransform para el texto en la esquina inferior derecha
             RectTransform skipRect = skipText.rectTransform;
-            skipRect.anchorMin = new Vector2(0.5f, 0f);
-            skipRect.anchorMax = new Vector2(1f, 0.2f);
+            skipRect.anchorMin = new Vector2(1f, 0f);
+            skipRect.anchorMax = new Vector2(1f, 0f);
             skipRect.pivot = new Vector2(1f, 0f);
             skipRect.anchoredPosition = new Vector2(-40f, 40f);
-            skipRect.sizeDelta = new Vector2(400f, 50f);
+            skipRect.sizeDelta = new Vector2(500f, 60f);
 
             // Iniciar reproducción
             videoPlayer.Play();
