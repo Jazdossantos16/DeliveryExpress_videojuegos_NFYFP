@@ -723,7 +723,7 @@ namespace DeliveryExpress.Editor
             textAclaracionObj.transform.SetParent(balanceObj.transform, false);
             
             UnityEngine.UI.Text textAclaracion = textAclaracionObj.AddComponent<UnityEngine.UI.Text>();
-            textAclaracion.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            textAclaracion.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             textAclaracion.text = "Usa A/D o ← / → para no perder el equilibrio";
             textAclaracion.fontSize = 13;
             textAclaracion.alignment = TextAnchor.MiddleCenter;
@@ -1053,11 +1053,10 @@ namespace DeliveryExpress.Editor
 
             Text coinsText = coinsTextObj.AddComponent<Text>();
             
-            // Buscar la fuente disponible
             Text anyText = canvas.GetComponentInChildren<Text>(true);
             if (anyText != null) coinsText.font = anyText.font;
             else coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
             coinsText.fontSize = 28;
             coinsText.fontStyle = FontStyle.Bold;
@@ -1421,7 +1420,7 @@ namespace DeliveryExpress.Editor
             }
             if (standardFont == null)
             {
-                standardFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                standardFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             }
 
             // Crear GameObject para el Icono de Usuario (X: -251.5, Y: 110.0, size 84x88)
