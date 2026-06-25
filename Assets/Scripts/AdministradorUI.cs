@@ -783,14 +783,16 @@ namespace DeliveryExpress
                 soundIconImage.sprite = soundEnabled ? iconSoundOn : iconSoundOff;
             }
 
-            // Actualizar textos dinámicos "Si" / "No"
+            // Los textos de estado se ocultan; solo el ícono indica si está activo o no
             if (musicStateText != null)
             {
-                musicStateText.text = musicEnabled ? "Si" : "No";
+                musicStateText.text = "";
+                musicStateText.gameObject.SetActive(false);
             }
             if (soundStateText != null)
             {
-                soundStateText.text = soundEnabled ? "Si" : "No";
+                soundStateText.text = "";
+                soundStateText.gameObject.SetActive(false);
             }
         }
     }
