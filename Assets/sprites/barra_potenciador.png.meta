@@ -121,7 +121,7 @@ TextureImporter:
       name: barra_potenciador_0
       rect:
         serializedVersion: 2
-        x: 100
+        x: 106
         y: 835
         width: 540
         height: 138
@@ -143,7 +143,7 @@ TextureImporter:
       name: barra_potenciador_1
       rect:
         serializedVersion: 2
-        x: 678
+        x: 663
         y: 836
         width: 540
         height: 137
@@ -165,7 +165,7 @@ TextureImporter:
       name: barra_potenciador_2
       rect:
         serializedVersion: 2
-        x: 100
+        x: 106
         y: 685
         width: 540
         height: 138
@@ -187,7 +187,7 @@ TextureImporter:
       name: barra_potenciador_3
       rect:
         serializedVersion: 2
-        x: 100
+        x: 106
         y: 535
         width: 540
         height: 138
@@ -209,7 +209,7 @@ TextureImporter:
       name: barra_potenciador_4
       rect:
         serializedVersion: 2
-        x: 100
+        x: 106
         y: 385
         width: 540
         height: 138
@@ -231,7 +231,7 @@ TextureImporter:
       name: barra_potenciador_5
       rect:
         serializedVersion: 2
-        x: 100
+        x: 106
         y: 235
         width: 540
         height: 138
@@ -253,7 +253,7 @@ TextureImporter:
       name: barra_potenciador_6
       rect:
         serializedVersion: 2
-        x: 100
+        x: 106
         y: 84
         width: 540
         height: 138
