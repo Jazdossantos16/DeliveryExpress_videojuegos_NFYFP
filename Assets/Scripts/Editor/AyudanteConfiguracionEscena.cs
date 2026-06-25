@@ -246,16 +246,15 @@ namespace DeliveryExpress.Editor
                 if (canvasObj != null)
                 {
                     Transform tBalance = canvasObj.transform.Find("Barra_Equilibrio");
-                    if (tBalance == null)
+                    if (tBalance == null || tBalance.GetComponent<UnityEngine.UI.Image>() == null)
                     {
                         needsFix = true;
                     }
-                    else
+
+                    Transform tBooster = canvasObj.transform.Find("Barra_Potenciador");
+                    if (tBooster == null || tBooster.GetComponent<Slider>() == null)
                     {
-                        if (tBalance.GetComponent<UnityEngine.UI.Image>() == null)
-                        {
-                            needsFix = true;
-                        }
+                        needsFix = true;
                     }
                 }
             }
@@ -735,6 +734,79 @@ namespace DeliveryExpress.Editor
 
 
 
+            // 7.06 Barra de Potenciador
+            Transform oldBooster = canvas.transform.Find("Barra_Potenciador");
+            if (oldBooster != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldBooster.gameObject);
+            }
+
+            GameObject boosterObj = UnityEngine.UI.DefaultControls.CreateSlider(uiResources);
+            boosterObj.name = "Barra_Potenciador";
+            boosterObj.transform.SetParent(canvas.transform, false);
+            
+            // Quitar el handle
+            Transform handle = boosterObj.transform.Find("Handle Slide Area");
+            if (handle != null)
+            {
+                UnityEngine.Object.DestroyImmediate(handle.gameObject);
+            }
+
+            RectTransform fillAreaRect = boosterObj.transform.Find("Fill Area") as RectTransform;
+            if (fillAreaRect != null)
+            {
+                fillAreaRect.offsetMin = Vector2.zero;
+                fillAreaRect.offsetMax = Vector2.zero;
+            }
+
+            Slider boosterSlider = boosterObj.GetComponent<Slider>();
+            boosterSlider.interactable = false;
+
+            RectTransform boosterRect = boosterObj.GetComponent<RectTransform>();
+            boosterRect.anchorMin = new Vector2(0.5f, 0f);
+            boosterRect.anchorMax = new Vector2(0.5f, 0f);
+            boosterRect.pivot = new Vector2(0.5f, 0f);
+            boosterRect.sizeDelta = new Vector2(200f, 15f);
+            boosterRect.anchoredPosition = new Vector2(0f, 130f);
+
+            // Estilos visuales
+            Image bgImage = boosterObj.transform.Find("Background").GetComponent<Image>();
+            if (bgImage != null)
+            {
+                bgImage.color = new Color(0f, 0.1f, 0.2f, 0.7f);
+            }
+            
+            Image fillImage = boosterObj.transform.Find("Fill Area/Fill").GetComponent<Image>();
+            if (fillImage != null)
+            {
+                fillImage.color = new Color(0f, 0.8f, 1f, 1f); // Celeste/Cyan brillante
+            }
+
+            // Crear el texto de aclaración del potenciador
+            GameObject boosterTextObj = new GameObject("Texto_Aclaracion_Potenciador");
+            boosterTextObj.transform.SetParent(boosterObj.transform, false);
+            
+            UnityEngine.UI.Text boosterText = boosterTextObj.AddComponent<UnityEngine.UI.Text>();
+            boosterText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            boosterText.text = "⚡ ¡SUPER VELOCIDAD! ⚡";
+            boosterText.fontSize = 11;
+            boosterText.alignment = TextAnchor.MiddleCenter;
+            boosterText.color = new Color(0f, 0.8f, 1f, 1f); // Cyan eléctrico
+            
+            UnityEngine.UI.Outline boosterOutline = boosterTextObj.AddComponent<UnityEngine.UI.Outline>();
+            boosterOutline.effectColor = Color.black;
+            boosterOutline.effectDistance = new Vector2(1f, -1f);
+            
+            RectTransform boosterTextRect = boosterTextObj.GetComponent<RectTransform>();
+            boosterTextRect.anchorMin = new Vector2(0.5f, 1f);
+            boosterTextRect.anchorMax = new Vector2(0.5f, 1f);
+            boosterTextRect.pivot = new Vector2(0.5f, 0.5f);
+            boosterTextRect.sizeDelta = new Vector2(200f, 20f);
+            boosterTextRect.anchoredPosition = new Vector2(0f, 15f);
+
+            // Por defecto oculto en Edit Mode
+            boosterObj.SetActive(false);
+
             AdministradorUI tempUiManager = canvas.gameObject.GetComponent<AdministradorUI>();
             if (tempUiManager == null) tempUiManager = canvas.gameObject.AddComponent<AdministradorUI>();
 
@@ -744,6 +816,9 @@ namespace DeliveryExpress.Editor
 
             var balanceSpritesField = typeof(AdministradorUI).GetField("balanceSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (balanceSpritesField != null) balanceSpritesField.SetValue(tempUiManager, balanceSprites);
+
+            var boosterSliderField = typeof(AdministradorUI).GetField("boosterSlider", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (boosterSliderField != null) boosterSliderField.SetValue(tempUiManager, boosterSlider);
 
             Transform oldMarco = canvas.transform.Find("Marco_HUD");
             if (oldMarco != null)

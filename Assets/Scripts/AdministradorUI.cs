@@ -22,6 +22,9 @@ namespace DeliveryExpress
         [SerializeField] private Image balanceImage;
         [SerializeField] private Sprite[] balanceSprites;
 
+        [Header("UI de Potenciador")]
+        [SerializeField] private Slider boosterSlider;
+
         [Header("Pantalla de Fin de Juego")]
         [SerializeField] private GameObject gameOverPanel;
         [SerializeField] private Sprite loseSprite;
@@ -246,6 +249,28 @@ namespace DeliveryExpress
                 if (startPanel == null || !startPanel.activeSelf)
                 {
                     AlternarPausa();
+                }
+            }
+
+            // Actualizar barra de potenciador de velocidad (energía)
+            ControladorJugador player = ControladorJugador.Instance;
+            if (player != null && player.IsSpeedBoostActive)
+            {
+                if (boosterSlider != null)
+                {
+                    if (!boosterSlider.gameObject.activeSelf)
+                    {
+                        boosterSlider.gameObject.SetActive(true);
+                    }
+                    boosterSlider.maxValue = player.SpeedBoostDurationMax;
+                    boosterSlider.value = player.SpeedBoostDurationRemaining;
+                }
+            }
+            else
+            {
+                if (boosterSlider != null && boosterSlider.gameObject.activeSelf)
+                {
+                    boosterSlider.gameObject.SetActive(false);
                 }
             }
         }
@@ -633,6 +658,12 @@ namespace DeliveryExpress
 
             Transform hudPause = transform.Find("Boton_PausaPlay");
             if (hudPause != null) hudPause.gameObject.SetActive(active);
+
+            Transform hudBooster = transform.Find("Barra_Potenciador");
+            if (hudBooster != null)
+            {
+                hudBooster.gameObject.SetActive(active && (ControladorJugador.Instance != null && ControladorJugador.Instance.IsSpeedBoostActive));
+            }
 
             if (coinsText != null && coinsText.transform.parent == transform) 
                 coinsText.gameObject.SetActive(active);

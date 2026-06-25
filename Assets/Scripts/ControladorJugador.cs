@@ -65,10 +65,13 @@ namespace DeliveryExpress
         // Estado del potenciador de velocidad (energía/rayo)
         private bool isSpeedBoostActive = false;
         private float speedBoostDurationRemaining = 0f;
+        private float speedBoostDurationMax = 1f;
         private float speedBoostMultiplier = 1.5f;
 
         public bool IsSpeedBoostActive => isSpeedBoostActive;
         public float SpeedBoostMultiplier => isSpeedBoostActive ? speedBoostMultiplier : 1f;
+        public float SpeedBoostDurationMax => speedBoostDurationMax;
+        public float SpeedBoostDurationRemaining => speedBoostDurationRemaining;
 
         public static ControladorJugador Instance { get; private set; }
 
@@ -531,6 +534,7 @@ namespace DeliveryExpress
         public void ActivarPotenciadorVelocidad(float duracion, float multiplicador)
         {
             isSpeedBoostActive = true;
+            speedBoostDurationMax = duracion;
             speedBoostDurationRemaining = duracion;
             speedBoostMultiplier = multiplicador;
 
