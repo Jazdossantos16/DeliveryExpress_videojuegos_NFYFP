@@ -705,8 +705,8 @@ namespace DeliveryExpress.Editor
             balanceRect.anchoredPosition = new Vector2(0f, 40f);
 
             // Cargar los sprites múltiples
-            string spritePath = "Assets/sprites/barra_equilibrio.png";
-            Sprite[] balanceSprites = AssetDatabase.LoadAllAssetsAtPath(spritePath)
+            string balanceSpritePath = "Assets/sprites/barra_equilibrio.png";
+            Sprite[] balanceSprites = AssetDatabase.LoadAllAssetsAtPath(balanceSpritePath)
                 .OfType<Sprite>()
                 .OrderBy(s => s.name)
                 .ToArray();
@@ -734,12 +734,12 @@ namespace DeliveryExpress.Editor
             outline.effectColor = Color.black;
             outline.effectDistance = new Vector2(1f, -1f);
             
-            RectTransform textRect = textAclaracionObj.GetComponent<RectTransform>();
-            textRect.anchorMin = new Vector2(0.5f, 1f);
-            textRect.anchorMax = new Vector2(0.5f, 1f);
-            textRect.pivot = new Vector2(0.5f, 0.5f);
-            textRect.sizeDelta = new Vector2(300f, 20f);
-            textRect.anchoredPosition = new Vector2(0f, 18f); // 18 píxeles por encima del borde superior de la barra de equilibrio
+            RectTransform balanceTextRect = textAclaracionObj.GetComponent<RectTransform>();
+            balanceTextRect.anchorMin = new Vector2(0.5f, 1f);
+            balanceTextRect.anchorMax = new Vector2(0.5f, 1f);
+            balanceTextRect.pivot = new Vector2(0.5f, 0.5f);
+            balanceTextRect.sizeDelta = new Vector2(300f, 20f);
+            balanceTextRect.anchoredPosition = new Vector2(0f, 18f); // 18 píxeles por encima del borde superior de la barra de equilibrio
 
             AdministradorUI tempUiManager = canvas.gameObject.GetComponent<AdministradorUI>();
             if (tempUiManager == null) tempUiManager = canvas.gameObject.AddComponent<AdministradorUI>();
