@@ -741,6 +741,7 @@ namespace DeliveryExpress.Editor
                 UnityEngine.Object.DestroyImmediate(oldBooster.gameObject);
             }
 
+            UnityEngine.UI.DefaultControls.Resources uiResources = new UnityEngine.UI.DefaultControls.Resources();
             GameObject boosterObj = UnityEngine.UI.DefaultControls.CreateSlider(uiResources);
             boosterObj.name = "Barra_Potenciador";
             boosterObj.transform.SetParent(canvas.transform, false);
@@ -867,7 +868,6 @@ namespace DeliveryExpress.Editor
             panelRect.sizeDelta = new Vector2(350f, 100f);
 
             // Obtener sprite de fondo redondeado estándar de Unity
-            UnityEngine.UI.DefaultControls.Resources uiResources = new UnityEngine.UI.DefaultControls.Resources();
             Sprite roundedBoxSprite = uiResources.background;
 
             // Agregar fondo oscuro redondeado del recuadro
