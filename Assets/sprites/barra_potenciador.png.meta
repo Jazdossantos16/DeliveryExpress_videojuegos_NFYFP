@@ -1,27 +1,27 @@
 fileFormatVersion: 2
-guid: dcac23a00c81e40df91081a389d64883
+guid: 52eac805409e4c558515dc1fa08e4ea2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 380195885437292301
+      213: 851206483919671238
     second: barra_potenciador_0
   - first:
-      213: 6334399735437104716
+      213: -3076131883919204449
     second: barra_potenciador_1
   - first:
-      213: 1224719484586250211
+      213: 3350038372788823974
     second: barra_potenciador_2
   - first:
-      213: 2379967983168204985
+      213: -6720408968306592500
     second: barra_potenciador_3
   - first:
-      213: -1017915367469107285
+      213: 2929982835828398940
     second: barra_potenciador_4
   - first:
-      213: -88962706833751766
+      213: -7864902752037366055
     second: barra_potenciador_5
   - first:
-      213: -4888205883822222085
+      213: 5588566225190696738
     second: barra_potenciador_6
   externalObjects: {}
   serializedVersion: 13
@@ -121,9 +121,9 @@ TextureImporter:
       name: barra_potenciador_0
       rect:
         serializedVersion: 2
-        x: 107
+        x: 100
         y: 835
-        width: 537
+        width: 540
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -133,8 +133,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d0f0e88b42ab64500800000000000000
-      internalID: 380195885437292301
+      spriteID: 6cf8a8889c710db00800000000000000
+      internalID: 851206483919671238
       vertices: []
       indices: 
       edges: []
@@ -143,10 +143,10 @@ TextureImporter:
       name: barra_potenciador_1
       rect:
         serializedVersion: 2
-        x: 664
-        y: 835
-        width: 537
-        height: 138
+        x: 678
+        y: 836
+        width: 540
+        height: 137
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -155,8 +155,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c469e009ffe48e750800000000000000
-      internalID: 6334399735437104716
+      spriteID: f9f1eb089526f45d0800000000000000
+      internalID: -3076131883919204449
       vertices: []
       indices: 
       edges: []
@@ -165,9 +165,9 @@ TextureImporter:
       name: barra_potenciador_2
       rect:
         serializedVersion: 2
-        x: 107
-        y: 681
-        width: 537
+        x: 100
+        y: 685
+        width: 540
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -177,8 +177,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3ef4344e1e31ff010800000000000000
-      internalID: 1224719484586250211
+      spriteID: 6a7610a962abd7e20800000000000000
+      internalID: 3350038372788823974
       vertices: []
       indices: 
       edges: []
@@ -187,9 +187,9 @@ TextureImporter:
       name: barra_potenciador_3
       rect:
         serializedVersion: 2
-        x: 107
-        y: 526
-        width: 537
+        x: 100
+        y: 535
+        width: 540
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -199,8 +199,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9b03b856548570120800000000000000
-      internalID: 2379967983168204985
+      spriteID: c057cba46af4cb2a0800000000000000
+      internalID: -6720408968306592500
       vertices: []
       indices: 
       edges: []
@@ -209,9 +209,9 @@ TextureImporter:
       name: barra_potenciador_4
       rect:
         serializedVersion: 2
-        x: 107
-        y: 372
-        width: 537
+        x: 100
+        y: 385
+        width: 540
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -221,8 +221,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ba7b79ecd53afd1f0800000000000000
-      internalID: -1017915367469107285
+      spriteID: c5b1b8f8dd369a820800000000000000
+      internalID: 2929982835828398940
       vertices: []
       indices: 
       edges: []
@@ -231,9 +231,9 @@ TextureImporter:
       name: barra_potenciador_5
       rect:
         serializedVersion: 2
-        x: 107
-        y: 217
-        width: 537
+        x: 100
+        y: 235
+        width: 540
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -243,8 +243,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a21cae4b3e0f3cef0800000000000000
-      internalID: -88962706833751766
+      spriteID: 9d612d7fd904ad290800000000000000
+      internalID: -7864902752037366055
       vertices: []
       indices: 
       edges: []
@@ -253,9 +253,9 @@ TextureImporter:
       name: barra_potenciador_6
       rect:
         serializedVersion: 2
-        x: 107
-        y: 63
-        width: 537
+        x: 100
+        y: 84
+        width: 540
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -265,8 +265,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bf45dc1c5aa992cb0800000000000000
-      internalID: -4888205883822222085
+      spriteID: 227bc305f539e8d40800000000000000
+      internalID: 5588566225190696738
       vertices: []
       indices: 
       edges: []
@@ -285,13 +285,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      barra_potenciador_0: 380195885437292301
-      barra_potenciador_1: 6334399735437104716
-      barra_potenciador_2: 1224719484586250211
-      barra_potenciador_3: 2379967983168204985
-      barra_potenciador_4: -1017915367469107285
-      barra_potenciador_5: -88962706833751766
-      barra_potenciador_6: -4888205883822222085
+      barra_potenciador_0: 851206483919671238
+      barra_potenciador_1: -3076131883919204449
+      barra_potenciador_2: 3350038372788823974
+      barra_potenciador_3: -6720408968306592500
+      barra_potenciador_4: 2929982835828398940
+      barra_potenciador_5: -7864902752037366055
+      barra_potenciador_6: 5588566225190696738
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

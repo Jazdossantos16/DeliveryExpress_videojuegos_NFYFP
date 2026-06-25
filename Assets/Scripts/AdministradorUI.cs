@@ -23,7 +23,8 @@ namespace DeliveryExpress
         [SerializeField] private Sprite[] balanceSprites;
 
         [Header("UI de Potenciador")]
-        [SerializeField] private Slider boosterSlider;
+        [SerializeField] private Image boosterImage;
+        [SerializeField] private Sprite[] boosterSprites;
 
         [Header("Pantalla de Fin de Juego")]
         [SerializeField] private GameObject gameOverPanel;
@@ -256,21 +257,34 @@ namespace DeliveryExpress
             ControladorJugador player = ControladorJugador.Instance;
             if (player != null && player.IsSpeedBoostActive)
             {
-                if (boosterSlider != null)
+                if (boosterImage != null && boosterSprites != null && boosterSprites.Length >= 7)
                 {
-                    if (!boosterSlider.gameObject.activeSelf)
+                    if (!boosterImage.gameObject.activeSelf)
                     {
-                        boosterSlider.gameObject.SetActive(true);
+                        boosterImage.gameObject.SetActive(true);
                     }
-                    boosterSlider.maxValue = player.SpeedBoostDurationMax;
-                    boosterSlider.value = player.SpeedBoostDurationRemaining;
+
+                    float fillPercentage = Mathf.Clamp01(player.SpeedBoostDurationRemaining / player.SpeedBoostDurationMax);
+                    int spriteIndex = 1; // vacío por defecto
+                    if (fillPercentage > 0.85f) spriteIndex = 0;
+                    else if (fillPercentage > 0.68f) spriteIndex = 2;
+                    else if (fillPercentage > 0.51f) spriteIndex = 3;
+                    else if (fillPercentage > 0.34f) spriteIndex = 4;
+                    else if (fillPercentage > 0.17f) spriteIndex = 5;
+                    else if (fillPercentage > 0.0f) spriteIndex = 6;
+                    else spriteIndex = 1;
+
+                    if (spriteIndex < boosterSprites.Length && boosterSprites[spriteIndex] != null)
+                    {
+                        boosterImage.sprite = boosterSprites[spriteIndex];
+                    }
                 }
             }
             else
             {
-                if (boosterSlider != null && boosterSlider.gameObject.activeSelf)
+                if (boosterImage != null && boosterImage.gameObject.activeSelf)
                 {
-                    boosterSlider.gameObject.SetActive(false);
+                    boosterImage.gameObject.SetActive(false);
                 }
             }
         }
