@@ -369,11 +369,12 @@ namespace DeliveryExpress
             // Suscribirse al evento de finalización
             videoPlayer.loopPointReached += AlTerminarVideo;
 
-            // Activar y traer al frente el texto de Skip persistente
+            // Activar y traer al frente el texto de Skip persistente (o su panel contenedor)
             if (skipText != null)
             {
-                skipText.gameObject.SetActive(true);
-                skipText.transform.SetAsLastSibling();
+                GameObject skipObj = skipText.transform.parent != null ? skipText.transform.parent.gameObject : skipText.gameObject;
+                skipObj.SetActive(true);
+                skipObj.transform.SetAsLastSibling();
             }
 
             // Iniciar reproducción
@@ -404,10 +405,11 @@ namespace DeliveryExpress
                 videoPlayer.loopPointReached -= AlTerminarVideo;
             }
 
-            // Desactivar el texto de Skip persistente
+            // Desactivar el texto de Skip persistente (o su panel contenedor)
             if (skipText != null)
             {
-                skipText.gameObject.SetActive(false);
+                GameObject skipObj = skipText.transform.parent != null ? skipText.transform.parent.gameObject : skipText.gameObject;
+                skipObj.SetActive(false);
             }
 
             // Destruir elementos del video
