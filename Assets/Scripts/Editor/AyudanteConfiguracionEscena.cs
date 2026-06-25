@@ -256,10 +256,6 @@ namespace DeliveryExpress.Editor
                         {
                             needsFix = true;
                         }
-                        else if (tBalance.Find("Texto_Aclaracion_Equilibrio") == null)
-                        {
-                            needsFix = true;
-                        }
                     }
                 }
             }
@@ -737,28 +733,7 @@ namespace DeliveryExpress.Editor
             }
             balanceImage.preserveAspect = true;
 
-            // Crear el texto de aclaración
-            GameObject textAclaracionObj = new GameObject("Texto_Aclaracion_Equilibrio");
-            textAclaracionObj.transform.SetParent(balanceObj.transform, false);
-            
-            UnityEngine.UI.Text textAclaracion = textAclaracionObj.AddComponent<UnityEngine.UI.Text>();
-            textAclaracion.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            textAclaracion.text = "Usa A/D o ← / → para no perder el equilibrio";
-            textAclaracion.fontSize = 13;
-            textAclaracion.alignment = TextAnchor.MiddleCenter;
-            textAclaracion.color = Color.white;
-            
-            // Añadir Outline para que sea legible en cualquier fondo
-            UnityEngine.UI.Outline outline = textAclaracionObj.AddComponent<UnityEngine.UI.Outline>();
-            outline.effectColor = Color.black;
-            outline.effectDistance = new Vector2(1f, -1f);
-            
-            RectTransform balanceTextRect = textAclaracionObj.GetComponent<RectTransform>();
-            balanceTextRect.anchorMin = new Vector2(0.5f, 1f);
-            balanceTextRect.anchorMax = new Vector2(0.5f, 1f);
-            balanceTextRect.pivot = new Vector2(0.5f, 0.5f);
-            balanceTextRect.sizeDelta = new Vector2(300f, 20f);
-            balanceTextRect.anchoredPosition = new Vector2(0f, 18f); // 18 píxeles por encima del borde superior de la barra de equilibrio
+
 
             AdministradorUI tempUiManager = canvas.gameObject.GetComponent<AdministradorUI>();
             if (tempUiManager == null) tempUiManager = canvas.gameObject.AddComponent<AdministradorUI>();
