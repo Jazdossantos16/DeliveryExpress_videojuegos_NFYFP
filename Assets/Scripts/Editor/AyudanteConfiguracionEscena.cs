@@ -299,7 +299,7 @@ namespace DeliveryExpress.Editor
             if (!needsFix)
             {
                 GameObject riderObj = FindRiderGameObject();
-                if (riderObj != null && (riderObj.transform.localScale.x > 0.4f || riderObj.transform.localScale.x < 0.35f))
+                if (riderObj == null || (riderObj.transform.localScale.x > 0.4f || riderObj.transform.localScale.x < 0.35f))
                 {
                     needsFix = true;
                 }
@@ -519,6 +519,25 @@ namespace DeliveryExpress.Editor
             }
 
             GameObject riderObj = FindRiderGameObject();
+
+            if (riderObj == null)
+            {
+                riderObj = new GameObject("Jugador");
+                SpriteRenderer sr = riderObj.AddComponent<SpriteRenderer>();
+                
+                // Cargar sprite inicial de imagen_repartidor.png
+                string playerSpriteSheetPath = "Assets/sprites/imagen_repartidor.png";
+                var assets = AssetDatabase.LoadAllAssetsAtPath(playerSpriteSheetPath);
+                foreach (var asset in assets)
+                {
+                    if (asset is Sprite sprite && (sprite.name == "imagen_repartidor_0" || sprite.name.EndsWith("_0")))
+                    {
+                        sr.sprite = sprite;
+                        break;
+                    }
+                }
+                Debug.Log("✅ Creando GameObject 'Jugador' desde cero con SpriteRenderer.");
+            }
 
             if (riderObj != null)
             {
