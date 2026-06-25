@@ -748,12 +748,12 @@ namespace DeliveryExpress.Editor
             UnityEngine.UI.Image boosterImage = boosterObj.AddComponent<UnityEngine.UI.Image>();
             
             RectTransform boosterRect = boosterObj.GetComponent<RectTransform>();
-            boosterRect.anchorMin = new Vector2(0.5f, 0f);
-            boosterRect.anchorMax = new Vector2(0.5f, 0f);
-            boosterRect.pivot = new Vector2(0.5f, 0f);
+            boosterRect.anchorMin = new Vector2(0f, 0f);
+            boosterRect.anchorMax = new Vector2(0f, 0f);
+            boosterRect.pivot = new Vector2(0f, 0f);
             // Tamaño de la barra de potenciador igual que la de equilibrio: 270x69
             boosterRect.sizeDelta = new Vector2(270f, 69f);
-            boosterRect.anchoredPosition = new Vector2(0f, 120f); // Posicionada un poco más arriba
+            boosterRect.anchoredPosition = new Vector2(35f, 40f); // Esquina izquierda inferior, alineada con la barra de equilibrio
 
             // Cargar los sprites múltiples de la barra de potenciador
             string boosterSpritePath = "Assets/sprites/barra_potenciador.png";
