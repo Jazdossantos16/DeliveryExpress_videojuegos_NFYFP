@@ -121,9 +121,9 @@ TextureImporter:
       name: barra_potenciador_0
       rect:
         serializedVersion: 2
-        x: 106
+        x: 107
         y: 835
-        width: 540
+        width: 537
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -143,10 +143,10 @@ TextureImporter:
       name: barra_potenciador_1
       rect:
         serializedVersion: 2
-        x: 663
-        y: 836
-        width: 540
-        height: 137
+        x: 664
+        y: 835
+        width: 537
+        height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -165,9 +165,9 @@ TextureImporter:
       name: barra_potenciador_2
       rect:
         serializedVersion: 2
-        x: 106
-        y: 685
-        width: 540
+        x: 107
+        y: 681
+        width: 537
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -187,9 +187,9 @@ TextureImporter:
       name: barra_potenciador_3
       rect:
         serializedVersion: 2
-        x: 106
-        y: 535
-        width: 540
+        x: 107
+        y: 526
+        width: 537
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -209,9 +209,9 @@ TextureImporter:
       name: barra_potenciador_4
       rect:
         serializedVersion: 2
-        x: 106
-        y: 385
-        width: 540
+        x: 107
+        y: 372
+        width: 537
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -231,9 +231,9 @@ TextureImporter:
       name: barra_potenciador_5
       rect:
         serializedVersion: 2
-        x: 106
-        y: 235
-        width: 540
+        x: 107
+        y: 217
+        width: 537
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -253,9 +253,9 @@ TextureImporter:
       name: barra_potenciador_6
       rect:
         serializedVersion: 2
-        x: 106
-        y: 84
-        width: 540
+        x: 107
+        y: 63
+        width: 537
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
