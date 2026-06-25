@@ -6,7 +6,6 @@ namespace DeliveryExpress.Editor
 {
     public static class ReconstruirUI
     {
-        // [MenuItem("Tools/Delivery Express/Reconstruir Todo y Guardar Escenas")]
         public static void EjecutarReconstruccion()
         {
             string[] escenas = new string[] {

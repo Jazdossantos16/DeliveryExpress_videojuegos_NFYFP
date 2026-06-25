@@ -435,7 +435,6 @@ namespace DeliveryExpress.Editor
             }
         }
 
-        // [MenuItem("Tools/Delivery Express/Rebuild Scene UI")]
         public static void SetupNewStreetAndSidewalk()
         {
             SetupNewStreetAndSidewalkInternal(true);
