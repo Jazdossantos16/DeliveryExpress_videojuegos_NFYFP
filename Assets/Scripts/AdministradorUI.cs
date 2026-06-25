@@ -41,7 +41,7 @@ namespace DeliveryExpress
         private UnityEngine.Video.VideoPlayer videoPlayer;
         private RenderTexture videoTexture;
         private RawImage videoRawImage;
-        private Text skipText;
+        [SerializeField] private Text skipText;
         private bool isPlayingVideo = false;
         private RawImage fadeOverlay;
         private bool isTransitioning = false;
@@ -369,55 +369,12 @@ namespace DeliveryExpress
             // Suscribirse al evento de finalización
             videoPlayer.loopPointReached += AlTerminarVideo;
 
-            // Agregar texto de Skip
-            GameObject skipTextGo = new GameObject("IntroVideo_SkipText");
-            skipTextGo.transform.SetParent(videoGo.transform, false);
-            skipText = skipTextGo.AddComponent<Text>();
-            
-            // Cargar una fuente estándar
-            Font standardFont = null;
-            Text existingText = GetComponentInChildren<Text>(true);
-            if (existingText != null)
+            // Activar y traer al frente el texto de Skip persistente
+            if (skipText != null)
             {
-                standardFont = existingText.font;
+                skipText.gameObject.SetActive(true);
+                skipText.transform.SetAsLastSibling();
             }
-            if (standardFont == null)
-            {
-                standardFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            }
-            if (standardFont == null)
-            {
-                standardFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-            }
-            if (standardFont == null)
-            {
-                Font[] allFonts = Resources.FindObjectsOfTypeAll<Font>();
-                if (allFonts != null && allFonts.Length > 0)
-                {
-                    standardFont = allFonts[0];
-                }
-            }
-            skipText.font = standardFont;
-            
-            skipText.text = "Presiona E para omitir";
-            skipText.fontSize = 28;
-            skipText.alignment = TextAnchor.LowerRight;
-            skipText.color = Color.black;
-            skipText.horizontalOverflow = HorizontalWrapMode.Overflow;
-            skipText.verticalOverflow = VerticalWrapMode.Overflow;
-            
-            // Agregar una sombra blanca para resaltar sobre fondo oscuro
-            Shadow shadow = skipTextGo.AddComponent<Shadow>();
-            shadow.effectColor = new Color(1f, 1f, 1f, 0.8f);
-            shadow.effectDistance = new Vector2(1.5f, -1.5f);
-            
-            // Configurar RectTransform para el texto en la esquina inferior derecha
-            RectTransform skipRect = skipText.rectTransform;
-            skipRect.anchorMin = new Vector2(1f, 0f);
-            skipRect.anchorMax = new Vector2(1f, 0f);
-            skipRect.pivot = new Vector2(1f, 0f);
-            skipRect.anchoredPosition = new Vector2(-40f, 40f);
-            skipRect.sizeDelta = new Vector2(500f, 60f);
 
             // Iniciar reproducción
             videoPlayer.Play();
@@ -445,6 +402,12 @@ namespace DeliveryExpress
             if (videoPlayer != null)
             {
                 videoPlayer.loopPointReached -= AlTerminarVideo;
+            }
+
+            // Desactivar el texto de Skip persistente
+            if (skipText != null)
+            {
+                skipText.gameObject.SetActive(false);
             }
 
             // Destruir elementos del video

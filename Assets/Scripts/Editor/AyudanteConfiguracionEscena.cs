@@ -229,7 +229,8 @@ namespace DeliveryExpress.Editor
                 if (canvasObj != null)
                 {
                     Transform tMonedas = canvasObj.transform.Find("Texto_Monedas");
-                    if (tMonedas == null)
+                    Transform tSkipText = canvasObj.transform.Find("IntroVideo_SkipText");
+                    if (tMonedas == null || tSkipText == null)
                     {
                         needsFix = true;
                     }
@@ -1847,6 +1848,50 @@ namespace DeliveryExpress.Editor
             {
                 victorySpriteField.SetValue(uiManager, victorySprite);
                 EditorUtility.SetDirty(uiManager);
+            }
+
+            // 7.8 Crear o buscar el texto de Skip del video persistente
+            Transform oldSkipText = canvas.transform.Find("IntroVideo_SkipText");
+            if (oldSkipText != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldSkipText.gameObject);
+            }
+
+            GameObject skipTextObj = new GameObject("IntroVideo_SkipText", typeof(RectTransform));
+            skipTextObj.transform.SetParent(canvas.transform, false);
+
+            Text skipTextComp = skipTextObj.AddComponent<Text>();
+            skipTextComp.font = standardFont;
+            skipTextComp.text = "Presiona E para omitir";
+            skipTextComp.fontSize = 28;
+            skipTextComp.alignment = TextAnchor.LowerRight;
+            skipTextComp.color = Color.black;
+            skipTextComp.horizontalOverflow = HorizontalWrapMode.Overflow;
+            skipTextComp.verticalOverflow = VerticalWrapMode.Overflow;
+
+            // Sombra blanca de alto contraste
+            Shadow skipShadow = skipTextObj.AddComponent<Shadow>();
+            skipShadow.effectColor = new Color(1f, 1f, 1f, 0.8f);
+            skipShadow.effectDistance = new Vector2(1.5f, -1.5f);
+
+            // Posicionamiento en la esquina inferior derecha
+            RectTransform skipTextRect = skipTextObj.GetComponent<RectTransform>();
+            skipTextRect.anchorMin = new Vector2(1f, 0f);
+            skipTextRect.anchorMax = new Vector2(1f, 0f);
+            skipTextRect.pivot = new Vector2(1f, 0f);
+            skipTextRect.anchoredPosition = new Vector2(-40f, 40f);
+            skipTextRect.sizeDelta = new Vector2(500f, 60f);
+
+            // Inactivo por defecto (se activa al reproducir el video)
+            skipTextObj.SetActive(false);
+
+            // Inyectar referencia por reflexión en AdministradorUI
+            var skipTextField = typeof(AdministradorUI).GetField("skipText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (skipTextField != null)
+            {
+                skipTextField.SetValue(uiManager, skipTextComp);
+                EditorUtility.SetDirty(uiManager);
+                Debug.Log("✅ skipText persistente inyectado en AdministradorUI.");
             }
 
             // Asigna la capa UI de forma recursiva
