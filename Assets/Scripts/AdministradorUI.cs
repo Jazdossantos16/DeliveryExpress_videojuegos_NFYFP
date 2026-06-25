@@ -224,7 +224,7 @@ namespace DeliveryExpress
         {
             if (isPlayingVideo && !isTransitioning)
             {
-                if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
+                if (Input.GetKeyDown(KeyCode.E))
                 {
                     isTransitioning = true;
                     StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => {
@@ -391,10 +391,10 @@ namespace DeliveryExpress
             }
             skipText.font = standardFont;
             
-            skipText.text = "Presiona ESPACIO para omitir";
+            skipText.text = "Presiona E para omitir";
             skipText.fontSize = 24;
             skipText.alignment = TextAnchor.LowerRight;
-            skipText.color = new Color(1f, 1f, 1f, 0.7f);
+            skipText.color = Color.black;
             
             // Configurar RectTransform para el texto en la esquina inferior derecha
             RectTransform skipRect = skipText.rectTransform;
