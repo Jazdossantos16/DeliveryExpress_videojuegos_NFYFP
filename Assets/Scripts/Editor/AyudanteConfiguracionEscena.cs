@@ -1866,25 +1866,25 @@ namespace DeliveryExpress.Editor
             GameObject skipPanelObj = new GameObject("IntroVideo_SkipPanel", typeof(RectTransform));
             skipPanelObj.transform.SetParent(canvas.transform, false);
 
-            Image panelImage = skipPanelObj.AddComponent<Image>();
+            Image skipPanelImage = skipPanelObj.AddComponent<Image>();
             // Color de fondo: Negro semitransparente (65% opaco) para excelente contraste
-            panelImage.color = new Color(0.12f, 0.12f, 0.12f, 0.65f);
+            skipPanelImage.color = new Color(0.12f, 0.12f, 0.12f, 0.65f);
 
             // Cargar el sprite por defecto de Unity UI con bordes suaves redondeados
             Sprite defaultBg = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Background.psd");
             if (defaultBg != null)
             {
-                panelImage.sprite = defaultBg;
-                panelImage.type = Image.Type.Sliced;
+                skipPanelImage.sprite = defaultBg;
+                skipPanelImage.type = Image.Type.Sliced;
             }
 
             // Posicionamiento del panel en la esquina inferior derecha
-            RectTransform panelRect = skipPanelObj.GetComponent<RectTransform>();
-            panelRect.anchorMin = new Vector2(1f, 0f);
-            panelRect.anchorMax = new Vector2(1f, 0f);
-            panelRect.pivot = new Vector2(1f, 0f);
-            panelRect.anchoredPosition = new Vector2(-40f, 40f);
-            panelRect.sizeDelta = new Vector2(340f, 60f); // Tamaño del marco llamativo
+            RectTransform skipPanelRect = skipPanelObj.GetComponent<RectTransform>();
+            skipPanelRect.anchorMin = new Vector2(1f, 0f);
+            skipPanelRect.anchorMax = new Vector2(1f, 0f);
+            skipPanelRect.pivot = new Vector2(1f, 0f);
+            skipPanelRect.anchoredPosition = new Vector2(-40f, 40f);
+            skipPanelRect.sizeDelta = new Vector2(340f, 60f); // Tamaño del marco llamativo
 
             // Creamos el Texto como hijo del panel
             GameObject skipTextObj = new GameObject("Texto_Skip", typeof(RectTransform));
