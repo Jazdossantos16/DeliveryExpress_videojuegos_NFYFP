@@ -2128,8 +2128,8 @@ namespace DeliveryExpress.Editor
             GameObject btnCerrarMapObj = new GameObject("BotonCerrar", typeof(RectTransform));
             RectTransform btnCerrarMapRect = btnCerrarMapObj.GetComponent<RectTransform>();
             btnCerrarMapRect.SetParent(mapPopupRect, false);
-            btnCerrarMapRect.anchorMin = new Vector2(0.7786f, 0.8102f);
-            btnCerrarMapRect.anchorMax = new Vector2(0.7786f, 0.8102f);
+            btnCerrarMapRect.anchorMin = new Vector2(0.7994f, 0.8630f);
+            btnCerrarMapRect.anchorMax = new Vector2(0.7994f, 0.8630f);
             btnCerrarMapRect.pivot = new Vector2(0.5f, 0.5f);
             btnCerrarMapRect.anchoredPosition = Vector2.zero;
             btnCerrarMapRect.sizeDelta = new Vector2(85f, 85f);
@@ -2288,8 +2288,8 @@ namespace DeliveryExpress.Editor
             GameObject btnCerrarDetailsObj = new GameObject("BotonCerrar", typeof(RectTransform));
             RectTransform btnCerrarDetailsRect = btnCerrarDetailsObj.GetComponent<RectTransform>();
             btnCerrarDetailsRect.SetParent(detailsPopupRect, false);
-            btnCerrarDetailsRect.anchorMin = new Vector2(0.7656f, 0.7592f);
-            btnCerrarDetailsRect.anchorMax = new Vector2(0.7656f, 0.7592f);
+            btnCerrarDetailsRect.anchorMin = new Vector2(0.7494f, 0.8019f);
+            btnCerrarDetailsRect.anchorMax = new Vector2(0.7494f, 0.8019f);
             btnCerrarDetailsRect.pivot = new Vector2(0.5f, 0.5f);
             btnCerrarDetailsRect.anchoredPosition = Vector2.zero;
             btnCerrarDetailsRect.sizeDelta = new Vector2(85f, 85f);
