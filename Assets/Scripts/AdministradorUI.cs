@@ -57,6 +57,7 @@ namespace DeliveryExpress
         [Header("UI de Configuración")]
         [SerializeField] private GameObject configPanel;
         [SerializeField] private GameObject instructionsPanel;
+        [SerializeField] private GameObject mapPanel;
         [SerializeField] private Image configBackgroundImage;
         [SerializeField] private Sprite imgConfigBoth;
         [SerializeField] private Sprite imgConfigNoMusic;
@@ -323,6 +324,10 @@ namespace DeliveryExpress
 
         public void IniciarJuego()
         {
+            if (mapPanel != null)
+            {
+                mapPanel.SetActive(false);
+            }
 #if UNITY_WEBGL && !UNITY_EDITOR
             StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
 #else
@@ -801,6 +806,24 @@ namespace DeliveryExpress
             {
                 instructionsPanel.SetActive(false);
                 Debug.Log("📖 Panel de instrucciones cerrado.");
+            }
+        }
+
+        public void AbrirMapa()
+        {
+            if (mapPanel != null)
+            {
+                mapPanel.SetActive(true);
+                Debug.Log("🗺️ Panel de mapa abierto.");
+            }
+        }
+
+        public void CerrarMapa()
+        {
+            if (mapPanel != null)
+            {
+                mapPanel.SetActive(false);
+                Debug.Log("🗺️ Panel de mapa cerrado.");
             }
         }
 

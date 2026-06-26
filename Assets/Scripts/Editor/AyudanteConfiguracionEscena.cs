@@ -1599,6 +1599,7 @@ namespace DeliveryExpress.Editor
             }
 
             Button btnMapa = btnMapaObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnMapa.onClick, uiManager.AbrirMapa);
 
             // Crear Botón "BotonConfiguracion" (Azul, Y: -270)
             GameObject btnConfigObj = new GameObject("BotonConfiguracion", typeof(RectTransform));
@@ -2068,6 +2069,166 @@ namespace DeliveryExpress.Editor
                 instructionsPanelField.SetValue(uiManager, instructionsPanelObj);
                 EditorUtility.SetDirty(uiManager);
                 Debug.Log("✅ instructionsPanel inyectado en AdministradorUI.");
+            }
+
+            // 7.6.3 Crear o buscar PanelMapa
+            Transform oldMapPanel = canvas.transform.Find("PanelMapa");
+            if (oldMapPanel != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldMapPanel.gameObject);
+            }
+
+            GameObject mapPanelObj = new GameObject("PanelMapa", typeof(RectTransform));
+            RectTransform mapPanelRect = mapPanelObj.GetComponent<RectTransform>();
+            mapPanelRect.SetParent(canvas.transform, false);
+            mapPanelObj.SetActive(false); // Empieza oculto
+
+            // Set to cover the whole screen with a slight 10px overflow to prevent rounding gap lines at the edges
+            mapPanelRect.anchorMin = Vector2.zero;
+            mapPanelRect.anchorMax = Vector2.one;
+            mapPanelRect.offsetMin = new Vector2(-10f, -10f);
+            mapPanelRect.offsetMax = new Vector2(10f, 10f);
+            mapPanelRect.pivot = new Vector2(0.5f, 0.5f);
+            mapPanelRect.localScale = Vector3.one;
+            mapPanelRect.localRotation = Quaternion.identity;
+
+            // Fondo semitransparente oscuro detrás
+            Image mapPanelBg = mapPanelObj.AddComponent<Image>();
+            mapPanelBg.color = new Color(0f, 0f, 0f, 0.6f); // 60% opaco
+
+            // Crear el panel de contenido (Popup)
+            GameObject mapPopupObj = new GameObject("Contenido", typeof(RectTransform));
+            RectTransform mapPopupRect = mapPopupObj.GetComponent<RectTransform>();
+            mapPopupRect.SetParent(mapPanelRect, false);
+            
+            // Centrado en pantalla con AspectRatioFitter para escalar exactamente con la imagen de fondo 16:9
+            mapPopupRect.anchorMin = new Vector2(0.5f, 0.5f);
+            mapPopupRect.anchorMax = new Vector2(0.5f, 0.5f);
+            mapPopupRect.pivot = new Vector2(0.5f, 0.5f);
+            mapPopupRect.sizeDelta = new Vector2(1920f, 1080f);
+            mapPopupRect.anchoredPosition = Vector2.zero;
+            mapPopupRect.localScale = Vector3.one;
+
+            UnityEngine.UI.AspectRatioFitter mapAspectFitter = mapPopupObj.AddComponent<UnityEngine.UI.AspectRatioFitter>();
+            mapAspectFitter.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.FitInParent;
+            mapAspectFitter.aspectRatio = 1920f / 1080f;
+
+            Image mapPopupImg = mapPopupObj.AddComponent<Image>();
+            
+            EnsureIsSprite("Assets/sprites/pantalla_mapa.png");
+            Sprite spriteMapContent = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/pantalla_mapa.png");
+            if (spriteMapContent != null)
+            {
+                mapPopupImg.sprite = spriteMapContent;
+                mapPopupImg.color = Color.white;
+                mapPopupImg.preserveAspect = true;
+            }
+
+            // Crear Botón "BotonCerrar" (Rojo con X, arriba a la derecha de la tarjeta)
+            GameObject btnCerrarMapObj = new GameObject("BotonCerrar", typeof(RectTransform));
+            RectTransform btnCerrarMapRect = btnCerrarMapObj.GetComponent<RectTransform>();
+            btnCerrarMapRect.SetParent(mapPopupRect, false);
+            btnCerrarMapRect.anchorMin = new Vector2(0.7786f, 0.8102f);
+            btnCerrarMapRect.anchorMax = new Vector2(0.7786f, 0.8102f);
+            btnCerrarMapRect.pivot = new Vector2(0.5f, 0.5f);
+            btnCerrarMapRect.anchoredPosition = Vector2.zero;
+            btnCerrarMapRect.sizeDelta = new Vector2(85f, 85f);
+
+            EnsureIsSprite("Assets/sprites/boton_cerrar.png");
+            Sprite spriteCerrarMap = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_cerrar.png");
+            Image btnCerrarMapImg = btnCerrarMapObj.AddComponent<Image>();
+            if (spriteCerrarMap != null)
+            {
+                btnCerrarMapImg.sprite = spriteCerrarMap;
+                btnCerrarMapImg.color = Color.white;
+            }
+            else
+            {
+                btnCerrarMapImg.color = Color.red;
+            }
+
+            Button btnCerrarMap = btnCerrarMapObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnCerrarMap.onClick, uiManager.CerrarMapa);
+
+            // Crear los 3 botones de pedidos
+            // Pedido 1: Izquierda (Inactivo)
+            GameObject btnPedido1Obj = new GameObject("Pedido_Izquierda", typeof(RectTransform));
+            RectTransform btnPedido1Rect = btnPedido1Obj.GetComponent<RectTransform>();
+            btnPedido1Rect.SetParent(mapPopupRect, false);
+            btnPedido1Rect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnPedido1Rect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnPedido1Rect.pivot = new Vector2(0.5f, 0.5f);
+            btnPedido1Rect.anchoredPosition = new Vector2(-370f, -30f);
+            btnPedido1Rect.sizeDelta = new Vector2(90f, 90f);
+
+            EnsureIsSprite("Assets/sprites/boton_nopedido.png");
+            Sprite spriteNoPedido = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_nopedido.png");
+            Image btnPedido1Img = btnPedido1Obj.AddComponent<Image>();
+            if (spriteNoPedido != null)
+            {
+                btnPedido1Img.sprite = spriteNoPedido;
+                btnPedido1Img.color = Color.white;
+            }
+            else
+            {
+                btnPedido1Img.color = Color.gray;
+            }
+            btnPedido1Obj.AddComponent<Button>(); // Sin acción, solo visual / inactivo
+
+            // Pedido 2: Centro (Activo)
+            GameObject btnPedido2Obj = new GameObject("Pedido_Centro", typeof(RectTransform));
+            RectTransform btnPedido2Rect = btnPedido2Obj.GetComponent<RectTransform>();
+            btnPedido2Rect.SetParent(mapPopupRect, false);
+            btnPedido2Rect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnPedido2Rect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnPedido2Rect.pivot = new Vector2(0.5f, 0.5f);
+            btnPedido2Rect.anchoredPosition = new Vector2(-60f, -60f);
+            btnPedido2Rect.sizeDelta = new Vector2(90f, 90f);
+
+            EnsureIsSprite("Assets/sprites/boton_pedido.png");
+            Sprite spritePedido = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_pedido.png");
+            Image btnPedido2Img = btnPedido2Obj.AddComponent<Image>();
+            if (spritePedido != null)
+            {
+                btnPedido2Img.sprite = spritePedido;
+                btnPedido2Img.color = Color.white;
+            }
+            else
+            {
+                btnPedido2Img.color = Color.yellow;
+            }
+            Button btnPedido2 = btnPedido2Obj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnPedido2.onClick, uiManager.IniciarJuego);
+
+            // Pedido 3: Derecha (Inactivo)
+            GameObject btnPedido3Obj = new GameObject("Pedido_Derecha", typeof(RectTransform));
+            RectTransform btnPedido3Rect = btnPedido3Obj.GetComponent<RectTransform>();
+            btnPedido3Rect.SetParent(mapPopupRect, false);
+            btnPedido3Rect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnPedido3Rect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnPedido3Rect.pivot = new Vector2(0.5f, 0.5f);
+            btnPedido3Rect.anchoredPosition = new Vector2(190f, -60f);
+            btnPedido3Rect.sizeDelta = new Vector2(90f, 90f);
+
+            Image btnPedido3Img = btnPedido3Obj.AddComponent<Image>();
+            if (spriteNoPedido != null)
+            {
+                btnPedido3Img.sprite = spriteNoPedido;
+                btnPedido3Img.color = Color.white;
+            }
+            else
+            {
+                btnPedido3Img.color = Color.gray;
+            }
+            btnPedido3Obj.AddComponent<Button>(); // Sin acción
+
+            // Inyectar el panel del mapa en el AdministradorUI por reflexión
+            var mapPanelField = typeof(AdministradorUI).GetField("mapPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (mapPanelField != null)
+            {
+                mapPanelField.SetValue(uiManager, mapPanelObj);
+                EditorUtility.SetDirty(uiManager);
+                Debug.Log("✅ mapPanel inyectado en AdministradorUI.");
             }
 
             // 7.7 Crear o buscar VictoryPanel
