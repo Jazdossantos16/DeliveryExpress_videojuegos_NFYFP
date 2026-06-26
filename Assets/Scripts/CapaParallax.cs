@@ -18,6 +18,9 @@ namespace DeliveryExpress
         [SerializeField] private Sprite crossroadSprite;
         [SerializeField] private Sprite finalStreetSprite;
         
+        [Header("Casa Final")]
+        [SerializeField] private Sprite finalHouseSprite;
+        
         [Tooltip("Cuántas porciones de calle normal antes de un cruce")]
         [SerializeField] private int chunksUntilCrossroad = 3;
 
@@ -240,6 +243,20 @@ namespace DeliveryExpress
                 float metaCenterY = highestTopEdgeY + (metaHeightLocal / 2f);
                 
                 finishLineObj.transform.localPosition = new Vector3(0, metaCenterY, 0);
+
+                // Instanciamos la casa final sobre la vereda
+                if (finalHouseSprite != null)
+                {
+                    GameObject houseObj = new GameObject("CasaFinal_Edificio");
+                    houseObj.transform.SetParent(finishLineObj.transform, false);
+                    houseObj.transform.localScale = new Vector3(0.35f, 0.35f, 1f);
+                    houseObj.transform.localPosition = new Vector3(0f, 2.3f, 0f);
+
+                    SpriteRenderer houseSr = houseObj.AddComponent<SpriteRenderer>();
+                    houseSr.sprite = finalHouseSprite;
+                    houseSr.sortingOrder = 2; // Arriba de la calle (1), abajo del repartidor (10)
+                    Debug.Log("🏠 Casa final creada y posicionada en la vereda de la calle final.");
+                }
             }
         }
 

@@ -28,6 +28,22 @@ namespace DeliveryExpress
         [Header("Sprites de Casas (Entorno Vereda)")]
         [SerializeField] private Sprite[] houseSprites;
 
+        [Header("Monedas")]
+        [SerializeField] private GameObject monedaPrefab;
+        [SerializeField] private float minTiempoEntreMonedas = 4f;
+        [SerializeField] private float maxTiempoEntreMonedas = 7f;
+        [SerializeField] private int minMonedasPorFila = 3;
+        [SerializeField] private int maxMonedasPorFila = 5;
+
+        private float tiempoParaSiguienteMoneda = 0f;
+
+        [Header("Potenciador de Velocidad (Rayo)")]
+        [SerializeField] private GameObject potenciadorEnergiaPrefab;
+        [SerializeField] private float minTiempoEntrePotenciadores = 15f;
+        [SerializeField] private float maxTiempoEntrePotenciadores = 30f;
+
+        private float tiempoParaSiguientePotenciador = 0f;
+
         [Header("Configuración de Carriles (Posiciones X)")]
         [SerializeField] private float[] lanePositionsX = new float[] { -4f, 0f, 4f }; // Izquierdo, Centro, Derecho
         [SerializeField] private float spawnYPosition = 12f; // Posición de entrada superior en pantalla
@@ -42,11 +58,30 @@ namespace DeliveryExpress
         private bool canSpawn = true;
         private float tiempoParaSiguienteHamburguesa = 0f;
 
+        private float baseLevelScrollSpeed = 5f;
+        private float baseMinSpawnDelay = 1.8f;
+        private float baseMaxSpawnDelay = 3.5f;
+
         private void Start()
         {
             fondosCacheados = FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
+
+            // Destruir cualquier hamburguesa power-up pre-colocada en la jerarquía de la escena al iniciar
+            GameObject[] prePlacedBurgers = GameObject.FindGameObjectsWithTag("PowerUp");
+            foreach (GameObject burger in prePlacedBurgers)
+            {
+                if (burger != null && burger.scene.name != null)
+                {
+                    Destroy(burger);
+                }
+            }
+
             // Primer hamburguesa aparece entre 15 y 25 segundos desde el inicio
             tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
+            // Primer moneda aparece entre 3 y 6 segundos desde el inicio
+            tiempoParaSiguienteMoneda = Random.Range(minTiempoEntreMonedas, maxTiempoEntreMonedas);
+            // Primer potenciador de velocidad aparece entre 15 y 30 segundos desde el inicio
+            tiempoParaSiguientePotenciador = Random.Range(minTiempoEntrePotenciadores, maxTiempoEntrePotenciadores);
             StartCoroutine(SpawnRoutine());
         }
 
@@ -105,20 +140,63 @@ namespace DeliveryExpress
             // Incremento progresivo de velocidad durante la partida
             if (AdministradorJuego.Instance != null && !AdministradorJuego.Instance.IsGameOver)
             {
-                float speedIncrement = 0.05f * Time.deltaTime; // Aumenta 3.0 unidades por minuto
-                levelScrollSpeed += speedIncrement;
-                minSpawnDelay = Mathf.Max(0.4f, minSpawnDelay - (speedIncrement * 0.1f));
-                maxSpawnDelay = Mathf.Max(0.7f, maxSpawnDelay - (speedIncrement * 0.1f));
+                float progress = AdministradorJuego.Instance.LevelProgress;
+
+                // Aceleramos cuadráticamente la velocidad de scroll (hasta un +90% al final de la partida)
+                float speedMultiplier = 1f + (progress * progress * 0.9f);
+                levelScrollSpeed = baseLevelScrollSpeed * speedMultiplier;
+
+                // Aplicamos el boost del potenciador de velocidad si está activo
+                if (ControladorJugador.Instance != null)
+                {
+                    levelScrollSpeed *= ControladorJugador.Instance.SpeedBoostMultiplier;
+                }
+
+                // Reducimos los tiempos de spawn delay linealmente (hasta un 40% más rápido al final de la partida)
+                float spawnDelayMultiplier = Mathf.Lerp(1f, 0.6f, progress);
+                minSpawnDelay = Mathf.Max(0.4f, baseMinSpawnDelay * spawnDelayMultiplier);
+                maxSpawnDelay = Mathf.Max(0.7f, baseMaxSpawnDelay * spawnDelayMultiplier);
+
                 SyncBackgroundSpeeds();
 
-                // Spawn de hamburguesa power-up (temporizador independiente del spawn de obstáculos)
+                // Spawn de hamburguesa power-up (solo si al jugador le falta vida y el temporizador expira)
                 if (hamburguesaPowerUpPrefab != null && !AdministradorJuego.Instance.IsGameOver)
                 {
-                    tiempoParaSiguienteHamburguesa -= Time.deltaTime;
-                    if (tiempoParaSiguienteHamburguesa <= 0f)
+                    if (AdministradorJuego.Instance.CurrentLives >= AdministradorJuego.Instance.StartingLives)
                     {
-                        SpawnHamburguesa();
+                        // Si el jugador ya tiene todas las vidas, mantenemos el temporizador reiniciado
                         tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
+                    }
+                    else
+                    {
+                        tiempoParaSiguienteHamburguesa -= Time.deltaTime;
+                        if (tiempoParaSiguienteHamburguesa <= 0f)
+                        {
+                            SpawnHamburguesa();
+                            tiempoParaSiguienteHamburguesa = Random.Range(minTiempoEntreHamburguesas, maxTiempoEntreHamburguesas);
+                        }
+                    }
+                }
+
+                // Spawn de monedas (temporizador independiente)
+                if (monedaPrefab != null && !AdministradorJuego.Instance.IsGameOver)
+                {
+                    tiempoParaSiguienteMoneda -= Time.deltaTime;
+                    if (tiempoParaSiguienteMoneda <= 0f)
+                    {
+                        SpawnMonedaRow();
+                        tiempoParaSiguienteMoneda = Random.Range(minTiempoEntreMonedas, maxTiempoEntreMonedas);
+                    }
+                }
+
+                // Spawn de potenciador de velocidad (temporizador independiente)
+                if (potenciadorEnergiaPrefab != null && !AdministradorJuego.Instance.IsGameOver)
+                {
+                    tiempoParaSiguientePotenciador -= Time.deltaTime;
+                    if (tiempoParaSiguientePotenciador <= 0f)
+                    {
+                        SpawnPotenciadorEnergia();
+                        tiempoParaSiguientePotenciador = Random.Range(minTiempoEntrePotenciadores, maxTiempoEntrePotenciadores);
                     }
                 }
             }
@@ -246,18 +324,18 @@ namespace DeliveryExpress
                 float currentMinDelay = minSpawnDelay;
                 float currentMaxDelay = maxSpawnDelay;
 
-                // Reducimos los tiempos de espera a medida que avanzan los días para aumentar la densidad del tráfico
+                // Reducimos los tiempos de espera de forma moderada a medida que avanzan los días para aumentar la densidad del tráfico
                 if (AdministradorJuego.Instance != null)
                 {
                     int day = AdministradorJuego.Instance.CurrentDay;
-                    float difficultyFactor = Mathf.Clamp(1f - ((day - 1) * 0.12f), 0.45f, 1f);
+                    float difficultyFactor = Mathf.Clamp(1f - ((day - 1) * 0.05f), 0.8f, 1f);
                     currentMinDelay *= difficultyFactor;
                     currentMaxDelay *= difficultyFactor;
                 }
 
                 // ACELERACIÓN PROGRESIVA: Partidas de 60 segundos.
-                // Reducimos el tiempo de espera hasta la mitad (0.5x) al final de la jornada.
-                float inGameTimeFactor = Mathf.Clamp(1f - (timeElapsed / 60f), 0.5f, 1f);
+                // Reducimos el tiempo de espera hasta un 0.65x al final de la jornada.
+                float inGameTimeFactor = Mathf.Clamp(1f - (timeElapsed / 60f), 0.65f, 1f);
                 currentMinDelay *= inGameTimeFactor;
                 currentMaxDelay *= inGameTimeFactor;
 
@@ -300,14 +378,153 @@ namespace DeliveryExpress
         }
 
         /// <summary>
-        /// Genera una hamburguesa coleccionable en un carril aleatorio libre.
+        /// Obtiene un carril que esté libre de obstáculos y otros coleccionables cerca del área de spawn.
+        /// Si todos están ocupados, elige el carril que tenga el obstáculo más lejano.
+        /// </summary>
+        private int GetSafeLaneForPowerUp()
+        {
+            if (lanePositionsX == null || lanePositionsX.Length == 0) return 0;
+
+            List<int> safeLanes = new List<int>();
+            for (int i = 0; i < lanePositionsX.Length; i++)
+            {
+                safeLanes.Add(i);
+            }
+
+            // Buscar todos los obstáculos activos
+            Obstaculo[] activeObstacles = FindObjectsByType<Obstaculo>(FindObjectsSortMode.None);
+            
+            // Buscar coleccionables activos para evitar encimarlos
+            Moneda[] activeCoins = FindObjectsByType<Moneda>(FindObjectsSortMode.None);
+            PotenciadorEnergia[] activeBoosts = FindObjectsByType<PotenciadorEnergia>(FindObjectsSortMode.None);
+            HamburguesaVida[] activeBurgers = FindObjectsByType<HamburguesaVida>(FindObjectsSortMode.None);
+
+            // Verificar obstáculos
+            foreach (Obstaculo obs in activeObstacles)
+            {
+                if (obs == null) continue;
+                // Si el obstáculo está cerca de la zona de spawn (Y > 6f)
+                if (obs.transform.position.y > 6.0f)
+                {
+                    int lane = GetLaneIndexFromX(obs.transform.position.x);
+                    if (lane != -1 && safeLanes.Contains(lane))
+                    {
+                        safeLanes.Remove(lane);
+                    }
+                }
+            }
+
+            // Verificar coleccionables
+            foreach (Moneda coin in activeCoins)
+            {
+                if (coin == null) continue;
+                if (coin.transform.position.y > 6.0f)
+                {
+                    int lane = GetLaneIndexFromX(coin.transform.position.x);
+                    if (lane != -1 && safeLanes.Contains(lane))
+                    {
+                        safeLanes.Remove(lane);
+                    }
+                }
+            }
+
+            foreach (PotenciadorEnergia boost in activeBoosts)
+            {
+                if (boost == null) continue;
+                if (boost.transform.position.y > 6.0f)
+                {
+                    int lane = GetLaneIndexFromX(boost.transform.position.x);
+                    if (lane != -1 && safeLanes.Contains(lane))
+                    {
+                        safeLanes.Remove(lane);
+                    }
+                }
+            }
+
+            foreach (HamburguesaVida burger in activeBurgers)
+            {
+                if (burger == null) continue;
+                if (burger.transform.position.y > 6.0f)
+                {
+                    int lane = GetLaneIndexFromX(burger.transform.position.x);
+                    if (lane != -1 && safeLanes.Contains(lane))
+                    {
+                        safeLanes.Remove(lane);
+                    }
+                }
+            }
+
+            // Si hay carriles seguros, elegir uno al azar
+            if (safeLanes.Count > 0)
+            {
+                return safeLanes[Random.Range(0, safeLanes.Count)];
+            }
+
+            // Fallback: Si todos están ocupados cerca de la zona de spawn, buscar el carril cuyo objeto más alto esté lo más bajo posible (máximo Y en cada carril)
+            int bestLane = Random.Range(0, lanePositionsX.Length);
+            float minMaxY = float.MaxValue;
+
+            for (int i = 0; i < lanePositionsX.Length; i++)
+            {
+                float maxYInLane = float.MinValue;
+                
+                // Verificar obstáculos en el carril i
+                foreach (Obstaculo obs in activeObstacles)
+                {
+                    if (obs == null) continue;
+                    if (GetLaneIndexFromX(obs.transform.position.x) == i)
+                    {
+                        if (obs.transform.position.y > maxYInLane) maxYInLane = obs.transform.position.y;
+                    }
+                }
+                
+                // Verificar coleccionables en el carril i
+                foreach (Moneda coin in activeCoins)
+                {
+                    if (coin == null) continue;
+                    if (GetLaneIndexFromX(coin.transform.position.x) == i)
+                    {
+                        if (coin.transform.position.y > maxYInLane) maxYInLane = coin.transform.position.y;
+                    }
+                }
+                
+                foreach (PotenciadorEnergia boost in activeBoosts)
+                {
+                    if (boost == null) continue;
+                    if (GetLaneIndexFromX(boost.transform.position.x) == i)
+                    {
+                        if (boost.transform.position.y > maxYInLane) maxYInLane = boost.transform.position.y;
+                    }
+                }
+
+                foreach (HamburguesaVida burger in activeBurgers)
+                {
+                    if (burger == null) continue;
+                    if (GetLaneIndexFromX(burger.transform.position.x) == i)
+                    {
+                        if (burger.transform.position.y > maxYInLane) maxYInLane = burger.transform.position.y;
+                    }
+                }
+
+                if (maxYInLane < minMaxY)
+                {
+                    minMaxY = maxYInLane;
+                    bestLane = i;
+                }
+            }
+
+            return bestLane;
+        }
+
+        /// <summary>
+        /// Genera una hamburguesa coleccionable en un carril seguro libre de obstáculos.
         /// </summary>
         private void SpawnHamburguesa()
         {
             if (hamburguesaPowerUpPrefab == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
 
-            // Elegir carril aleatorio
-            int randomLane = Random.Range(0, lanePositionsX.Length);
+            // Elegir carril seguro
+            int randomLane = GetSafeLaneForPowerUp();
             float spawnX = lanePositionsX[randomLane];
 
             Vector3 spawnPos = new Vector3(spawnX, spawnYPosition, 0f);
@@ -320,6 +537,59 @@ namespace DeliveryExpress
             }
 
             Debug.Log($"🍔 Hamburguesa power-up generada en carril {randomLane} (x={spawnX:F2})");
+        }
+
+        /// <summary>
+        /// Genera una fila vertical de monedas en un carril seguro libre de obstáculos.
+        /// </summary>
+        private void SpawnMonedaRow()
+        {
+            if (monedaPrefab == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
+
+            // Elegir carril seguro
+            int randomLane = GetSafeLaneForPowerUp();
+            float spawnX = lanePositionsX[randomLane];
+
+            // Cantidad de monedas en la fila
+            int count = Random.Range(minMonedasPorFila, maxMonedasPorFila + 1);
+
+            // Spawneamos las monedas una tras otra separadas verticalmente
+            float spacingY = 1.4f;
+            for (int i = 0; i < count; i++)
+            {
+                Vector3 spawnPos = new Vector3(spawnX, spawnYPosition + (i * spacingY), 0f);
+                GameObject coinObj = Instantiate(monedaPrefab, spawnPos, Quaternion.identity);
+                Moneda coinComponent = coinObj.GetComponent<Moneda>();
+                if (coinComponent != null)
+                {
+                    coinComponent.SetScrollSpeed(levelScrollSpeed);
+                }
+            }
+
+            Debug.Log($"🪙 Fila de {count} monedas generada en carril {randomLane} (x={spawnX:F2})");
+        }
+
+        /// <summary>
+        /// Genera un potenciador de velocidad en un carril seguro libre de obstáculos.
+        /// </summary>
+        private void SpawnPotenciadorEnergia()
+        {
+            if (potenciadorEnergiaPrefab == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
+
+            // Elegir carril seguro
+            int randomLane = GetSafeLaneForPowerUp();
+            float spawnX = lanePositionsX[randomLane];
+
+            Vector3 spawnPos = new Vector3(spawnX, spawnYPosition, 0f);
+            GameObject powerUpObj = Instantiate(potenciadorEnergiaPrefab, spawnPos, Quaternion.identity);
+
+            PotenciadorEnergia powerUpComponent = powerUpObj.GetComponent<PotenciadorEnergia>();
+            if (powerUpComponent != null)
+            {
+                powerUpComponent.SetScrollSpeed(levelScrollSpeed);
+            }
+
+            Debug.Log($"⚡ Potenciador de velocidad generado en carril {randomLane} (x={spawnX:F2})");
         }
 
         private void SpawnTrafficWave()
@@ -361,8 +631,8 @@ namespace DeliveryExpress
             // Si todos los carriles están ocupados (o hay peligro de choque), cancelamos el spawn esta vez
             if (availableLaneIndices.Count == 0) return;
 
-            // Decidir cuántos autos spawnear
-            int spawnCount = hasConesOnScreen ? 1 : Random.Range(1, 3);
+            // Decidir cuántos autos spawnear (85% de probabilidad de 1 auto, 15% de 2 autos)
+            int spawnCount = hasConesOnScreen ? 1 : (Random.value < 0.15f ? 2 : 1);
             if (spawnCount > availableLaneIndices.Count) spawnCount = availableLaneIndices.Count;
 
             bool spawnedConeInThisWave = false;
@@ -434,7 +704,6 @@ namespace DeliveryExpress
         {
             List<GameObject> availableMinors = new List<GameObject>();
             if (conoPrefab != null) availableMinors.Add(conoPrefab);
-            if (bachePrefab != null) availableMinors.Add(bachePrefab);
             if (basuraPrefab != null) availableMinors.Add(basuraPrefab);
 
             if (availableMinors.Count == 0) return;
@@ -557,22 +826,26 @@ namespace DeliveryExpress
             // Jornadas finales: Máxima presión, más tráfico, mayor velocidad del scroll.
             if (day == 1)
             {
-                levelScrollSpeed = 5.0f;
-                minSpawnDelay = 1.3f;
-                maxSpawnDelay = 2.2f;
+                baseLevelScrollSpeed = 5.0f;
+                baseMinSpawnDelay = 1.8f;
+                baseMaxSpawnDelay = 2.8f;
             }
             else if (day >= 2 && day <= 4)
             {
-                levelScrollSpeed = 6.5f;
-                minSpawnDelay = 1.0f;
-                maxSpawnDelay = 1.8f;
+                baseLevelScrollSpeed = 6.5f;
+                baseMinSpawnDelay = 1.4f;
+                baseMaxSpawnDelay = 2.2f;
             }
             else // Jornadas finales (Day >= 5)
             {
-                levelScrollSpeed = 8.0f;
-                minSpawnDelay = 0.8f;
-                maxSpawnDelay = 1.4f;
+                baseLevelScrollSpeed = 8.0f;
+                baseMinSpawnDelay = 1.1f;
+                baseMaxSpawnDelay = 1.7f;
             }
+
+            levelScrollSpeed = baseLevelScrollSpeed;
+            minSpawnDelay = baseMinSpawnDelay;
+            maxSpawnDelay = baseMaxSpawnDelay;
 
             SyncBackgroundSpeeds();
         }

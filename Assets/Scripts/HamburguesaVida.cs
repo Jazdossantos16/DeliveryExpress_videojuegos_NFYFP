@@ -27,14 +27,21 @@ namespace DeliveryExpress
 
         private void Update()
         {
-            // Desplazamiento hacia abajo (igual que los obstáculos)
-            transform.position += Vector3.down * scrollSpeed * Time.deltaTime;
+            // Desplazamiento hacia abajo (sincronizado con la calle y respetando el freno del jugador)
+            float speedMultiplier = 1f;
+            ControladorJugador player = ControladorJugador.Instance;
+            if (player != null && player.IsBraking)
+            {
+                speedMultiplier = 0.3f; // Reducir velocidad de aproximación al 30% al frenar
+            }
+            float finalSpeed = Obstaculo.GlobalStreetScrollSpeed * speedMultiplier;
+            transform.position += Vector3.down * finalSpeed * Time.deltaTime;
 
             // Efecto flotante suave
             float bobOffset = Mathf.Sin((Time.time + timeOffset) * bobFrequency) * bobAmplitude;
             transform.position = new Vector3(
                 transform.position.x,
-                transform.position.y,   // el baseY se actualiza con el scroll
+                transform.position.y,
                 transform.position.z
             );
 
@@ -42,7 +49,7 @@ namespace DeliveryExpress
             transform.Rotate(0f, 0f, rotationSpeed * Time.deltaTime);
 
             // Destruir si sale de pantalla por abajo
-            if (transform.position.y < -8f)
+            if (transform.position.y < -10f)
             {
                 Destroy(gameObject);
             }
@@ -63,6 +70,10 @@ namespace DeliveryExpress
                 if (AdministradorJuego.Instance != null)
                 {
                     AdministradorJuego.Instance.GainLife();
+                }
+                if (AdministradorAudio.Instance != null)
+                {
+                    AdministradorAudio.Instance.PlayLifeSound();
                 }
                 Destroy(gameObject);
             }

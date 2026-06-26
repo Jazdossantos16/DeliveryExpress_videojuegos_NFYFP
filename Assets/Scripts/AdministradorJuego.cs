@@ -23,6 +23,7 @@ namespace DeliveryExpress
         // Variables de juego en tiempo real
         private int currentLives;
         private float timeRemaining;
+        private float totalLevelDuration = 60f;
         private int coinsAccumulated = 0;
         private int activeOrders = 0;
         private int totalDeliveriesRequired = 0;
@@ -48,7 +49,10 @@ namespace DeliveryExpress
         public bool IsVictory => isVictory;
         public int CurrentDay => currentDay;
         public float TimeRemaining => timeRemaining;
+        public int CurrentLives => currentLives;
+        public int StartingLives => startingLives;
         public bool IsFinishLineReached { get; set; } = false;
+        public float LevelProgress => totalLevelDuration > 0f ? Mathf.Clamp01(1f - (timeRemaining / totalLevelDuration)) : 0f;
 
         private void Awake()
         {
@@ -76,13 +80,15 @@ namespace DeliveryExpress
             isGameOver = false;
             isVictory = false;
             isGameRunning = true;
+            IsFinishLineReached = false;
 
             // Restablecemos las vidas al iniciar el día
             currentLives = startingLives;
             
             baseLevelDuration = 60f;
             // Sumamos el tiempo de las mejoras adquiridas
-            timeRemaining = baseLevelDuration + extraTimeUpgrade;
+            totalLevelDuration = baseLevelDuration + extraTimeUpgrade;
+            timeRemaining = totalLevelDuration;
 
             // No hay entregas intermedias en este modo
             totalDeliveriesRequired = 0;
@@ -270,12 +276,19 @@ namespace DeliveryExpress
         private IEnumerator TransitionToUpgradeShop()
         {
             // Esperamos a que la senda peatonal de meta se detenga por completo
-            yield return new WaitForSeconds(4.5f);
+            yield return new WaitUntil(() => IsFinishLineReached);
+            
+            // Esperamos 1 segundo extra para que el jugador celebre la entrega frente a la casa final
+            yield return new WaitForSeconds(1.0f);
             
             // Avanzamos al siguiente día de trabajo
             currentDay++;
             
-            // Cargamos la escena de la tienda
+            // Mostramos la pantalla de victoria
+            if (AdministradorUI.Instance != null)
+            {
+                AdministradorUI.Instance.ShowVictory();
+            }
         }
 
         /// <summary>
@@ -284,6 +297,16 @@ namespace DeliveryExpress
         public void RestartCurrentDay()
         {
             StartNewDay();
+        }
+
+        /// <summary>
+        /// Reinicia el contador de monedas a 0.
+        /// </summary>
+        public void ResetCoins()
+        {
+            coinsAccumulated = 0;
+            OnCoinsChanged?.Invoke(coinsAccumulated);
+            Debug.Log("🪙 Monedas reiniciadas a 0.");
         }
     }
 }
