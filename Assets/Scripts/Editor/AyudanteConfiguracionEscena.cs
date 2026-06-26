@@ -1983,11 +1983,11 @@ namespace DeliveryExpress.Editor
             instructionsPanelRect.SetParent(canvas.transform, false);
             instructionsPanelObj.SetActive(false); // Empieza oculto
 
-            // Set to cover the whole screen
+            // Set to cover the whole screen with a slight 10px overflow to prevent rounding gap lines at the edges
             instructionsPanelRect.anchorMin = Vector2.zero;
             instructionsPanelRect.anchorMax = Vector2.one;
-            instructionsPanelRect.offsetMin = Vector2.zero;
-            instructionsPanelRect.offsetMax = Vector2.zero;
+            instructionsPanelRect.offsetMin = new Vector2(-10f, -10f);
+            instructionsPanelRect.offsetMax = new Vector2(10f, 10f);
             instructionsPanelRect.pivot = new Vector2(0.5f, 0.5f);
             instructionsPanelRect.localScale = Vector3.one;
             instructionsPanelRect.localRotation = Quaternion.identity;
@@ -2007,7 +2007,7 @@ namespace DeliveryExpress.Editor
             popupRect.pivot = new Vector2(0.5f, 0.5f);
             popupRect.sizeDelta = new Vector2(1920f, 1080f);
             popupRect.anchoredPosition = Vector2.zero;
-            popupRect.localScale = new Vector3(1.04f, 1.04f, 1f); // Ampliar la imagen para evitar que se vea el borde/línea superior
+            popupRect.localScale = Vector3.one; // Mantener la escala original para evitar desfasamiento del botón y distorsión de la UI
 
             UnityEngine.UI.AspectRatioFitter aspectFitter = popupObj.AddComponent<UnityEngine.UI.AspectRatioFitter>();
             aspectFitter.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.FitInParent;
