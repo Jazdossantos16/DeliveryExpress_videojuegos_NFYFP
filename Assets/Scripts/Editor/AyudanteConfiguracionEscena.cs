@@ -2006,7 +2006,8 @@ namespace DeliveryExpress.Editor
             popupRect.anchorMax = new Vector2(0.5f, 0.5f);
             popupRect.pivot = new Vector2(0.5f, 0.5f);
             popupRect.sizeDelta = new Vector2(1920f, 1080f);
-            popupRect.anchoredPosition = new Vector2(0f, 10f); // Subir ligeramente la imagen para ocultar el borde superior
+            popupRect.anchoredPosition = Vector2.zero;
+            popupRect.localScale = new Vector3(1.04f, 1.04f, 1f); // Ampliar la imagen para evitar que se vea el borde/línea superior
 
             UnityEngine.UI.AspectRatioFitter aspectFitter = popupObj.AddComponent<UnityEngine.UI.AspectRatioFitter>();
             aspectFitter.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.FitInParent;
