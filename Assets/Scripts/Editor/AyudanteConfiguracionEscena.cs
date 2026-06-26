@@ -815,10 +815,19 @@ namespace DeliveryExpress.Editor
                 GameObject canvasObj = new GameObject("_Lienzo_UI");
                 canvas = canvasObj.AddComponent<Canvas>();
                 canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                
-                canvasObj.AddComponent<CanvasScaler>();
                 canvasObj.AddComponent<GraphicRaycaster>();
             }
+
+            // Configurar CanvasScaler para que la UI escale con la pantalla (1920x1080) y evitar desalineaciones
+            CanvasScaler scaler = canvas.GetComponent<CanvasScaler>();
+            if (scaler == null)
+            {
+                scaler = canvas.gameObject.AddComponent<CanvasScaler>();
+            }
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+            scaler.matchWidthOrHeight = 0.5f;
 
             if (GameObject.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
             {
