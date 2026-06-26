@@ -61,6 +61,30 @@ namespace DeliveryExpress.Editor
 
             if (!needsFix)
             {
+                // Reconstruye la escena si falta el EventSystem o el StandaloneInputModule
+                if (GameObject.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null ||
+                    GameObject.FindFirstObjectByType<UnityEngine.EventSystems.StandaloneInputModule>() == null)
+                {
+                    needsFix = true;
+                }
+            }
+
+            if (!needsFix)
+            {
+                // Reconstruye si falta asignar el video de intro en AdministradorUI
+                AdministradorUI uiMgr = GameObject.FindFirstObjectByType<AdministradorUI>();
+                if (uiMgr != null)
+                {
+                    var introVideoClipField = typeof(AdministradorUI).GetField("introVideoClip", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (introVideoClipField != null && introVideoClipField.GetValue(uiMgr) == null)
+                    {
+                        needsFix = true;
+                    }
+                }
+            }
+
+            if (!needsFix)
+            {
                 GameObject livesContainer = GameObject.Find("Contenedor_Vidas");
                 if (livesContainer == null)
                 {
@@ -794,11 +818,21 @@ namespace DeliveryExpress.Editor
                 
                 canvasObj.AddComponent<CanvasScaler>();
                 canvasObj.AddComponent<GraphicRaycaster>();
-                
-                if (GameObject.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
+            }
+
+            if (GameObject.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
+            {
+                GameObject eventSystemObj = GameObject.Find("SistemaDeEventos");
+                if (eventSystemObj == null)
                 {
-                    GameObject eventSystemObj = new GameObject("SistemaDeEventos");
+                    eventSystemObj = new GameObject("SistemaDeEventos");
+                }
+                if (eventSystemObj.GetComponent<UnityEngine.EventSystems.EventSystem>() == null)
+                {
                     eventSystemObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                }
+                if (eventSystemObj.GetComponent<UnityEngine.EventSystems.StandaloneInputModule>() == null)
+                {
                     eventSystemObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
                 }
             }
@@ -2704,6 +2738,24 @@ namespace DeliveryExpress.Editor
                 skipTextField.SetValue(uiManager, skipTextComp);
                 EditorUtility.SetDirty(uiManager);
                 Debug.Log("✅ skipText persistente inyectado en AdministradorUI.");
+            }
+
+            // Inyectar el video de introducción como VideoClip
+            var introVideoClipField = typeof(AdministradorUI).GetField("introVideoClip", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (introVideoClipField != null)
+            {
+                AssetDatabase.ImportAsset("Assets/videojuego_prueba_202606182214.mp4");
+                var videoAsset = AssetDatabase.LoadAssetAtPath<UnityEngine.Video.VideoClip>("Assets/videojuego_prueba_202606182214.mp4");
+                if (videoAsset != null)
+                {
+                    introVideoClipField.SetValue(uiManager, videoAsset);
+                    EditorUtility.SetDirty(uiManager);
+                    Debug.Log("✅ introVideoClip inyectado en AdministradorUI.");
+                }
+                else
+                {
+                    Debug.LogWarning("⚠️ No se pudo cargar el video como VideoClip en Assets/videojuego_prueba_202606182214.mp4.");
+                }
             }
 
             // Asigna la capa UI de forma recursiva

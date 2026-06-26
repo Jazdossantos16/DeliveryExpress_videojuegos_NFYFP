@@ -66,11 +66,13 @@ namespace DeliveryExpress
             bgmSource.loop = true;
             bgmSource.playOnAwake = false;
             bgmSource.volume = 0.5f; // Volumen moderado para la música de fondo
+            bgmSource.spatialBlend = 0f; // Asegurar que sea 2D
 
             // Configurar AudioSource para Efectos de Sonido (SFX)
             sfxSource.loop = false;
             sfxSource.playOnAwake = false;
             sfxSource.volume = 0.8f; // Efectos ligeramente más fuertes
+            sfxSource.spatialBlend = 0f; // Asegurar que sea 2D
         }
 
         private void Start()

@@ -38,6 +38,9 @@ namespace DeliveryExpress
         [SerializeField] private GameObject victoryPanel;
         [SerializeField] private Sprite victorySprite;
 
+        [Header("Video de Introducción")]
+        [SerializeField] private UnityEngine.Video.VideoClip introVideoClip;
+
         private UnityEngine.Video.VideoPlayer videoPlayer;
         private RenderTexture videoTexture;
         private RawImage videoRawImage;
@@ -308,6 +311,7 @@ namespace DeliveryExpress
 
         public void RestartGame()
         {
+            PlayClickSound();
             if (AdministradorJuego.Instance != null)
             {
                 AdministradorJuego.Instance.ResetCoins();
@@ -319,6 +323,7 @@ namespace DeliveryExpress
 
         public void CargarMenu()
         {
+            PlayClickSound();
             if (AdministradorJuego.Instance != null)
             {
                 AdministradorJuego.Instance.ResetCoins();
@@ -330,6 +335,7 @@ namespace DeliveryExpress
 
         public void IniciarJuego()
         {
+            PlayClickSound();
             if (mapPanel != null)
             {
                 mapPanel.SetActive(false);
@@ -358,7 +364,11 @@ namespace DeliveryExpress
         {
             isPlayingVideo = true;
             Time.timeScale = 0f; // Asegurar que el juego esté pausado
+            StartCoroutine(PlayVideoRoutine());
+        }
 
+        private IEnumerator PlayVideoRoutine()
+        {
             // Ocultamos la pantalla de inicio
             if (startPanel != null)
             {
@@ -389,15 +399,33 @@ namespace DeliveryExpress
             // Agregar VideoPlayer
             videoPlayer = videoGo.AddComponent<UnityEngine.Video.VideoPlayer>();
             videoPlayer.playOnAwake = false;
-            videoPlayer.source = UnityEngine.Video.VideoSource.Url;
-            videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath, "videojuego_prueba_202606182214.mp4");
+            if (introVideoClip != null)
+            {
+                videoPlayer.source = UnityEngine.Video.VideoSource.VideoClip;
+                videoPlayer.clip = introVideoClip;
+            }
+            else
+            {
+                videoPlayer.source = UnityEngine.Video.VideoSource.Url;
+                videoPlayer.url = System.IO.Path.Combine(Application.streamingAssetsPath, "videojuego_prueba_202606182214.mp4");
+            }
             videoPlayer.renderMode = UnityEngine.Video.VideoRenderMode.RenderTexture;
             videoPlayer.targetTexture = videoTexture;
+            videoPlayer.timeUpdateMode = UnityEngine.Video.VideoTimeUpdateMode.UnscaledGameTime;
             
-            // Configurar audio
-            videoPlayer.audioOutputMode = UnityEngine.Video.VideoAudioOutputMode.Direct;
+            // Configurar audio vía AudioSource para evitar desbordamiento de búfer (Buffer Overflow)
+            AudioSource videoAudioSource = videoGo.AddComponent<AudioSource>();
+            videoAudioSource.playOnAwake = false;
+            videoAudioSource.loop = false;
+            videoAudioSource.spatialBlend = 0f; // Asegurar 2D
+            
+            videoPlayer.audioOutputMode = UnityEngine.Video.VideoAudioOutputMode.AudioSource;
+            videoPlayer.controlledAudioTrackCount = 1;
+            videoPlayer.EnableAudioTrack(0, true);
+            videoPlayer.SetTargetAudioSource(0, videoAudioSource);
+            
             bool musicOn = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
-            videoPlayer.SetDirectAudioMute(0, !musicOn);
+            videoAudioSource.mute = !musicOn;
             
             // Suscribirse al evento de finalización
             videoPlayer.loopPointReached += AlTerminarVideo;
@@ -410,9 +438,18 @@ namespace DeliveryExpress
                 skipObj.transform.SetAsLastSibling();
             }
 
+            // Preparar el video de forma asíncrona
+            videoPlayer.Prepare();
+
+            // Esperar hasta que esté preparado (independiente de timeScale)
+            while (!videoPlayer.isPrepared)
+            {
+                yield return null;
+            }
+
             // Iniciar reproducción
             videoPlayer.Play();
-            Debug.Log("🎬 Reproduciendo video de intro.");
+            Debug.Log("🎬 Reproduciendo video de intro (preparado con éxito).");
 
             // Hacemos fade-out del overlay negro para revelar el video
             StartCoroutine(FadeScreen(1f, 0f, 0.8f));
@@ -818,6 +855,7 @@ namespace DeliveryExpress
 
         public void AbrirInstrucciones()
         {
+            PlayClickSound();
             if (instructionsPanel != null)
             {
                 instructionsPanel.SetActive(true);
@@ -827,6 +865,7 @@ namespace DeliveryExpress
 
         public void CerrarInstrucciones()
         {
+            PlayClickSound();
             if (instructionsPanel != null)
             {
                 instructionsPanel.SetActive(false);
@@ -836,6 +875,7 @@ namespace DeliveryExpress
 
         public void AbrirMapa()
         {
+            PlayClickSound();
             if (mapPanel != null)
             {
                 mapPanel.SetActive(true);
@@ -845,6 +885,7 @@ namespace DeliveryExpress
 
         public void CerrarMapa()
         {
+            PlayClickSound();
             if (mapPanel != null)
             {
                 mapPanel.SetActive(false);
@@ -854,6 +895,7 @@ namespace DeliveryExpress
 
         public void AbrirDetallePedido()
         {
+            PlayClickSound();
             if (mapPanel != null)
             {
                 cameFromMap = mapPanel.activeSelf;
@@ -873,6 +915,7 @@ namespace DeliveryExpress
 
         public void CerrarDetallePedido()
         {
+            PlayClickSound();
             if (orderDetailsPanel != null)
             {
                 orderDetailsPanel.SetActive(false);
@@ -1010,6 +1053,7 @@ namespace DeliveryExpress
 
         public void SaveGameOverScore()
         {
+            PlayClickSound();
             if (gameOverNameInputField != null && AdministradorJuego.Instance != null)
             {
                 string name = gameOverNameInputField.text;
@@ -1020,6 +1064,7 @@ namespace DeliveryExpress
 
         public void SaveVictoryScore()
         {
+            PlayClickSound();
             if (victoryNameInputField != null && AdministradorJuego.Instance != null)
             {
                 string name = victoryNameInputField.text;
