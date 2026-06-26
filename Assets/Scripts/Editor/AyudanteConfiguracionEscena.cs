@@ -319,7 +319,7 @@ namespace DeliveryExpress.Editor
             if (!needsFix)
             {
                 GameObject riderObj = FindRiderGameObject();
-                if (riderObj == null || (riderObj.transform.localScale.x > 0.4f || riderObj.transform.localScale.x < 0.35f))
+                if (riderObj == null || (riderObj.transform.localScale.x > 0.8f || riderObj.transform.localScale.x < 0.7f))
                 {
                     needsFix = true;
                 }
@@ -573,8 +573,8 @@ namespace DeliveryExpress.Editor
                 // Posiciona al repartidor en la parte inferior
                 riderObj.transform.position = new Vector3(0, -3.5f, 0);
 
-                // Escala al repartidor para que sea más chico
-                riderObj.transform.localScale = new Vector3(0.38f, 0.38f, 1f);
+                // Escala al repartidor para compensar la resolución del nuevo sprite
+                riderObj.transform.localScale = new Vector3(0.75f, 0.75f, 1f);
 
                 ControladorJugador pc = riderObj.GetComponent<ControladorJugador>();
                 if (pc == null)
