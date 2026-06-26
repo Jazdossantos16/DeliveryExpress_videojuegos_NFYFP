@@ -6,6 +6,12 @@ namespace DeliveryExpress.Editor
 {
     public static class ReconstruirUI
     {
+        [MenuItem("Tools/Rebuild UI")]
+        public static void EjecutarReconstruccionMenu()
+        {
+            EjecutarReconstruccion();
+        }
+
         public static void EjecutarReconstruccion()
         {
             string[] escenas = new string[] {
