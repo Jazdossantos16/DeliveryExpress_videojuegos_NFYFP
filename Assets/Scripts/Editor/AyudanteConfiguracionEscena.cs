@@ -387,6 +387,8 @@ namespace DeliveryExpress.Editor
                 }
             }
 
+
+
             if (needsFix)
             {
                 isCheckingScene = true;
@@ -847,6 +849,12 @@ namespace DeliveryExpress.Editor
                 UnityEngine.Object.DestroyImmediate(oldPausePlay.gameObject);
             }
 
+            Transform oldWinBtn = canvas.transform.Find("Boton_Ganar");
+            if (oldWinBtn != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldWinBtn.gameObject);
+            }
+
             // 1. Crear el Panel Marco/Borde para Vidas
             GameObject livesPanelObj = new GameObject("Marco_HUD", typeof(RectTransform));
             RectTransform panelRect = livesPanelObj.GetComponent<RectTransform>();
@@ -1169,6 +1177,32 @@ namespace DeliveryExpress.Editor
             // Asignar los métodos a ejecutar al hacer click
             UnityEditor.Events.UnityEventTools.AddPersistentListener(pauseBtn.onClick, uiManager.AlternarPausa);
 
+            // 7.48 Crear el botón de ganar Boton_Ganar
+            GameObject winBtnObj = new GameObject("Boton_Ganar", typeof(RectTransform));
+            RectTransform winBtnRect = winBtnObj.GetComponent<RectTransform>();
+            winBtnRect.SetParent(canvas.transform, false);
+            winBtnRect.anchorMin = new Vector2(1f, 0f); // Esquina inferior derecha
+            winBtnRect.anchorMax = new Vector2(1f, 0f);
+            winBtnRect.pivot = new Vector2(1f, 0f);
+            winBtnRect.anchoredPosition = new Vector2(-50f, 50f);
+            winBtnRect.sizeDelta = new Vector2(200f, 65f);
+
+            Image winBtnImage = winBtnObj.AddComponent<Image>();
+            EnsureIsSprite("Assets/sprites/boton_ganar.png");
+            Sprite spGanar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_ganar.png");
+            if (spGanar != null)
+            {
+                winBtnImage.sprite = spGanar;
+                winBtnImage.color = Color.white;
+            }
+            else
+            {
+                winBtnImage.color = Color.yellow; // Fallback
+            }
+
+            Button winBtn = winBtnObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(winBtn.onClick, uiManager.ShowVictory);
+
             // Inyectar los sprites y el botón mediante reflexión en el AdministradorUI
             var pauseSpriteField = typeof(AdministradorUI).GetField("pauseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (pauseSpriteField != null && spPausa != null)
@@ -1276,6 +1310,176 @@ namespace DeliveryExpress.Editor
                 Debug.Log("✅ Sprite de derrota inyectado en AdministradorUI.");
             }
 
+            // --- CONSTRUCCIÓN DEL LEADERBOARD EN GAMEOVER ---
+            Font customFont = AssetDatabase.LoadAssetAtPath<Font>("Assets/Fonts/RobotoCondensed-Bold.ttf");
+            if (customFont == null)
+            {
+                Text foundText = canvas.GetComponentInChildren<Text>(true);
+                customFont = foundText != null ? foundText.font : null;
+                if (customFont == null)
+                {
+                    customFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                }
+            }
+
+            // Inyectar customFont en AdministradorUI
+            var customFontField = typeof(AdministradorUI).GetField("customFont", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (customFontField != null)
+            {
+                customFontField.SetValue(uiManager, customFont);
+            }
+
+            // Contenedor de la tabla
+            GameObject goLeaderboardContainer = new GameObject("Contenedor_TablaPosiciones", typeof(RectTransform));
+            RectTransform goLeadRect = goLeaderboardContainer.GetComponent<RectTransform>();
+            goLeadRect.SetParent(pRect, false);
+            goLeadRect.anchorMin = new Vector2(0.5f, 0.5f);
+            goLeadRect.anchorMax = new Vector2(0.5f, 0.5f);
+            goLeadRect.pivot = new Vector2(0.5f, 0.5f);
+            goLeadRect.anchoredPosition = new Vector2(0f, -90f); // Shipped down further to avoid overlapping background text
+            goLeadRect.sizeDelta = new Vector2(500f, 360f); // Increased size from 420x320
+
+            Image goLeadBg = goLeaderboardContainer.AddComponent<Image>();
+            goLeadBg.sprite = roundedBoxSprite;
+            goLeadBg.type = Image.Type.Sliced;
+            goLeadBg.color = new Color(0.08f, 0.08f, 0.08f, 0.85f); // Fondo elegante y oscuro
+
+            Shadow goLeadShadow = goLeaderboardContainer.AddComponent<Shadow>();
+            goLeadShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            goLeadShadow.effectDistance = new Vector2(5f, -5f);
+
+            // Título
+            GameObject goLeadTitleObj = new GameObject("GameOverLeaderboardTitle", typeof(RectTransform));
+            RectTransform goLeadTitleRect = goLeadTitleObj.GetComponent<RectTransform>();
+            goLeadTitleRect.SetParent(goLeadRect, false);
+            goLeadTitleRect.anchorMin = new Vector2(0f, 1f);
+            goLeadTitleRect.anchorMax = new Vector2(1f, 1f);
+            goLeadTitleRect.pivot = new Vector2(0.5f, 1f);
+            goLeadTitleRect.anchoredPosition = new Vector2(0f, -20f); // Adjusted from -15f
+            goLeadTitleRect.sizeDelta = new Vector2(0f, 35f); // Adjusted from 30f
+
+            Text goLeadTitleText = goLeadTitleObj.AddComponent<Text>();
+            goLeadTitleText.font = customFont;
+            goLeadTitleText.fontSize = 26; // Increased from 22
+            goLeadTitleText.color = new Color(1f, 0.84f, 0f); // Dorado
+            goLeadTitleText.alignment = TextAnchor.MiddleCenter;
+            goLeadTitleText.text = "TABLA DE POSICIONES";
+
+            // Texto de posiciones
+            GameObject goLeadTextObj = new GameObject("Texto_Tabla", typeof(RectTransform));
+            RectTransform goLeadTextRect = goLeadTextObj.GetComponent<RectTransform>();
+            goLeadTextRect.SetParent(goLeadRect, false);
+            goLeadTextRect.anchorMin = new Vector2(0f, 1f);
+            goLeadTextRect.anchorMax = new Vector2(1f, 1f);
+            goLeadTextRect.pivot = new Vector2(0.5f, 1f);
+            goLeadTextRect.anchoredPosition = new Vector2(0f, -65f); // Adjusted from -50f
+            goLeadTextRect.sizeDelta = new Vector2(-50f, 180f); // Adjusted from -40x140
+
+            Text goLeadText = goLeadTextObj.AddComponent<Text>();
+            goLeadText.font = customFont;
+            goLeadText.fontSize = 22; // Increased from 18
+            goLeadText.color = Color.white;
+            goLeadText.alignment = TextAnchor.UpperCenter;
+            goLeadText.text = "Cargando posiciones...";
+
+            // InputField para el nombre
+            GameObject goLeadInputObj = new GameObject("InputField_Nombre", typeof(RectTransform));
+            RectTransform goLeadInputRect = goLeadInputObj.GetComponent<RectTransform>();
+            goLeadInputRect.SetParent(goLeadRect, false);
+            goLeadInputRect.anchorMin = new Vector2(0f, 0f);
+            goLeadInputRect.anchorMax = new Vector2(0f, 0f);
+            goLeadInputRect.pivot = new Vector2(0f, 0f);
+            goLeadInputRect.anchoredPosition = new Vector2(25f, 25f); // Adjusted from 20x20
+            goLeadInputRect.sizeDelta = new Vector2(300f, 50f); // Adjusted from 250x45
+
+            Image goLeadInputBg = goLeadInputObj.AddComponent<Image>();
+            goLeadInputBg.sprite = roundedBoxSprite;
+            goLeadInputBg.type = Image.Type.Sliced;
+            goLeadInputBg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+
+            InputField goLeadInput = goLeadInputObj.AddComponent<InputField>();
+
+            // Texto del input
+            GameObject goLeadInputTextObj = new GameObject("Text", typeof(RectTransform));
+            RectTransform goLeadInputTextRect = goLeadInputTextObj.GetComponent<RectTransform>();
+            goLeadInputTextRect.SetParent(goLeadInputRect, false);
+            goLeadInputTextRect.anchorMin = Vector2.zero;
+            goLeadInputTextRect.anchorMax = Vector2.one;
+            goLeadInputTextRect.offsetMin = new Vector2(10f, 5f);
+            goLeadInputTextRect.offsetMax = new Vector2(-10f, -5f);
+
+            Text goLeadInputTextComp = goLeadInputTextObj.AddComponent<Text>();
+            goLeadInputTextComp.font = customFont;
+            goLeadInputTextComp.fontSize = 20; // Increased from 18
+            goLeadInputTextComp.color = Color.white;
+            goLeadInputTextComp.alignment = TextAnchor.MiddleLeft;
+            goLeadInputTextComp.supportRichText = false;
+
+            // Placeholder del input
+            GameObject goLeadInputPlaceholderObj = new GameObject("Placeholder", typeof(RectTransform));
+            RectTransform goLeadInputPlaceholderRect = goLeadInputPlaceholderObj.GetComponent<RectTransform>();
+            goLeadInputPlaceholderRect.SetParent(goLeadInputRect, false);
+            goLeadInputPlaceholderRect.anchorMin = Vector2.zero;
+            goLeadInputPlaceholderRect.anchorMax = Vector2.one;
+            goLeadInputPlaceholderRect.offsetMin = new Vector2(10f, 5f);
+            goLeadInputPlaceholderRect.offsetMax = new Vector2(-10f, -5f);
+
+            Text goLeadInputPlaceholderComp = goLeadInputPlaceholderObj.AddComponent<Text>();
+            goLeadInputPlaceholderComp.font = customFont;
+            goLeadInputPlaceholderComp.fontSize = 20; // Increased from 18
+            goLeadInputPlaceholderComp.fontStyle = FontStyle.Italic;
+            goLeadInputPlaceholderComp.color = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+            goLeadInputPlaceholderComp.alignment = TextAnchor.MiddleLeft;
+            goLeadInputPlaceholderComp.text = "Ingresa tu nombre...";
+
+            goLeadInput.textComponent = goLeadInputTextComp;
+            goLeadInput.placeholder = goLeadInputPlaceholderComp;
+            goLeadInput.targetGraphic = goLeadInputBg;
+
+            // Botón Guardar
+            GameObject goLeadSaveBtnObj = new GameObject("Boton_Guardar", typeof(RectTransform));
+            RectTransform goLeadSaveBtnRect = goLeadSaveBtnObj.GetComponent<RectTransform>();
+            goLeadSaveBtnRect.SetParent(goLeadRect, false);
+            goLeadSaveBtnRect.anchorMin = new Vector2(0f, 0f);
+            goLeadSaveBtnRect.anchorMax = new Vector2(0f, 0f);
+            goLeadSaveBtnRect.pivot = new Vector2(0f, 0f);
+            goLeadSaveBtnRect.anchoredPosition = new Vector2(340f, 25f); // Adjusted from 285x20
+            goLeadSaveBtnRect.sizeDelta = new Vector2(135f, 50f); // Adjusted from 115x45
+
+            Image goLeadSaveBtnBg = goLeadSaveBtnObj.AddComponent<Image>();
+            goLeadSaveBtnBg.sprite = roundedBoxSprite;
+            goLeadSaveBtnBg.type = Image.Type.Sliced;
+            goLeadSaveBtnBg.color = new Color(1f, 0.84f, 0f); // Dorado/Amarillo
+
+            Button goLeadSaveBtn = goLeadSaveBtnObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(goLeadSaveBtn.onClick, uiManager.SaveGameOverScore);
+
+            GameObject goLeadSaveBtnTextObj = new GameObject("Texto", typeof(RectTransform));
+            RectTransform goLeadSaveBtnTextRect = goLeadSaveBtnTextObj.GetComponent<RectTransform>();
+            goLeadSaveBtnTextRect.SetParent(goLeadSaveBtnRect, false);
+            goLeadSaveBtnTextRect.anchorMin = Vector2.zero;
+            goLeadSaveBtnTextRect.anchorMax = Vector2.one;
+            goLeadSaveBtnTextRect.offsetMin = Vector2.zero;
+            goLeadSaveBtnTextRect.offsetMax = Vector2.zero;
+
+            Text goLeadSaveBtnText = goLeadSaveBtnTextObj.AddComponent<Text>();
+            goLeadSaveBtnText.font = customFont;
+            goLeadSaveBtnText.fontSize = 20; // Increased from 16
+            goLeadSaveBtnText.fontStyle = FontStyle.Bold;
+            goLeadSaveBtnText.color = new Color(0.08f, 0.08f, 0.08f, 1f); // Contraste oscuro
+            goLeadSaveBtnText.alignment = TextAnchor.MiddleCenter;
+            goLeadSaveBtnText.text = "GUARDAR";
+
+            // Inyectar referencias en AdministradorUI por reflexión
+            var gameOverNameInputFieldField = typeof(AdministradorUI).GetField("gameOverNameInputField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (gameOverNameInputFieldField != null) gameOverNameInputFieldField.SetValue(uiManager, goLeadInput);
+
+            var gameOverSaveButtonField = typeof(AdministradorUI).GetField("gameOverSaveButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (gameOverSaveButtonField != null) gameOverSaveButtonField.SetValue(uiManager, goLeadSaveBtn);
+
+            var gameOverLeaderboardTextField = typeof(AdministradorUI).GetField("gameOverLeaderboardText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (gameOverLeaderboardTextField != null) gameOverLeaderboardTextField.SetValue(uiManager, goLeadText);
+
             Debug.Log("✅ AdministradorUI configurado con corazones, HUD de texto y panel de GameOver.");
 
             // 7.6 Crear o buscar StartPanel
@@ -1320,6 +1524,7 @@ namespace DeliveryExpress.Editor
             EnsureIsSprite("Assets/sprites/boton_jugar.png");
             EnsureIsSprite("Assets/sprites/boton_mapa.png");
             EnsureIsSprite("Assets/sprites/boton_configuracion.png");
+            EnsureIsSprite("Assets/sprites/boton_ganar.png");
 
             Sprite spriteJugar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_jugar.png");
             Sprite spriteMapa = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_mapa.png");
@@ -1849,6 +2054,157 @@ namespace DeliveryExpress.Editor
                 victorySpriteField.SetValue(uiManager, victorySprite);
                 EditorUtility.SetDirty(uiManager);
             }
+
+            // --- CONSTRUCCIÓN DEL LEADERBOARD EN VICTORYPANEL ---
+            GameObject vicLeaderboardContainer = new GameObject("Contenedor_TablaPosiciones", typeof(RectTransform));
+            RectTransform vicLeadRect = vicLeaderboardContainer.GetComponent<RectTransform>();
+            vicLeadRect.SetParent(victoryPanelRect, false);
+            vicLeadRect.anchorMin = new Vector2(0.5f, 0.5f);
+            vicLeadRect.anchorMax = new Vector2(0.5f, 0.5f);
+            vicLeadRect.pivot = new Vector2(0.5f, 0.5f);
+            vicLeadRect.anchoredPosition = new Vector2(0f, -90f); // Shipped down further to avoid overlapping background text
+            vicLeadRect.sizeDelta = new Vector2(500f, 360f); // Increased size from 420x320
+
+            Image vicLeadBg = vicLeaderboardContainer.AddComponent<Image>();
+            vicLeadBg.sprite = roundedBoxSprite;
+            vicLeadBg.type = Image.Type.Sliced;
+            vicLeadBg.color = new Color(0.08f, 0.08f, 0.08f, 0.85f); // Fondo elegante y oscuro
+
+            Shadow vicLeadShadow = vicLeaderboardContainer.AddComponent<Shadow>();
+            vicLeadShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            vicLeadShadow.effectDistance = new Vector2(5f, -5f);
+
+            // Título
+            GameObject vicLeadTitleObj = new GameObject("VictoryLeaderboardTitle", typeof(RectTransform));
+            RectTransform vicLeadTitleRect = vicLeadTitleObj.GetComponent<RectTransform>();
+            vicLeadTitleRect.SetParent(vicLeadRect, false);
+            vicLeadTitleRect.anchorMin = new Vector2(0f, 1f);
+            vicLeadTitleRect.anchorMax = new Vector2(1f, 1f);
+            vicLeadTitleRect.pivot = new Vector2(0.5f, 1f);
+            vicLeadTitleRect.anchoredPosition = new Vector2(0f, -20f); // Adjusted from -15f
+            vicLeadTitleRect.sizeDelta = new Vector2(0f, 35f); // Adjusted from 30f
+
+            Text vicLeadTitleText = vicLeadTitleObj.AddComponent<Text>();
+            vicLeadTitleText.font = customFont;
+            vicLeadTitleText.fontSize = 26; // Increased from 22
+            vicLeadTitleText.color = new Color(1f, 0.84f, 0f); // Dorado
+            vicLeadTitleText.alignment = TextAnchor.MiddleCenter;
+            vicLeadTitleText.text = "TABLA DE POSICIONES";
+
+            // Texto de posiciones
+            GameObject vicLeadTextObj = new GameObject("Texto_Tabla", typeof(RectTransform));
+            RectTransform vicLeadTextRect = vicLeadTextObj.GetComponent<RectTransform>();
+            vicLeadTextRect.SetParent(vicLeadRect, false);
+            vicLeadTextRect.anchorMin = new Vector2(0f, 1f);
+            vicLeadTextRect.anchorMax = new Vector2(1f, 1f);
+            vicLeadTextRect.pivot = new Vector2(0.5f, 1f);
+            vicLeadTextRect.anchoredPosition = new Vector2(0f, -65f); // Adjusted from -50f
+            vicLeadTextRect.sizeDelta = new Vector2(-50f, 180f); // Adjusted from -40x140
+
+            Text vicLeadText = vicLeadTextObj.AddComponent<Text>();
+            vicLeadText.font = customFont;
+            vicLeadText.fontSize = 22; // Increased from 18
+            vicLeadText.color = Color.white;
+            vicLeadText.alignment = TextAnchor.UpperCenter;
+            vicLeadText.text = "Cargando posiciones...";
+
+            // InputField para el nombre
+            GameObject vicLeadInputObj = new GameObject("InputField_Nombre", typeof(RectTransform));
+            RectTransform vicLeadInputRect = vicLeadInputObj.GetComponent<RectTransform>();
+            vicLeadInputRect.SetParent(vicLeadRect, false);
+            vicLeadInputRect.anchorMin = new Vector2(0f, 0f);
+            vicLeadInputRect.anchorMax = new Vector2(0f, 0f);
+            vicLeadInputRect.pivot = new Vector2(0f, 0f);
+            vicLeadInputRect.anchoredPosition = new Vector2(25f, 25f); // Adjusted from 20x20
+            vicLeadInputRect.sizeDelta = new Vector2(300f, 50f); // Adjusted from 250x45
+
+            Image vicLeadInputBg = vicLeadInputObj.AddComponent<Image>();
+            vicLeadInputBg.sprite = roundedBoxSprite;
+            vicLeadInputBg.type = Image.Type.Sliced;
+            vicLeadInputBg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+
+            InputField vicLeadInput = vicLeadInputObj.AddComponent<InputField>();
+
+            // Texto del input
+            GameObject vicLeadInputTextObj = new GameObject("Text", typeof(RectTransform));
+            RectTransform vicLeadInputTextRect = vicLeadInputTextObj.GetComponent<RectTransform>();
+            vicLeadInputTextRect.SetParent(vicLeadInputRect, false);
+            vicLeadInputTextRect.anchorMin = Vector2.zero;
+            vicLeadInputTextRect.anchorMax = Vector2.one;
+            vicLeadInputTextRect.offsetMin = new Vector2(10f, 5f);
+            vicLeadInputTextRect.offsetMax = new Vector2(-10f, -5f);
+
+            Text vicLeadInputTextComp = vicLeadInputTextObj.AddComponent<Text>();
+            vicLeadInputTextComp.font = customFont;
+            vicLeadInputTextComp.fontSize = 20; // Increased from 18
+            vicLeadInputTextComp.color = Color.white;
+            vicLeadInputTextComp.alignment = TextAnchor.MiddleLeft;
+            vicLeadInputTextComp.supportRichText = false;
+
+            // Placeholder del input
+            GameObject vicLeadInputPlaceholderObj = new GameObject("Placeholder", typeof(RectTransform));
+            RectTransform vicLeadInputPlaceholderRect = vicLeadInputPlaceholderObj.GetComponent<RectTransform>();
+            vicLeadInputPlaceholderRect.SetParent(vicLeadInputRect, false);
+            vicLeadInputPlaceholderRect.anchorMin = Vector2.zero;
+            vicLeadInputPlaceholderRect.anchorMax = Vector2.one;
+            vicLeadInputPlaceholderRect.offsetMin = new Vector2(10f, 5f);
+            vicLeadInputPlaceholderRect.offsetMax = new Vector2(-10f, -5f);
+
+            Text vicLeadInputPlaceholderComp = vicLeadInputPlaceholderObj.AddComponent<Text>();
+            vicLeadInputPlaceholderComp.font = customFont;
+            vicLeadInputPlaceholderComp.fontSize = 20; // Increased from 18
+            vicLeadInputPlaceholderComp.fontStyle = FontStyle.Italic;
+            vicLeadInputPlaceholderComp.color = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+            vicLeadInputPlaceholderComp.alignment = TextAnchor.MiddleLeft;
+            vicLeadInputPlaceholderComp.text = "Ingresa tu nombre...";
+
+            vicLeadInput.textComponent = vicLeadInputTextComp;
+            vicLeadInput.placeholder = vicLeadInputPlaceholderComp;
+            vicLeadInput.targetGraphic = vicLeadInputBg;
+
+            // Botón Guardar
+            GameObject vicLeadSaveBtnObj = new GameObject("Boton_Guardar", typeof(RectTransform));
+            RectTransform vicLeadSaveBtnRect = vicLeadSaveBtnObj.GetComponent<RectTransform>();
+            vicLeadSaveBtnRect.SetParent(vicLeadRect, false);
+            vicLeadSaveBtnRect.anchorMin = new Vector2(0f, 0f);
+            vicLeadSaveBtnRect.anchorMax = new Vector2(0f, 0f);
+            vicLeadSaveBtnRect.pivot = new Vector2(0f, 0f);
+            vicLeadSaveBtnRect.anchoredPosition = new Vector2(340f, 25f); // Adjusted from 285x20
+            vicLeadSaveBtnRect.sizeDelta = new Vector2(135f, 50f); // Adjusted from 115x45
+
+            Image vicLeadSaveBtnBg = vicLeadSaveBtnObj.AddComponent<Image>();
+            vicLeadSaveBtnBg.sprite = roundedBoxSprite;
+            vicLeadSaveBtnBg.type = Image.Type.Sliced;
+            vicLeadSaveBtnBg.color = new Color(1f, 0.84f, 0f); // Dorado/Amarillo
+
+            Button vicLeadSaveBtn = vicLeadSaveBtnObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(vicLeadSaveBtn.onClick, uiManager.SaveVictoryScore);
+
+            GameObject vicLeadSaveBtnTextObj = new GameObject("Texto", typeof(RectTransform));
+            RectTransform vicLeadSaveBtnTextRect = vicLeadSaveBtnTextObj.GetComponent<RectTransform>();
+            vicLeadSaveBtnTextRect.SetParent(vicLeadSaveBtnRect, false);
+            vicLeadSaveBtnTextRect.anchorMin = Vector2.zero;
+            vicLeadSaveBtnTextRect.anchorMax = Vector2.one;
+            vicLeadSaveBtnTextRect.offsetMin = Vector2.zero;
+            vicLeadSaveBtnTextRect.offsetMax = Vector2.zero;
+
+            Text vicLeadSaveBtnText = vicLeadSaveBtnTextObj.AddComponent<Text>();
+            vicLeadSaveBtnText.font = customFont;
+            vicLeadSaveBtnText.fontSize = 20; // Increased from 16
+            vicLeadSaveBtnText.fontStyle = FontStyle.Bold;
+            vicLeadSaveBtnText.color = new Color(0.08f, 0.08f, 0.08f, 1f); // Contraste oscuro
+            vicLeadSaveBtnText.alignment = TextAnchor.MiddleCenter;
+            vicLeadSaveBtnText.text = "GUARDAR";
+
+            // Inyectar referencias en AdministradorUI por reflexión
+            var victoryNameInputFieldField = typeof(AdministradorUI).GetField("victoryNameInputField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (victoryNameInputFieldField != null) victoryNameInputFieldField.SetValue(uiManager, vicLeadInput);
+
+            var victorySaveButtonField = typeof(AdministradorUI).GetField("victorySaveButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (victorySaveButtonField != null) victorySaveButtonField.SetValue(uiManager, vicLeadSaveBtn);
+
+            var victoryLeaderboardTextField = typeof(AdministradorUI).GetField("victoryLeaderboardText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (victoryLeaderboardTextField != null) victoryLeaderboardTextField.SetValue(uiManager, vicLeadText);
 
             // 7.8 Crear o buscar el panel y texto de Skip del video persistentes
             Transform oldSkipText = canvas.transform.Find("IntroVideo_SkipText");
