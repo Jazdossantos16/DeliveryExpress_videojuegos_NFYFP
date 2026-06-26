@@ -896,9 +896,24 @@ namespace DeliveryExpress
 
         private void ActualizarPanelConfiguracion()
         {
-            if (configBackgroundImage != null && imgConfigBoth != null)
+            if (configBackgroundImage != null)
             {
-                configBackgroundImage.sprite = imgConfigBoth;
+                if (musicEnabled && soundEnabled)
+                {
+                    configBackgroundImage.sprite = imgConfigBoth;
+                }
+                else if (!musicEnabled && soundEnabled)
+                {
+                    configBackgroundImage.sprite = imgConfigNoMusic;
+                }
+                else if (musicEnabled && !soundEnabled)
+                {
+                    configBackgroundImage.sprite = imgConfigNoSound;
+                }
+                else // !musicEnabled && !soundEnabled
+                {
+                    configBackgroundImage.sprite = imgConfigNone;
+                }
             }
 
             // Actualizar iconos dinámicos
