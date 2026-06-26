@@ -187,8 +187,7 @@ namespace DeliveryExpress.Editor
                     Transform maskMusic = configPanelObj.transform.Find("Mascara_Texto_Musica");
                     Transform maskSound = configPanelObj.transform.Find("Mascara_Texto_Sonido");
 
-                    if (iconUser == null || iconMusic == null || iconSound == null || 
-                        maskUser == null || maskMusic == null || maskSound == null)
+                    if (iconUser == null || iconMusic == null || iconSound == null || maskUser == null || maskMusic != null || maskSound != null)
                     {
                         needsFix = true;
                     }
@@ -197,8 +196,6 @@ namespace DeliveryExpress.Editor
                         RectTransform iconUserRect = iconUser.GetComponent<RectTransform>();
                         RectTransform iconSoundRect = iconSound.GetComponent<RectTransform>();
                         RectTransform maskUserRect = maskUser.GetComponent<RectTransform>();
-                        RectTransform maskMusicRect = maskMusic.GetComponent<RectTransform>();
-                        RectTransform maskSoundRect = maskSound.GetComponent<RectTransform>();
                         
                         if (iconUserRect != null && (Mathf.Abs(iconUserRect.anchoredPosition.x - (-251.5f)) > 1.0f || Mathf.Abs(iconUserRect.anchoredPosition.y - 110.0f) > 1.0f))
                         {
@@ -209,14 +206,6 @@ namespace DeliveryExpress.Editor
                             needsFix = true;
                         }
                         else if (maskUserRect != null && (Mathf.Abs(maskUserRect.anchoredPosition.y - 58.0f) > 1.0f || Mathf.Abs(maskUserRect.sizeDelta.x - 100f) > 1.0f))
-                        {
-                            needsFix = true;
-                        }
-                         else if (maskMusicRect != null && (Mathf.Abs(maskMusicRect.anchoredPosition.x - (-183.5f)) > 1.0f || Mathf.Abs(maskMusicRect.sizeDelta.x - 32f) > 1.0f || Mathf.Abs(maskMusicRect.anchoredPosition.y - (-75.0f)) > 1.0f || Mathf.Abs(maskMusicRect.sizeDelta.y - 40f) > 1.0f))
-                        {
-                            needsFix = true;
-                        }
-                        else if (maskSoundRect != null && (Mathf.Abs(maskSoundRect.anchoredPosition.x - (-183.5f)) > 1.0f || Mathf.Abs(maskSoundRect.sizeDelta.x - 32f) > 1.0f || Mathf.Abs(maskSoundRect.anchoredPosition.y - (-224.0f)) > 1.0f || Mathf.Abs(maskSoundRect.sizeDelta.y - 26f) > 1.0f))
                         {
                             needsFix = true;
                         }
@@ -1898,29 +1887,7 @@ namespace DeliveryExpress.Editor
             inputField.textComponent = textComp;
             inputField.targetGraphic = inputFieldBg;
 
-            // Máscara blanca para tapar el "Si" de música pre-renderizado del fondo
-            GameObject maskMusicObj = new GameObject("Mascara_Texto_Musica", typeof(RectTransform));
-            RectTransform maskMusicRect = maskMusicObj.GetComponent<RectTransform>();
-            maskMusicRect.SetParent(configPanelRect, false);
-            maskMusicRect.anchorMin = new Vector2(0.5f, 0.5f);
-            maskMusicRect.anchorMax = new Vector2(0.5f, 0.5f);
-            maskMusicRect.pivot = new Vector2(0.5f, 0.5f);
-            maskMusicRect.anchoredPosition = new Vector2(-183.5f, -75.0f);
-            maskMusicRect.sizeDelta = new Vector2(32f, 40f);
-            Image maskMusicImg = maskMusicObj.AddComponent<Image>();
-            maskMusicImg.color = Color.white;
-
-            // Máscara blanca para tapar el "Si" de sonido pre-renderizado del fondo
-            GameObject maskSoundObj = new GameObject("Mascara_Texto_Sonido", typeof(RectTransform));
-            RectTransform maskSoundRect = maskSoundObj.GetComponent<RectTransform>();
-            maskSoundRect.SetParent(configPanelRect, false);
-            maskSoundRect.anchorMin = new Vector2(0.5f, 0.5f);
-            maskSoundRect.anchorMax = new Vector2(0.5f, 0.5f);
-            maskSoundRect.pivot = new Vector2(0.5f, 0.5f);
-            maskSoundRect.anchoredPosition = new Vector2(-183.5f, -224.0f);
-            maskSoundRect.sizeDelta = new Vector2(32f, 26f);
-            Image maskSoundImg = maskSoundObj.AddComponent<Image>();
-            maskSoundImg.color = Color.white;
+            // Las máscaras de texto se eliminaron porque el fondo cambia de textura dinámicamente y expone los textos Si/No correspondientes.
 
             // Inyectar referencias en AdministradorUI
             var configPanelField = typeof(AdministradorUI).GetField("configPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
