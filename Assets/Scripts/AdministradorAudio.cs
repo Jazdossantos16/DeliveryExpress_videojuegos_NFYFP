@@ -18,8 +18,10 @@ namespace DeliveryExpress
         [SerializeField] private AudioClip collisionSound;
         [SerializeField] private AudioClip powerUpSound;
         [SerializeField] private AudioClip lifeSound;
-        [SerializeField] private AudioClip victorySound;
         [SerializeField] private AudioClip defeatSound;
+        [SerializeField] private AudioClip victorySound;
+        [SerializeField] private AudioClip laneSwitchSound;
+        [SerializeField] private AudioClip buttonClickSound;
 
         private AudioSource bgmSource;
         private AudioSource sfxSource;
@@ -152,6 +154,22 @@ namespace DeliveryExpress
         public void PlayDefeatSound()
         {
             PlaySFX(defeatSound);
+        }
+
+        /// <summary>
+        /// Reproduce el efecto de sonido al cambiar de carril.
+        /// </summary>
+        public void PlayLaneSwitchSound()
+        {
+            PlaySFX(laneSwitchSound);
+        }
+
+        /// <summary>
+        /// Reproduce el efecto de sonido al presionar un botón.
+        /// </summary>
+        public void PlayButtonClickSound()
+        {
+            PlaySFX(buttonClickSound);
         }
 
         private void PlaySFX(AudioClip clip)

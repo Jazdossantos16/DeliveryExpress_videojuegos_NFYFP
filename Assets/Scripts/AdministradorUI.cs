@@ -304,6 +304,7 @@ namespace DeliveryExpress
 
         public void RestartGame()
         {
+            PlayClickSound();
             if (AdministradorJuego.Instance != null)
             {
                 AdministradorJuego.Instance.ResetCoins();
@@ -315,6 +316,7 @@ namespace DeliveryExpress
 
         public void CargarMenu()
         {
+            PlayClickSound();
             if (AdministradorJuego.Instance != null)
             {
                 AdministradorJuego.Instance.ResetCoins();
@@ -326,6 +328,7 @@ namespace DeliveryExpress
 
         public void IniciarJuego()
         {
+            PlayClickSound();
 #if UNITY_WEBGL && !UNITY_EDITOR
             StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
 #else
@@ -749,6 +752,7 @@ namespace DeliveryExpress
 
         public void AvanzarSiguienteDia()
         {
+            PlayClickSound();
             skipStartPanel = true;
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -764,6 +768,7 @@ namespace DeliveryExpress
 
         public void AbrirConfiguracion()
         {
+            PlayClickSound();
             if (configPanel != null)
             {
                 configPanel.SetActive(true);
@@ -784,6 +789,7 @@ namespace DeliveryExpress
 
         public void CerrarConfiguracion()
         {
+            PlayClickSound();
             if (usernameInputField != null)
             {
                 PlayerPrefs.SetString("Username", usernameInputField.text);
@@ -799,6 +805,7 @@ namespace DeliveryExpress
 
         public void ToggleMusica()
         {
+            PlayClickSound();
             musicEnabled = !musicEnabled;
             PlayerPrefs.SetInt("MusicEnabled", musicEnabled ? 1 : 0);
             PlayerPrefs.Save();
@@ -812,12 +819,21 @@ namespace DeliveryExpress
 
         public void ToggleSonido()
         {
+            PlayClickSound();
             soundEnabled = !soundEnabled;
             PlayerPrefs.SetInt("SoundEnabled", soundEnabled ? 1 : 0);
             PlayerPrefs.Save();
             AudioListener.volume = soundEnabled ? 1f : 0f;
             ActualizarPanelConfiguracion();
             Debug.Log("🔊 Sonido toggled: " + soundEnabled);
+        }
+
+        public void PlayClickSound()
+        {
+            if (AdministradorAudio.Instance != null)
+            {
+                AdministradorAudio.Instance.PlayButtonClickSound();
+            }
         }
 
         public void OnUsernameChanged(string newName)
@@ -898,6 +914,7 @@ namespace DeliveryExpress
 
         public void SaveGameOverScore()
         {
+            PlayClickSound();
             if (gameOverNameInputField != null && AdministradorJuego.Instance != null)
             {
                 string name = gameOverNameInputField.text;
@@ -908,6 +925,7 @@ namespace DeliveryExpress
 
         public void SaveVictoryScore()
         {
+            PlayClickSound();
             if (victoryNameInputField != null && AdministradorJuego.Instance != null)
             {
                 string name = victoryNameInputField.text;

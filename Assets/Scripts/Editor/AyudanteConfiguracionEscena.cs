@@ -734,12 +734,15 @@ namespace DeliveryExpress.Editor
             AudioClip power = FindAudioClip(audioFolderPath, "powerup");
             AudioClip life = FindAudioClip(audioFolderPath, "vida");
             AudioClip win = FindAudioClip(audioFolderPath, "victoria");
+            if (win == null) win = FindAudioClip(audioFolderPath, "victory");
             AudioClip lose = FindAudioClip(audioFolderPath, "derrota");
+            AudioClip laneSwitch = FindAudioClip(audioFolderPath, "cambio_carril");
+            AudioClip buttonClick = FindAudioClip(audioFolderPath, "boton_click");
 
-            bool anyMissing = (bgm == null || coin == null || crash == null || power == null || life == null || win == null || lose == null);
+            bool anyMissing = (bgm == null || coin == null || power == null || laneSwitch == null || buttonClick == null);
             if (anyMissing)
             {
-                Debug.LogWarning("⚠️ [Audio Auto-Setup] Falta importar algunos archivos de sonido en 'Assets/Audio/'. Coloca tus archivos con los siguientes nombres: 'musica_fondo', 'moneda', 'choque', 'powerup', 'vida', 'victoria', 'derrota' (pueden ser .mp3, .wav o .ogg).");
+                Debug.LogWarning("⚠️ [Audio Auto-Setup] Falta importar algunos archivos de sonido en 'Assets/Audio/'. Coloca tus archivos con los siguientes nombres: 'musica_fondo', 'moneda', 'choque', 'powerup', 'vida', 'victoria', 'derrota', 'cambio_carril', 'boton_click' (pueden ser .mp3, .wav o .ogg).");
             }
 
             // Inyectar referencias por reflexión
@@ -763,6 +766,12 @@ namespace DeliveryExpress.Editor
 
             var loseField = typeof(AdministradorAudio).GetField("defeatSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (loseField != null && lose != null) loseField.SetValue(audioManager, lose);
+
+            var laneSwitchField = typeof(AdministradorAudio).GetField("laneSwitchSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (laneSwitchField != null && laneSwitch != null) laneSwitchField.SetValue(audioManager, laneSwitch);
+
+            var buttonClickField = typeof(AdministradorAudio).GetField("buttonClickSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (buttonClickField != null && buttonClick != null) buttonClickField.SetValue(audioManager, buttonClick);
 
             EditorUtility.SetDirty(audioManager);
 
@@ -3183,7 +3192,7 @@ namespace DeliveryExpress.Editor
 
         private static AudioClip FindAudioClip(string folderPath, string baseName)
         {
-            string[] extensions = new string[] { ".mp3", ".wav", ".ogg" };
+            string[] extensions = new string[] { ".mp3", ".wav", ".ogg", ".mpeg", ".aiff" };
             foreach (string ext in extensions)
             {
                 string path = $"{folderPath}/{baseName}{ext}";
@@ -3193,6 +3202,28 @@ namespace DeliveryExpress.Editor
                     if (clip != null) return clip;
                 }
             }
+
+            // Fallback: busca archivos que contengan el nombre base (ej: "victory" para "victoria")
+            try
+            {
+                string fullFolderPath = System.IO.Path.GetFullPath(folderPath);
+                if (System.IO.Directory.Exists(fullFolderPath))
+                {
+                    foreach (string file in System.IO.Directory.GetFiles(fullFolderPath))
+                    {
+                        string fileName = System.IO.Path.GetFileNameWithoutExtension(file).ToLower();
+                        string searchName = baseName.ToLower();
+                        if (fileName.Contains(searchName) || searchName.Contains(fileName))
+                        {
+                            string assetPath = "Assets" + file.Replace(Application.dataPath, "").Replace("\\", "/");
+                            AudioClip clip = AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
+                            if (clip != null) return clip;
+                        }
+                    }
+                }
+            }
+            catch (System.Exception) { }
+
             return null;
         }
     }
