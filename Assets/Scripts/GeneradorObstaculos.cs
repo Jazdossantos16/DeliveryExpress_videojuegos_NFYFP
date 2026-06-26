@@ -135,6 +135,7 @@ namespace DeliveryExpress
 
                 private void Update()
         {
+            if (AdministradorUI.Instance != null && AdministradorUI.Instance.IsPlayingVideo) return;
             if (!canSpawn) return;
 
             // Incremento progresivo de velocidad durante la partida

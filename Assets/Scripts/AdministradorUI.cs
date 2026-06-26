@@ -46,6 +46,7 @@ namespace DeliveryExpress
         private RawImage videoRawImage;
         [SerializeField] private Text skipText;
         private bool isPlayingVideo = false;
+        public bool IsPlayingVideo => isPlayingVideo;
         private bool cameFromMap = false;
         private RawImage fadeOverlay;
         private bool isTransitioning = false;
@@ -363,7 +364,7 @@ namespace DeliveryExpress
         private void PlayIntroVideo()
         {
             isPlayingVideo = true;
-            Time.timeScale = 0f; // Asegurar que el juego esté pausado
+            Time.timeScale = 1f; // Set to 1f so VideoPlayer advances frames normally
             StartCoroutine(PlayVideoRoutine());
         }
 
@@ -413,7 +414,10 @@ namespace DeliveryExpress
             videoPlayer.targetTexture = videoTexture;
             videoPlayer.timeUpdateMode = UnityEngine.Video.VideoTimeUpdateMode.UnscaledGameTime;
             
-            // Configurar audio vía AudioSource para evitar desbordamiento de búfer (Buffer Overflow)
+            bool musicOn = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // Configurar audio vía AudioSource para evitar desbordamiento de búfer (Buffer Overflow) en WebGL
             AudioSource videoAudioSource = videoGo.AddComponent<AudioSource>();
             videoAudioSource.playOnAwake = false;
             videoAudioSource.loop = false;
@@ -423,9 +427,15 @@ namespace DeliveryExpress
             videoPlayer.controlledAudioTrackCount = 1;
             videoPlayer.EnableAudioTrack(0, true);
             videoPlayer.SetTargetAudioSource(0, videoAudioSource);
-            
-            bool musicOn = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
             videoAudioSource.mute = !musicOn;
+#else
+            // En Windows/Editor, si se usa AudioSource a timescale 0, el reloj de audio se congela
+            // y causa que el VideoPlayer se quede trabado en el primer frame. Usamos Direct.
+            videoPlayer.audioOutputMode = UnityEngine.Video.VideoAudioOutputMode.Direct;
+            videoPlayer.controlledAudioTrackCount = 1;
+            videoPlayer.EnableAudioTrack(0, true);
+            videoPlayer.SetDirectAudioMute(0, !musicOn);
+#endif
             
             // Suscribirse al evento de finalización
             videoPlayer.loopPointReached += AlTerminarVideo;

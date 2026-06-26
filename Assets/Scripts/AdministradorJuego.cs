@@ -106,6 +106,7 @@ namespace DeliveryExpress
 
         private void Update()
         {
+            if (AdministradorUI.Instance != null && AdministradorUI.Instance.IsPlayingVideo) return;
             if (!isGameRunning || isGameOver) return;
 
             if (timeRemaining > 0)
