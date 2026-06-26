@@ -233,6 +233,10 @@ namespace DeliveryExpress
                 if (currentLaneIndex > 0)
                 {
                     currentLaneIndex--;
+                    if (AdministradorAudio.Instance != null)
+                    {
+                        AdministradorAudio.Instance.PlayLaneSwitchSound();
+                    }
                 }
             }
             if (rightPressed)
@@ -240,6 +244,10 @@ namespace DeliveryExpress
                 if (currentLaneIndex < lanePositionsX.Length - 1)
                 {
                     currentLaneIndex++;
+                    if (AdministradorAudio.Instance != null)
+                    {
+                        AdministradorAudio.Instance.PlayLaneSwitchSound();
+                    }
                 }
             }
 
@@ -465,6 +473,10 @@ namespace DeliveryExpress
         private void TakeDamage(bool instantKill = false)
         {
             currentBalance = maxBalance;
+            if (AdministradorAudio.Instance != null)
+            {
+                AdministradorAudio.Instance.PlayCollisionSound();
+            }
             if (AdministradorJuego.Instance != null)
             {
                 if (instantKill)

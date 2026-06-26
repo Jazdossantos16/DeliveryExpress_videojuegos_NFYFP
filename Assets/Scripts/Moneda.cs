@@ -80,6 +80,10 @@ namespace DeliveryExpress
                 {
                     AdministradorJuego.Instance.AddCoins(1);
                 }
+                if (AdministradorAudio.Instance != null)
+                {
+                    AdministradorAudio.Instance.PlayCoinSound();
+                }
                 Destroy(gameObject);
             }
         }

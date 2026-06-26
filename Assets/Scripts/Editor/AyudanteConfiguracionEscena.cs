@@ -715,6 +715,76 @@ namespace DeliveryExpress.Editor
                 Debug.Log("✅ Se creó el objeto '_AdministradorJuego' con el script central.");
             }
 
+            // Configurar el Administrador de Audio automáticamente
+            GameObject audioObj = GameObject.Find("_AdministradorAudio");
+            if (audioObj == null)
+            {
+                audioObj = new GameObject("_AdministradorAudio");
+                Debug.Log("✅ Se creó el objeto '_AdministradorAudio' para el sistema de sonido.");
+            }
+
+            AdministradorAudio audioManager = audioObj.GetComponent<AdministradorAudio>();
+            if (audioManager == null)
+            {
+                audioManager = audioObj.AddComponent<AdministradorAudio>();
+            }
+
+            // Crear la carpeta de sonido si no existe
+            string audioFolderPath = "Assets/Audio";
+            if (!System.IO.Directory.Exists(audioFolderPath))
+            {
+                System.IO.Directory.CreateDirectory(audioFolderPath);
+                AssetDatabase.Refresh();
+            }
+
+            // Intentar cargar automáticamente los clips de sonido
+            AudioClip bgm = FindAudioClip(audioFolderPath, "musica_fondo");
+            AudioClip coin = FindAudioClip(audioFolderPath, "moneda");
+            AudioClip crash = FindAudioClip(audioFolderPath, "choque");
+            AudioClip power = FindAudioClip(audioFolderPath, "powerup");
+            AudioClip life = FindAudioClip(audioFolderPath, "vida");
+            AudioClip win = FindAudioClip(audioFolderPath, "victoria");
+            if (win == null) win = FindAudioClip(audioFolderPath, "victory");
+            AudioClip lose = FindAudioClip(audioFolderPath, "derrota");
+            AudioClip laneSwitch = FindAudioClip(audioFolderPath, "cambio_carril");
+            AudioClip buttonClick = FindAudioClip(audioFolderPath, "boton_click");
+
+            bool anyMissing = (bgm == null || coin == null || power == null || laneSwitch == null || buttonClick == null);
+            if (anyMissing)
+            {
+                Debug.LogWarning("⚠️ [Audio Auto-Setup] Falta importar algunos archivos de sonido en 'Assets/Audio/'. Coloca tus archivos con los siguientes nombres: 'musica_fondo', 'moneda', 'choque', 'powerup', 'vida', 'victoria', 'derrota', 'cambio_carril', 'boton_click' (pueden ser .mp3, .wav o .ogg).");
+            }
+
+            // Inyectar referencias por reflexión
+            var bgmField = typeof(AdministradorAudio).GetField("backgroundMusic", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (bgmField != null && bgm != null) bgmField.SetValue(audioManager, bgm);
+
+            var coinField = typeof(AdministradorAudio).GetField("coinSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (coinField != null && coin != null) coinField.SetValue(audioManager, coin);
+
+            var crashField = typeof(AdministradorAudio).GetField("collisionSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (crashField != null && crash != null) crashField.SetValue(audioManager, crash);
+
+            var powerField = typeof(AdministradorAudio).GetField("powerUpSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (powerField != null && power != null) powerField.SetValue(audioManager, power);
+
+            var lifeField = typeof(AdministradorAudio).GetField("lifeSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (lifeField != null && life != null) lifeField.SetValue(audioManager, life);
+
+            var winField = typeof(AdministradorAudio).GetField("victorySound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (winField != null && win != null) winField.SetValue(audioManager, win);
+
+            var loseField = typeof(AdministradorAudio).GetField("defeatSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (loseField != null && lose != null) loseField.SetValue(audioManager, lose);
+
+            var laneSwitchField = typeof(AdministradorAudio).GetField("laneSwitchSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (laneSwitchField != null && laneSwitch != null) laneSwitchField.SetValue(audioManager, laneSwitch);
+
+            var buttonClickField = typeof(AdministradorAudio).GetField("buttonClickSound", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (buttonClickField != null && buttonClick != null) buttonClickField.SetValue(audioManager, buttonClick);
+
+            EditorUtility.SetDirty(audioManager);
+
             Canvas canvas = GameObject.FindFirstObjectByType<Canvas>();
             if (canvas == null)
             {
@@ -3501,6 +3571,43 @@ namespace DeliveryExpress.Editor
             {
                 Debug.LogWarning("No se pudieron registrar las etiquetas automáticamente: " + ex.Message);
             }
+        }
+
+        private static AudioClip FindAudioClip(string folderPath, string baseName)
+        {
+            string[] extensions = new string[] { ".mp3", ".wav", ".ogg", ".mpeg", ".aiff" };
+            foreach (string ext in extensions)
+            {
+                string path = $"{folderPath}/{baseName}{ext}";
+                if (System.IO.File.Exists(path))
+                {
+                    AudioClip clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+                    if (clip != null) return clip;
+                }
+            }
+
+            // Fallback: busca archivos que contengan el nombre base (ej: "victory" para "victoria")
+            try
+            {
+                string fullFolderPath = System.IO.Path.GetFullPath(folderPath);
+                if (System.IO.Directory.Exists(fullFolderPath))
+                {
+                    foreach (string file in System.IO.Directory.GetFiles(fullFolderPath))
+                    {
+                        string fileName = System.IO.Path.GetFileNameWithoutExtension(file).ToLower();
+                        string searchName = baseName.ToLower();
+                        if (fileName.Contains(searchName) || searchName.Contains(fileName))
+                        {
+                            string assetPath = "Assets" + file.Replace(Application.dataPath, "").Replace("\\", "/");
+                            AudioClip clip = AssetDatabase.LoadAssetAtPath<AudioClip>(assetPath);
+                            if (clip != null) return clip;
+                        }
+                    }
+                }
+            }
+            catch (System.Exception) { }
+
+            return null;
         }
     }
 }
