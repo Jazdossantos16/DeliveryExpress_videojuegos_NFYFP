@@ -1657,22 +1657,6 @@ namespace DeliveryExpress.Editor
             Image maskMusicImg = maskMusicObj.AddComponent<Image>();
             maskMusicImg.color = Color.white;
 
-            // Texto dinámico para el estado de la música
-            GameObject textMusicObj = new GameObject("Texto_Estado_Musica", typeof(RectTransform));
-            RectTransform textMusicRect = textMusicObj.GetComponent<RectTransform>();
-            textMusicRect.SetParent(configPanelRect, false);
-            textMusicRect.anchorMin = new Vector2(0.5f, 0.5f);
-            textMusicRect.anchorMax = new Vector2(0.5f, 0.5f);
-            textMusicRect.pivot = new Vector2(0.5f, 0.5f);
-            textMusicRect.anchoredPosition = new Vector2(-183.5f, -75.0f);
-            textMusicRect.sizeDelta = new Vector2(60f, 40f);
-            Text textMusicComp = textMusicObj.AddComponent<Text>();
-            textMusicComp.font = standardFont;
-            textMusicComp.fontSize = 24;
-            textMusicComp.color = new Color(0.15f, 0.15f, 0.15f, 1f);
-            textMusicComp.alignment = TextAnchor.MiddleCenter;
-            textMusicComp.text = startMusicOn ? "Si" : "No";
-
             // Máscara blanca para tapar el "Si" de sonido pre-renderizado del fondo
             GameObject maskSoundObj = new GameObject("Mascara_Texto_Sonido", typeof(RectTransform));
             RectTransform maskSoundRect = maskSoundObj.GetComponent<RectTransform>();
@@ -1684,22 +1668,6 @@ namespace DeliveryExpress.Editor
             maskSoundRect.sizeDelta = new Vector2(32f, 26f);
             Image maskSoundImg = maskSoundObj.AddComponent<Image>();
             maskSoundImg.color = Color.white;
-
-            // Texto dinámico para el estado del sonido
-            GameObject textSoundObj = new GameObject("Texto_Estado_Sonido", typeof(RectTransform));
-            RectTransform textSoundRect = textSoundObj.GetComponent<RectTransform>();
-            textSoundRect.SetParent(configPanelRect, false);
-            textSoundRect.anchorMin = new Vector2(0.5f, 0.5f);
-            textSoundRect.anchorMax = new Vector2(0.5f, 0.5f);
-            textSoundRect.pivot = new Vector2(0.5f, 0.5f);
-            textSoundRect.anchoredPosition = new Vector2(-183.5f, -224.0f);
-            textSoundRect.sizeDelta = new Vector2(60f, 26f);
-            Text textSoundComp = textSoundObj.AddComponent<Text>();
-            textSoundComp.font = standardFont;
-            textSoundComp.fontSize = 24;
-            textSoundComp.color = new Color(0.15f, 0.15f, 0.15f, 1f);
-            textSoundComp.alignment = TextAnchor.MiddleCenter;
-            textSoundComp.text = startSoundOn ? "Si" : "No";
 
             // Inyectar referencias en AdministradorUI
             var configPanelField = typeof(AdministradorUI).GetField("configPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -1743,10 +1711,10 @@ namespace DeliveryExpress.Editor
             if (iconSoundOffField != null) iconSoundOffField.SetValue(uiManager, spriteSoundOff);
 
             var musicStateTextField = typeof(AdministradorUI).GetField("musicStateText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (musicStateTextField != null) musicStateTextField.SetValue(uiManager, textMusicComp);
+            if (musicStateTextField != null) musicStateTextField.SetValue(uiManager, null);
 
             var soundStateTextField = typeof(AdministradorUI).GetField("soundStateText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (soundStateTextField != null) soundStateTextField.SetValue(uiManager, textSoundComp);
+            if (soundStateTextField != null) soundStateTextField.SetValue(uiManager, null);
 
             EditorUtility.SetDirty(uiManager);
             Debug.Log("✅ ConfigPanel creado e inyectado en AdministradorUI.");

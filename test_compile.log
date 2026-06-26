@@ -1,0 +1,31 @@
+Unity Editor version:    6000.3.16f1 (a56f230f6470)
+Branch:                  6000.3/staging
+Build type:              Release
+Batch mode:              YES
+macOS version:           Version 15.5 (Build 24F74)
+Darwin version:          24.5.0
+Architecture:            arm64
+Running under Rosetta:   NO
+Available memory:        8192 MB
+Date:                    2026-06-25T21:01:51Z
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-jazmindossantos" at "2026-06-25T21:01:51.275231Z"
+[Licensing::Client] Error: HandshakeResponse reported an error:
+	ResponseCode: 505
+	ResponseStatus: Unsupported protocol version '1.18.1'.
+[Licensing::Module] Error: Failed to handshake to channel: "LicenseClient-jazmindossantos"
+[Licensing::IpcConnector] LicenseClient-jazmindossantos channel disconnected successfully.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-jazmindossantos-6000.3.16" at "2026-06-25T21:01:51.600702Z"
+Launching external process: /Applications/Unity/Hub/Editor/6000.3.16f1/Unity.app/Contents/Resources/PackageManager/Server/UnityPackageManager
+
+COMMAND LINE ARGUMENTS:
+/Applications/Unity/Hub/Editor/6000.3.16f1/Unity.app/Contents/MacOS/Unity
+-batchmode
+-projectPath
+/Users/jazmindossantos/delivery_express_videojuegos_nfyfp
+-quit
+-logFile
+test_compile.log
+Successfully changed project path to: /Users/jazmindossantos/delivery_express_videojuegos_nfyfp
+/Users/jazmindossantos/delivery_express_videojuegos_nfyfp
+[Package Manager] Server process was shutdown
