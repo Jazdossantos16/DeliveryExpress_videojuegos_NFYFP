@@ -465,6 +465,10 @@ namespace DeliveryExpress
         private void TakeDamage(bool instantKill = false)
         {
             currentBalance = maxBalance;
+            if (AdministradorAudio.Instance != null)
+            {
+                AdministradorAudio.Instance.PlayCollisionSound();
+            }
             if (AdministradorJuego.Instance != null)
             {
                 if (instantKill)

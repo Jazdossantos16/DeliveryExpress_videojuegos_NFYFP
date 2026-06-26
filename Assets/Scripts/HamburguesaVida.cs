@@ -71,6 +71,10 @@ namespace DeliveryExpress
                 {
                     AdministradorJuego.Instance.GainLife();
                 }
+                if (AdministradorAudio.Instance != null)
+                {
+                    AdministradorAudio.Instance.PlayLifeSound();
+                }
                 Destroy(gameObject);
             }
         }

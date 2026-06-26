@@ -85,6 +85,10 @@ namespace DeliveryExpress
                 {
                     player.ActivarPotenciadorVelocidad(duration, speedMultiplier);
                 }
+                if (AdministradorAudio.Instance != null)
+                {
+                    AdministradorAudio.Instance.PlayPowerUpSound();
+                }
                 
                 Destroy(gameObject);
             }

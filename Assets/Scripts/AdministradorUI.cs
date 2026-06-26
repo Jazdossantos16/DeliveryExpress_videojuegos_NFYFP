@@ -96,6 +96,10 @@ namespace DeliveryExpress
             soundEnabled = PlayerPrefs.GetInt("SoundEnabled", 1) == 1;
             musicEnabled = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
             AudioListener.volume = soundEnabled ? 1f : 0f;
+            if (AdministradorAudio.Instance != null)
+            {
+                AdministradorAudio.Instance.SetMusicEnabled(musicEnabled);
+            }
 
             if (skipStartPanel)
             {
@@ -510,6 +514,10 @@ namespace DeliveryExpress
         public void ShowGameOver()
         {
             SetHUDActive(false);
+            if (AdministradorAudio.Instance != null)
+            {
+                AdministradorAudio.Instance.PlayDefeatSound();
+            }
             if (gameOverPanel != null)
             {
                 gameOverPanel.SetActive(true);
@@ -654,6 +662,10 @@ namespace DeliveryExpress
         public void ShowVictory()
         {
             SetHUDActive(false);
+            if (AdministradorAudio.Instance != null)
+            {
+                AdministradorAudio.Instance.PlayVictorySound();
+            }
             if (victoryPanel != null)
             {
                 victoryPanel.SetActive(true);
@@ -790,6 +802,10 @@ namespace DeliveryExpress
             musicEnabled = !musicEnabled;
             PlayerPrefs.SetInt("MusicEnabled", musicEnabled ? 1 : 0);
             PlayerPrefs.Save();
+            if (AdministradorAudio.Instance != null)
+            {
+                AdministradorAudio.Instance.SetMusicEnabled(musicEnabled);
+            }
             ActualizarPanelConfiguracion();
             Debug.Log("🎵 Música toggled: " + musicEnabled);
         }
