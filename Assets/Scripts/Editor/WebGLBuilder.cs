@@ -6,6 +6,7 @@ namespace DeliveryExpress
 {
     public static class WebGLBuilder
     {
+        [MenuItem("Build/Build WebGL")]
         public static void BuildWebGL()
         {
             Debug.Log("🚀 Iniciando compilación WebGL...");
