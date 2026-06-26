@@ -1575,7 +1575,7 @@ namespace DeliveryExpress.Editor
             }
 
             Button btnJugar = btnJugarObj.AddComponent<Button>();
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnJugar.onClick, uiManager.IniciarJuego);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnJugar.onClick, uiManager.AbrirDetallePedido);
 
             // Crear Botón "BotonMapa" (Amarillo, Y: -160)
             GameObject btnMapaObj = new GameObject("BotonMapa", typeof(RectTransform));

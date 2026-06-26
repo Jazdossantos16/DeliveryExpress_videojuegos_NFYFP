@@ -43,6 +43,7 @@ namespace DeliveryExpress
         private RawImage videoRawImage;
         [SerializeField] private Text skipText;
         private bool isPlayingVideo = false;
+        private bool cameFromMap = false;
         private RawImage fadeOverlay;
         private bool isTransitioning = false;
 
@@ -838,14 +839,20 @@ namespace DeliveryExpress
 
         public void AbrirDetallePedido()
         {
+            if (mapPanel != null)
+            {
+                cameFromMap = mapPanel.activeSelf;
+                mapPanel.SetActive(false);
+            }
+            else
+            {
+                cameFromMap = false;
+            }
+
             if (orderDetailsPanel != null)
             {
                 orderDetailsPanel.SetActive(true);
-                Debug.Log("📦 Panel de detalle del pedido abierto.");
-            }
-            if (mapPanel != null)
-            {
-                mapPanel.SetActive(false);
+                Debug.Log("📦 Panel de detalle del pedido abierto. ¿Viene del mapa? " + cameFromMap);
             }
         }
 
@@ -856,7 +863,7 @@ namespace DeliveryExpress
                 orderDetailsPanel.SetActive(false);
                 Debug.Log("📦 Panel de detalle del pedido cerrado.");
             }
-            if (mapPanel != null)
+            if (cameFromMap && mapPanel != null)
             {
                 mapPanel.SetActive(true);
             }
