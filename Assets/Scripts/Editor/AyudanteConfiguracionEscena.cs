@@ -247,6 +247,26 @@ namespace DeliveryExpress.Editor
                 GameObject canvasObj = GameObject.Find("_Lienzo_UI") ?? GameObject.Find("_UI_Canvas");
                 if (canvasObj != null)
                 {
+                    Transform tInstrucciones = canvasObj.transform.Find("PanelInstrucciones");
+                    if (tInstrucciones == null)
+                    {
+                        needsFix = true;
+                    }
+                    else
+                    {
+                        if (tInstrucciones.transform.Find("Contenido/BotonCerrar") == null)
+                        {
+                            needsFix = true;
+                        }
+                    }
+                }
+            }
+
+            if (!needsFix)
+            {
+                GameObject canvasObj = GameObject.Find("_Lienzo_UI") ?? GameObject.Find("_UI_Canvas");
+                if (canvasObj != null)
+                {
                     Transform tBalance = canvasObj.transform.Find("Barra_Equilibrio");
                     if (tBalance == null || tBalance.GetComponent<UnityEngine.UI.Image>() == null)
                     {
@@ -1625,6 +1645,7 @@ namespace DeliveryExpress.Editor
             }
 
             Button btnInstrucciones = btnInstruccionesObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnInstrucciones.onClick, uiManager.AbrirInstrucciones);
 
             // Asignar el startPanel en el AdministradorUI por reflexión
             var startPanelField = typeof(AdministradorUI).GetField("startPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -1949,6 +1970,100 @@ namespace DeliveryExpress.Editor
 
             EditorUtility.SetDirty(uiManager);
             Debug.Log("✅ ConfigPanel creado e inyectado en AdministradorUI.");
+
+            // 7.6.2 Crear o buscar PanelInstrucciones (InstructionsPanel)
+            Transform oldInstructionsPanel = canvas.transform.Find("PanelInstrucciones");
+            if (oldInstructionsPanel != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldInstructionsPanel.gameObject);
+            }
+
+            GameObject instructionsPanelObj = new GameObject("PanelInstrucciones", typeof(RectTransform));
+            RectTransform instructionsPanelRect = instructionsPanelObj.GetComponent<RectTransform>();
+            instructionsPanelRect.SetParent(canvas.transform, false);
+            instructionsPanelObj.SetActive(false); // Empieza oculto
+
+            // Set to cover the whole screen
+            instructionsPanelRect.anchorMin = Vector2.zero;
+            instructionsPanelRect.anchorMax = Vector2.one;
+            instructionsPanelRect.offsetMin = Vector2.zero;
+            instructionsPanelRect.offsetMax = Vector2.zero;
+            instructionsPanelRect.pivot = new Vector2(0.5f, 0.5f);
+            instructionsPanelRect.localScale = Vector3.one;
+            instructionsPanelRect.localRotation = Quaternion.identity;
+
+            // Fondo semitransparente oscuro detrás
+            Image instructionsPanelBg = instructionsPanelObj.AddComponent<Image>();
+            instructionsPanelBg.color = new Color(0f, 0f, 0f, 0.6f); // 60% opaco
+
+            // Crear el panel de contenido (Popup)
+            GameObject popupObj = new GameObject("Contenido", typeof(RectTransform));
+            RectTransform popupRect = popupObj.GetComponent<RectTransform>();
+            popupRect.SetParent(instructionsPanelRect, false);
+            
+            // Centrado en pantalla
+            popupRect.anchorMin = Vector2.zero;
+            popupRect.anchorMax = Vector2.one;
+            popupRect.offsetMin = Vector2.zero;
+            popupRect.offsetMax = Vector2.zero;
+            popupRect.pivot = new Vector2(0.5f, 0.5f);
+
+            Image popupImg = popupObj.AddComponent<Image>();
+            
+            EnsureIsSprite("Assets/sprites/imagen_instrucciones.png");
+            Sprite spriteInstruccionesContent = null;
+            var subAssetsInst = AssetDatabase.LoadAllAssetsAtPath("Assets/sprites/imagen_instrucciones.png");
+            if (subAssetsInst != null)
+            {
+                spriteInstruccionesContent = subAssetsInst.OfType<Sprite>().FirstOrDefault(s => s.name == "imagen_instrucciones_0" || s.name.EndsWith("_0"));
+            }
+            if (spriteInstruccionesContent == null)
+            {
+                spriteInstruccionesContent = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/imagen_instrucciones.png");
+            }
+
+            if (spriteInstruccionesContent != null)
+            {
+                popupImg.sprite = spriteInstruccionesContent;
+                popupImg.color = Color.white;
+                popupImg.preserveAspect = true; // Para que mantenga la proporción 16:9 en cualquier resolución
+            }
+
+            // Crear Botón "BotonCerrar" (Rojo con X, arriba a la derecha de la tarjeta)
+            // En base a un canvas de referencia 1920x1080, el botón se posiciona en X: 535, Y: 335 relativo al centro de la pantalla
+            GameObject btnCerrarObj = new GameObject("BotonCerrar", typeof(RectTransform));
+            RectTransform btnCerrarRect = btnCerrarObj.GetComponent<RectTransform>();
+            btnCerrarRect.SetParent(popupRect, false);
+            btnCerrarRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnCerrarRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnCerrarRect.pivot = new Vector2(0.5f, 0.5f);
+            btnCerrarRect.anchoredPosition = new Vector2(535f, 335f); // Posición superpuesta en la esquina superior derecha del popup
+            btnCerrarRect.sizeDelta = new Vector2(85f, 85f); // Tamaño cuadrado
+
+            EnsureIsSprite("Assets/sprites/boton_cerrar.png");
+            Sprite spriteCerrar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_cerrar.png");
+            Image btnCerrarImg = btnCerrarObj.AddComponent<Image>();
+            if (spriteCerrar != null)
+            {
+                btnCerrarImg.sprite = spriteCerrar;
+                btnCerrarImg.color = Color.white;
+            }
+            else
+            {
+                btnCerrarImg.color = Color.red;
+            }
+
+            Button btnCerrar = btnCerrarObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnCerrar.onClick, uiManager.CerrarInstrucciones);
+
+            // Inyectar el panel de instrucciones en el AdministradorUI por reflexión
+            var instructionsPanelField = typeof(AdministradorUI).GetField("instructionsPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (instructionsPanelField != null)
+            {
+                instructionsPanelField.SetValue(uiManager, instructionsPanelObj);
+                EditorUtility.SetDirty(uiManager);
+                Debug.Log("✅ instructionsPanel inyectado en AdministradorUI.");
+            }
 
             // 7.7 Crear o buscar VictoryPanel
             Transform oldVictoryPanel = canvas.transform.Find("VictoryPanel");

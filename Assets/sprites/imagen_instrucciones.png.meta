@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 6a37bf5b7d56a4c82ad1415f7441501b
+guid: 9d79a41710dda419b956376aa5b4ff35
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8236918452029206800
-    second: boton_instrucciones_0
+      213: -365732132260657801
+    second: imagen_instrucciones_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -51,7 +51,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 181
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: boton_instrucciones_0
+      name: imagen_instrucciones_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 104
-        height: 100
+        width: 1920
+        height: 1080
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0fe40f61f4690bd80800000000000000
-      internalID: -8236918452029206800
+      spriteID: 77548ad3098aceaf0800000000000000
+      internalID: -365732132260657801
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      boton_instrucciones_0: -8236918452029206800
+      imagen_instrucciones_0: -365732132260657801
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

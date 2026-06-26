@@ -56,6 +56,7 @@ namespace DeliveryExpress
 
         [Header("UI de Configuración")]
         [SerializeField] private GameObject configPanel;
+        [SerializeField] private GameObject instructionsPanel;
         [SerializeField] private Image configBackgroundImage;
         [SerializeField] private Sprite imgConfigBoth;
         [SerializeField] private Sprite imgConfigNoMusic;
@@ -783,6 +784,24 @@ namespace DeliveryExpress
                 configPanel.SetActive(false);
             }
             Debug.Log("⚙️ Panel de configuración cerrado.");
+        }
+
+        public void AbrirInstrucciones()
+        {
+            if (instructionsPanel != null)
+            {
+                instructionsPanel.SetActive(true);
+                Debug.Log("📖 Panel de instrucciones abierto.");
+            }
+        }
+
+        public void CerrarInstrucciones()
+        {
+            if (instructionsPanel != null)
+            {
+                instructionsPanel.SetActive(false);
+                Debug.Log("📖 Panel de instrucciones cerrado.");
+            }
         }
 
         public void ToggleMusica()
