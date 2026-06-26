@@ -1806,7 +1806,7 @@ namespace DeliveryExpress.Editor
             btnCerrarRect.anchorMax = new Vector2(0.5f, 0.5f);
             btnCerrarRect.pivot = new Vector2(0.5f, 0.5f);
             btnCerrarRect.anchoredPosition = new Vector2(333f, 259f);
-            btnCerrarRect.sizeDelta = new Vector2(60f, 60f);
+            btnCerrarRect.sizeDelta = new Vector2(85f, 85f); // Tamaño unificado a 85x85
 
             Image btnCerrarImg = btnCerrarObj.AddComponent<Image>();
             EnsureIsSprite("Assets/sprites/boton_cerrar.png");
