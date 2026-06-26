@@ -2037,10 +2037,10 @@ namespace DeliveryExpress.Editor
             GameObject btnCerrarInstObj = new GameObject("BotonCerrar", typeof(RectTransform));
             RectTransform btnCerrarInstRect = btnCerrarInstObj.GetComponent<RectTransform>();
             btnCerrarInstRect.SetParent(popupRect, false);
-            btnCerrarInstRect.anchorMin = new Vector2(0.5f, 0.5f);
-            btnCerrarInstRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnCerrarInstRect.anchorMin = new Vector2(0.7786f, 0.8102f); // Ancla proporcional X en el canvas base
+            btnCerrarInstRect.anchorMax = new Vector2(0.7786f, 0.8102f); // Ancla proporcional Y en el canvas base
             btnCerrarInstRect.pivot = new Vector2(0.5f, 0.5f);
-            btnCerrarInstRect.anchoredPosition = new Vector2(535f, 335f); // Posición superpuesta en la esquina superior derecha del popup
+            btnCerrarInstRect.anchoredPosition = Vector2.zero; // Posición exacta en el ancla proporcional
             btnCerrarInstRect.sizeDelta = new Vector2(85f, 85f); // Tamaño cuadrado
 
             EnsureIsSprite("Assets/sprites/boton_cerrar.png");
