@@ -2198,7 +2198,7 @@ namespace DeliveryExpress.Editor
                 btnPedido2Img.color = Color.yellow;
             }
             Button btnPedido2 = btnPedido2Obj.AddComponent<Button>();
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnPedido2.onClick, uiManager.IniciarJuego);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnPedido2.onClick, uiManager.AbrirDetallePedido);
 
             // Pedido 3: Derecha (Inactivo)
             GameObject btnPedido3Obj = new GameObject("Pedido_Derecha", typeof(RectTransform));
@@ -2229,6 +2229,120 @@ namespace DeliveryExpress.Editor
                 mapPanelField.SetValue(uiManager, mapPanelObj);
                 EditorUtility.SetDirty(uiManager);
                 Debug.Log("✅ mapPanel inyectado en AdministradorUI.");
+            }
+
+            // 7.6.4 Crear o buscar PanelDetallePedido
+            Transform oldDetailsPanel = canvas.transform.Find("PanelDetallePedido");
+            if (oldDetailsPanel != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldDetailsPanel.gameObject);
+            }
+
+            GameObject detailsPanelObj = new GameObject("PanelDetallePedido", typeof(RectTransform));
+            RectTransform detailsPanelRect = detailsPanelObj.GetComponent<RectTransform>();
+            detailsPanelRect.SetParent(canvas.transform, false);
+            detailsPanelObj.SetActive(false); // Empieza oculto
+
+            // Set to cover the whole screen with a slight 10px overflow to prevent rounding gap lines at the edges
+            detailsPanelRect.anchorMin = Vector2.zero;
+            detailsPanelRect.anchorMax = Vector2.one;
+            detailsPanelRect.offsetMin = new Vector2(-10f, -10f);
+            detailsPanelRect.offsetMax = new Vector2(10f, 10f);
+            detailsPanelRect.pivot = new Vector2(0.5f, 0.5f);
+            detailsPanelRect.localScale = Vector3.one;
+            detailsPanelRect.localRotation = Quaternion.identity;
+
+            // Fondo semitransparente oscuro detrás
+            Image detailsPanelBg = detailsPanelObj.AddComponent<Image>();
+            detailsPanelBg.color = new Color(0f, 0f, 0f, 0.6f); // 60% opaco
+
+            // Crear el panel de contenido (Popup)
+            GameObject detailsPopupObj = new GameObject("Contenido", typeof(RectTransform));
+            RectTransform detailsPopupRect = detailsPopupObj.GetComponent<RectTransform>();
+            detailsPopupRect.SetParent(detailsPanelRect, false);
+            
+            // Centrado en pantalla con AspectRatioFitter para escalar exactamente con la imagen de fondo 16:9
+            detailsPopupRect.anchorMin = new Vector2(0.5f, 0.5f);
+            detailsPopupRect.anchorMax = new Vector2(0.5f, 0.5f);
+            detailsPopupRect.pivot = new Vector2(0.5f, 0.5f);
+            detailsPopupRect.sizeDelta = new Vector2(1920f, 1080f);
+            detailsPopupRect.anchoredPosition = Vector2.zero;
+            detailsPopupRect.localScale = Vector3.one;
+
+            UnityEngine.UI.AspectRatioFitter detailsAspectFitter = detailsPopupObj.AddComponent<UnityEngine.UI.AspectRatioFitter>();
+            detailsAspectFitter.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.FitInParent;
+            detailsAspectFitter.aspectRatio = 1920f / 1080f;
+
+            Image detailsPopupImg = detailsPopupObj.AddComponent<Image>();
+            
+            EnsureIsSprite("Assets/sprites/imagen_pedido.png");
+            Sprite spriteDetailsContent = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/imagen_pedido.png");
+            if (spriteDetailsContent != null)
+            {
+                detailsPopupImg.sprite = spriteDetailsContent;
+                detailsPopupImg.color = Color.white;
+                detailsPopupImg.preserveAspect = true;
+            }
+
+            // Crear Botón "BotonCerrar" (Rojo con X, arriba a la derecha de la tarjeta roja interna)
+            GameObject btnCerrarDetailsObj = new GameObject("BotonCerrar", typeof(RectTransform));
+            RectTransform btnCerrarDetailsRect = btnCerrarDetailsObj.GetComponent<RectTransform>();
+            btnCerrarDetailsRect.SetParent(detailsPopupRect, false);
+            btnCerrarDetailsRect.anchorMin = new Vector2(0.7656f, 0.7592f);
+            btnCerrarDetailsRect.anchorMax = new Vector2(0.7656f, 0.7592f);
+            btnCerrarDetailsRect.pivot = new Vector2(0.5f, 0.5f);
+            btnCerrarDetailsRect.anchoredPosition = Vector2.zero;
+            btnCerrarDetailsRect.sizeDelta = new Vector2(85f, 85f);
+
+            EnsureIsSprite("Assets/sprites/boton_cerrar.png");
+            Sprite spriteCerrarDetails = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_cerrar.png");
+            Image btnCerrarDetailsImg = btnCerrarDetailsObj.AddComponent<Image>();
+            if (spriteCerrarDetails != null)
+            {
+                btnCerrarDetailsImg.sprite = spriteCerrarDetails;
+                btnCerrarDetailsImg.color = Color.white;
+            }
+            else
+            {
+                btnCerrarDetailsImg.color = Color.red;
+            }
+
+            Button btnCerrarDetails = btnCerrarDetailsObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnCerrarDetails.onClick, uiManager.CerrarDetallePedido);
+
+            // Crear Botón "BotonComenzar" (Verde, abajo al centro)
+            GameObject btnComenzarObj = new GameObject("BotonComenzar", typeof(RectTransform));
+            RectTransform btnComenzarRect = btnComenzarObj.GetComponent<RectTransform>();
+            btnComenzarRect.SetParent(detailsPopupRect, false);
+            btnComenzarRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnComenzarRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnComenzarRect.pivot = new Vector2(0.5f, 0.5f);
+            btnComenzarRect.anchoredPosition = new Vector2(0f, -240f);
+            btnComenzarRect.sizeDelta = new Vector2(390f, 136f);
+
+            EnsureIsSprite("Assets/sprites/boton_comenzar.png");
+            Sprite spriteComenzar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_comenzar.png");
+            Image btnComenzarImg = btnComenzarObj.AddComponent<Image>();
+            if (spriteComenzar != null)
+            {
+                btnComenzarImg.sprite = spriteComenzar;
+                btnComenzarImg.color = Color.white;
+            }
+            else
+            {
+                btnComenzarImg.color = Color.green;
+            }
+
+            Button btnComenzar = btnComenzarObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnComenzar.onClick, uiManager.IniciarJuego);
+
+            // Inyectar el panel del detalle de pedido en el AdministradorUI por reflexión
+            var detailsPanelField = typeof(AdministradorUI).GetField("orderDetailsPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (detailsPanelField != null)
+            {
+                detailsPanelField.SetValue(uiManager, detailsPanelObj);
+                EditorUtility.SetDirty(uiManager);
+                Debug.Log("✅ orderDetailsPanel inyectado en AdministradorUI.");
             }
 
             // 7.7 Crear o buscar VictoryPanel

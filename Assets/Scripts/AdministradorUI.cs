@@ -58,6 +58,7 @@ namespace DeliveryExpress
         [SerializeField] private GameObject configPanel;
         [SerializeField] private GameObject instructionsPanel;
         [SerializeField] private GameObject mapPanel;
+        [SerializeField] private GameObject orderDetailsPanel;
         [SerializeField] private Image configBackgroundImage;
         [SerializeField] private Sprite imgConfigBoth;
         [SerializeField] private Sprite imgConfigNoMusic;
@@ -328,6 +329,10 @@ namespace DeliveryExpress
             {
                 mapPanel.SetActive(false);
             }
+            if (orderDetailsPanel != null)
+            {
+                orderDetailsPanel.SetActive(false);
+            }
 #if UNITY_WEBGL && !UNITY_EDITOR
             StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
 #else
@@ -460,6 +465,10 @@ namespace DeliveryExpress
             if (startPanel != null)
             {
                 startPanel.SetActive(false); // Oculta la pantalla de inicio
+            }
+            if (orderDetailsPanel != null)
+            {
+                orderDetailsPanel.SetActive(false);
             }
             if (pausePlayButtonImage != null && pauseSprite != null)
             {
@@ -824,6 +833,32 @@ namespace DeliveryExpress
             {
                 mapPanel.SetActive(false);
                 Debug.Log("🗺️ Panel de mapa cerrado.");
+            }
+        }
+
+        public void AbrirDetallePedido()
+        {
+            if (orderDetailsPanel != null)
+            {
+                orderDetailsPanel.SetActive(true);
+                Debug.Log("📦 Panel de detalle del pedido abierto.");
+            }
+            if (mapPanel != null)
+            {
+                mapPanel.SetActive(false);
+            }
+        }
+
+        public void CerrarDetallePedido()
+        {
+            if (orderDetailsPanel != null)
+            {
+                orderDetailsPanel.SetActive(false);
+                Debug.Log("📦 Panel de detalle del pedido cerrado.");
+            }
+            if (mapPanel != null)
+            {
+                mapPanel.SetActive(true);
             }
         }
 
