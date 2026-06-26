@@ -310,7 +310,10 @@ namespace DeliveryExpress
             else
             {
                 // Recuperamos el equilibrio si el jugador avanza de forma estable sin realizar giros
-                currentBalance = Mathf.Min(maxBalance, currentBalance + balanceRecoveryRate * Time.deltaTime);
+                // Escalamos la tasa de recuperación de forma proporcional a la velocidad del scroll para compensar el menor tiempo de reacción
+                float speedRatio = Mathf.Max(1f, currentScrollSpeed / 5.0f);
+                float dynamicRecovery = balanceRecoveryRate * speedRatio;
+                currentBalance = Mathf.Min(maxBalance, currentBalance + dynamicRecovery * Time.deltaTime);
             }
 
             if (AdministradorUI.Instance != null)
