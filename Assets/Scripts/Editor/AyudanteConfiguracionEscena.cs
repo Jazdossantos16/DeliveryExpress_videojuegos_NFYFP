@@ -141,7 +141,8 @@ namespace DeliveryExpress.Editor
                     }
                     else if (startPanelObj.transform.Find("BotonJugar") == null ||
                              startPanelObj.transform.Find("BotonMapa") == null ||
-                             startPanelObj.transform.Find("BotonConfiguracion") == null)
+                             startPanelObj.transform.Find("BotonConfiguracion") == null ||
+                             startPanelObj.transform.Find("Boton_instrucciones") == null)
                     {
                         needsFix = true;
                     }
@@ -1524,11 +1525,13 @@ namespace DeliveryExpress.Editor
             EnsureIsSprite("Assets/sprites/boton_jugar.png");
             EnsureIsSprite("Assets/sprites/boton_mapa.png");
             EnsureIsSprite("Assets/sprites/boton_configuracion.png");
+            EnsureIsSprite("Assets/sprites/boton_instrucciones.png");
             EnsureIsSprite("Assets/sprites/boton_ganar.png");
 
             Sprite spriteJugar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_jugar.png");
             Sprite spriteMapa = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_mapa.png");
             Sprite spriteConfiguracion = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_configuracion.png");
+            Sprite spriteInstrucciones = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_instrucciones.png");
 
             // Crear Botón "BotonJugar" (Verde, Y: -50)
             GameObject btnJugarObj = new GameObject("BotonJugar", typeof(RectTransform));
@@ -1599,6 +1602,29 @@ namespace DeliveryExpress.Editor
 
             Button btnConfig = btnConfigObj.AddComponent<Button>();
             UnityEditor.Events.UnityEventTools.AddPersistentListener(btnConfig.onClick, uiManager.AbrirConfiguracion);
+
+            // Crear Botón "Boton_instrucciones" (Rojo, esquina superior derecha)
+            GameObject btnInstruccionesObj = new GameObject("Boton_instrucciones", typeof(RectTransform));
+            RectTransform btnInstruccionesRect = btnInstruccionesObj.GetComponent<RectTransform>();
+            btnInstruccionesRect.SetParent(startPanelRect, false);
+            btnInstruccionesRect.anchorMin = new Vector2(1f, 1f); // Esquina superior derecha
+            btnInstruccionesRect.anchorMax = new Vector2(1f, 1f);
+            btnInstruccionesRect.pivot = new Vector2(1f, 1f);
+            btnInstruccionesRect.anchoredPosition = new Vector2(-60f, -60f); // Desplazamiento desde el borde
+            btnInstruccionesRect.sizeDelta = new Vector2(90f, 90f); // Proporcional en píxeles
+
+            Image btnInstruccionesImg = btnInstruccionesObj.AddComponent<Image>();
+            if (spriteInstrucciones != null)
+            {
+                btnInstruccionesImg.sprite = spriteInstrucciones;
+                btnInstruccionesImg.color = Color.white;
+            }
+            else
+            {
+                btnInstruccionesImg.color = Color.red;
+            }
+
+            Button btnInstrucciones = btnInstruccionesObj.AddComponent<Button>();
 
             // Asignar el startPanel en el AdministradorUI por reflexión
             var startPanelField = typeof(AdministradorUI).GetField("startPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
