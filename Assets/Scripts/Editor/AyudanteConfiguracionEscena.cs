@@ -2087,7 +2087,7 @@ namespace DeliveryExpress.Editor
             popupRect.anchorMax = new Vector2(0.5f, 0.5f);
             popupRect.pivot = new Vector2(0.5f, 0.5f);
             popupRect.sizeDelta = new Vector2(1920f, 1080f);
-            popupRect.anchoredPosition = Vector2.zero;
+            popupRect.anchoredPosition = new Vector2(26f, 24.5f); // Compensar el desfase de la imagen de fondo para centrarla
             popupRect.localScale = Vector3.one; // Mantener la escala original para evitar desfasamiento del botón y distorsión de la UI
 
             UnityEngine.UI.AspectRatioFitter aspectFitter = popupObj.AddComponent<UnityEngine.UI.AspectRatioFitter>();
