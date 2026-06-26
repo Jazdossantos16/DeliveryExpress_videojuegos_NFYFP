@@ -441,9 +441,16 @@ namespace DeliveryExpress
             // Preparar el video de forma asíncrona
             videoPlayer.Prepare();
 
-            // Esperar hasta que esté preparado (independiente de timeScale)
+            // Esperar hasta que esté preparado (con un timeout de 4 segundos para evitar pantalla negra infinita si el navegador o CORS lo bloquea)
+            float prepStartTime = Time.realtimeSinceStartup;
             while (!videoPlayer.isPrepared)
             {
+                if (Time.realtimeSinceStartup - prepStartTime > 4f)
+                {
+                    Debug.LogWarning("⚠️ Tiempo de preparación del video agotado. Saltando intro...");
+                    FinalizarIntroVideo();
+                    yield break;
+                }
                 yield return null;
             }
 
