@@ -2031,30 +2031,30 @@ namespace DeliveryExpress.Editor
 
             // Crear Botón "BotonCerrar" (Rojo con X, arriba a la derecha de la tarjeta)
             // En base a un canvas de referencia 1920x1080, el botón se posiciona en X: 535, Y: 335 relativo al centro de la pantalla
-            GameObject btnCerrarObj = new GameObject("BotonCerrar", typeof(RectTransform));
-            RectTransform btnCerrarRect = btnCerrarObj.GetComponent<RectTransform>();
-            btnCerrarRect.SetParent(popupRect, false);
-            btnCerrarRect.anchorMin = new Vector2(0.5f, 0.5f);
-            btnCerrarRect.anchorMax = new Vector2(0.5f, 0.5f);
-            btnCerrarRect.pivot = new Vector2(0.5f, 0.5f);
-            btnCerrarRect.anchoredPosition = new Vector2(535f, 335f); // Posición superpuesta en la esquina superior derecha del popup
-            btnCerrarRect.sizeDelta = new Vector2(85f, 85f); // Tamaño cuadrado
+            GameObject btnCerrarInstObj = new GameObject("BotonCerrar", typeof(RectTransform));
+            RectTransform btnCerrarInstRect = btnCerrarInstObj.GetComponent<RectTransform>();
+            btnCerrarInstRect.SetParent(popupRect, false);
+            btnCerrarInstRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnCerrarInstRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnCerrarInstRect.pivot = new Vector2(0.5f, 0.5f);
+            btnCerrarInstRect.anchoredPosition = new Vector2(535f, 335f); // Posición superpuesta en la esquina superior derecha del popup
+            btnCerrarInstRect.sizeDelta = new Vector2(85f, 85f); // Tamaño cuadrado
 
             EnsureIsSprite("Assets/sprites/boton_cerrar.png");
-            Sprite spriteCerrar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_cerrar.png");
-            Image btnCerrarImg = btnCerrarObj.AddComponent<Image>();
-            if (spriteCerrar != null)
+            Sprite spriteCerrarInst = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_cerrar.png");
+            Image btnCerrarInstImg = btnCerrarInstObj.AddComponent<Image>();
+            if (spriteCerrarInst != null)
             {
-                btnCerrarImg.sprite = spriteCerrar;
-                btnCerrarImg.color = Color.white;
+                btnCerrarInstImg.sprite = spriteCerrarInst;
+                btnCerrarInstImg.color = Color.white;
             }
             else
             {
-                btnCerrarImg.color = Color.red;
+                btnCerrarInstImg.color = Color.red;
             }
 
-            Button btnCerrar = btnCerrarObj.AddComponent<Button>();
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnCerrar.onClick, uiManager.CerrarInstrucciones);
+            Button btnCerrarInst = btnCerrarInstObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnCerrarInst.onClick, uiManager.CerrarInstrucciones);
 
             // Inyectar el panel de instrucciones en el AdministradorUI por reflexión
             var instructionsPanelField = typeof(AdministradorUI).GetField("instructionsPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
