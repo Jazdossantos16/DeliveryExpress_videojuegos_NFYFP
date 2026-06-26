@@ -546,12 +546,12 @@ namespace DeliveryExpress.Editor
                 riderObj = new GameObject("Jugador");
                 SpriteRenderer sr = riderObj.AddComponent<SpriteRenderer>();
                 
-                // Cargar sprite inicial de imagen_repartidor.png
-                string playerSpriteSheetPath = "Assets/sprites/imagen_repartidor.png";
+                // Cargar sprite inicial de sprite_repartidor.png
+                string playerSpriteSheetPath = "Assets/sprites/sprite_repartidor.png";
                 var assets = AssetDatabase.LoadAllAssetsAtPath(playerSpriteSheetPath);
                 foreach (var asset in assets)
                 {
-                    if (asset is Sprite sprite && (sprite.name == "imagen_repartidor_0" || sprite.name.EndsWith("_0")))
+                    if (asset is Sprite sprite && (sprite.name == "sprite_repartidor_0" || sprite.name.EndsWith("_0")))
                     {
                         sr.sprite = sprite;
                         break;
@@ -2497,7 +2497,7 @@ namespace DeliveryExpress.Editor
                 animator = riderObj.AddComponent<Animator>();
             }
 
-            string spritePath = "Assets/sprites/imagen_repartidor.png";
+            string spritePath = "Assets/sprites/sprite_repartidor.png";
             var assets = AssetDatabase.LoadAllAssetsAtPath(spritePath);
             System.Collections.Generic.List<Sprite> spritesList = new System.Collections.Generic.List<Sprite>();
             foreach (var asset in assets)
@@ -2510,7 +2510,7 @@ namespace DeliveryExpress.Editor
             
             if (spritesList.Count < 12)
             {
-                Debug.LogWarning("No se encontraron suficientes sprites en imagen_repartidor.png para configurar las animaciones.");
+                Debug.LogWarning("No se encontraron suficientes sprites en sprite_repartidor.png para configurar las animaciones.");
                 return;
             }
 
@@ -2533,7 +2533,7 @@ namespace DeliveryExpress.Editor
             AnimationClip tambaleoClip = CreateOrReplaceClip("Assets/sprites/Tambaleo.anim", tambaleoSprites, 8f, true);
             AnimationClip choqueClip = CreateOrReplaceClip("Assets/sprites/Choque.anim", choqueSprites, 1f, false);
 
-            string controllerPath = "Assets/sprites/imagen_repartidor_0 (1).controller";
+            string controllerPath = "Assets/sprites/sprite_repartidor.controller";
             var controller = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>(controllerPath);
             if (controller == null)
             {
@@ -3022,7 +3022,15 @@ namespace DeliveryExpress.Editor
                 return pc.gameObject;
             }
 
-            GameObject riderObj = GameObject.Find("imagen_repartidor_0 (1)");
+            GameObject riderObj = GameObject.Find("sprite_repartidor_0 (1)");
+            if (riderObj == null)
+            {
+                riderObj = GameObject.Find("sprite_repartidor_0");
+            }
+            if (riderObj == null)
+            {
+                riderObj = GameObject.Find("imagen_repartidor_0 (1)");
+            }
             if (riderObj == null)
             {
                 riderObj = GameObject.Find("Jugador");
