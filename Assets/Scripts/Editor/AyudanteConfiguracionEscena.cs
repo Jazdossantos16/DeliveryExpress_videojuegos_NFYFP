@@ -1691,10 +1691,10 @@ namespace DeliveryExpress.Editor
             EnsureIsSprite(pathNoSound);
             EnsureIsSprite(pathNone);
 
-            Sprite spriteBoth = AssetDatabase.LoadAssetAtPath<Sprite>(pathBoth);
-            Sprite spriteNoMusic = AssetDatabase.LoadAssetAtPath<Sprite>(pathNoMusic);
-            Sprite spriteNoSound = AssetDatabase.LoadAssetAtPath<Sprite>(pathNoSound);
-            Sprite spriteNone = AssetDatabase.LoadAssetAtPath<Sprite>(pathNone);
+            Sprite spriteBoth = LoadSprite(pathBoth);
+            Sprite spriteNoMusic = LoadSprite(pathNoMusic);
+            Sprite spriteNoSound = LoadSprite(pathNoSound);
+            Sprite spriteNone = LoadSprite(pathNone);
 
             if (spriteBoth != null)
             {
@@ -3470,6 +3470,25 @@ namespace DeliveryExpress.Editor
                 }
             }
             return riderObj;
+        }
+
+        private static Sprite LoadSprite(string path)
+        {
+            Sprite s = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (s != null) return s;
+
+            var subAssets = AssetDatabase.LoadAllAssetsAtPath(path);
+            if (subAssets != null)
+            {
+                foreach (var asset in subAssets)
+                {
+                    if (asset is Sprite sprite)
+                    {
+                        return sprite;
+                    }
+                }
+            }
+            return null;
         }
 
         private static void RegisterRequiredTags()
