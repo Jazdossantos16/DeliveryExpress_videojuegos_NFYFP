@@ -62,6 +62,19 @@ namespace DeliveryExpress
         public float CurrentTiltAngle => currentTiltAngle;
         public bool IsBraking { get; private set; }
 
+        // Estado del potenciador de velocidad (energía/rayo)
+        private bool isSpeedBoostActive = false;
+        private float speedBoostDurationRemaining = 0f;
+        private float speedBoostDurationMax = 1f;
+        private float speedBoostMultiplier = 1.5f;
+
+        public bool IsSpeedBoostActive => isSpeedBoostActive;
+        public float SpeedBoostMultiplier => isSpeedBoostActive ? speedBoostMultiplier : 1f;
+        public float SpeedBoostDurationMax => speedBoostDurationMax;
+        public float SpeedBoostDurationRemaining => speedBoostDurationRemaining;
+
+        public static ControladorJugador Instance { get; private set; }
+
         // Variables de estado interno de mejoras (permanentemente actualizadas por el AdministradorMejoras)
         [HideInInspector] public float speedUpgradeFactor = 1f;       // Mejor Bicicleta
         [HideInInspector] public float suspensionUpgradeFactor = 1f;  // Mejor Suspensión (reduce wobble)
@@ -84,6 +97,8 @@ namespace DeliveryExpress
 
         private void Start()
         {
+            Instance = this;
+
             // Recuperamos el componente Rigidbody2D o lo creamos dinámicamente si no existe
             rb2d = GetComponent<Rigidbody2D>();
             if (rb2d == null)
@@ -163,6 +178,16 @@ namespace DeliveryExpress
 
         private void Update()
         {
+            // Decrementar duración del potenciador de velocidad si está activo
+            if (isSpeedBoostActive)
+            {
+                speedBoostDurationRemaining -= Time.deltaTime;
+                if (speedBoostDurationRemaining <= 0f)
+                {
+                    DesactivarPotenciadorVelocidad();
+                }
+            }
+
             // Si la partida terminó en derrota, bloqueamos el movimiento lateral.
             // Si es victoria, permitimos movimiento durante el transcurso de la secuencia final.
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver && !AdministradorJuego.Instance.IsVictory)
@@ -208,6 +233,10 @@ namespace DeliveryExpress
                 if (currentLaneIndex > 0)
                 {
                     currentLaneIndex--;
+                    if (AdministradorAudio.Instance != null)
+                    {
+                        AdministradorAudio.Instance.PlayLaneSwitchSound();
+                    }
                 }
             }
             if (rightPressed)
@@ -215,6 +244,10 @@ namespace DeliveryExpress
                 if (currentLaneIndex < lanePositionsX.Length - 1)
                 {
                     currentLaneIndex++;
+                    if (AdministradorAudio.Instance != null)
+                    {
+                        AdministradorAudio.Instance.PlayLaneSwitchSound();
+                    }
                 }
             }
 
@@ -225,7 +258,17 @@ namespace DeliveryExpress
             float activeSpeedPenalty = weightSpeedPenalty * backpackUpgradeFactor;
             float speedMultiplier = Mathf.Max(0.3f, 1f - (currentOrders * activeSpeedPenalty));
             
-            float currentLateralSpeed = laneTransitionSpeed * speedUpgradeFactor * speedMultiplier;
+            // Escalamos sutilmente la velocidad lateral según la velocidad actual del scroll para mantener el control responsivo
+            float currentScrollSpeed = Obstaculo.GlobalStreetScrollSpeed;
+            float baseReferenceSpeed = 5.0f;
+            float speedScale = 1f;
+            if (baseReferenceSpeed > 0f && currentScrollSpeed > baseReferenceSpeed)
+            {
+                // Aumenta hasta un 40% la respuesta lateral a máxima velocidad
+                speedScale = Mathf.Lerp(1f, 1.4f, (currentScrollSpeed - baseReferenceSpeed) / baseReferenceSpeed);
+            }
+            
+            float currentLateralSpeed = laneTransitionSpeed * speedUpgradeFactor * speedMultiplier * speedScale;
 
             float targetLaneX = lanePositionsX[currentLaneIndex];
 
@@ -371,7 +414,12 @@ namespace DeliveryExpress
                 animator.SetInteger(StateHash, 0);
             }
 
-            animator.speed = IsBraking ? 0.5f : 1f;
+            // Escalar la velocidad del animator con la velocidad global de scroll
+            float currentScrollSpeedAnim = Obstaculo.GlobalStreetScrollSpeed;
+            float baseReferenceSpeedAnim = 5.0f; // Velocidad base de referencia (día 1)
+            float speedRatioAnim = baseReferenceSpeedAnim > 0f ? (currentScrollSpeedAnim / baseReferenceSpeedAnim) : 1f;
+
+            animator.speed = (IsBraking ? 0.5f : 1f) * speedRatioAnim;
         }
 
         /// Ejecuta la secuencia de animación de entrega cuando pasa cerca del cliente
@@ -397,25 +445,38 @@ namespace DeliveryExpress
                         || objName.Contains("car") 
                         || (obs != null && (obs.Type == TipoObstaculo.BlackCar || obs.Type == TipoObstaculo.GreenCar));
 
-            // Los vehículos colisionados son letales e ignoran el estado de invulnerabilidad
-            if (isCar)
-            {
-                TakeDamage(true); // Muerte instantánea
-                return;
-            }
+            // Si el jugador está invulnerable o tiene el potenciador de velocidad activo, absorbe el impacto de cualquier colisión
+            if (isInvulnerable || isSpeedBoostActive) return;
 
-            // Si el obstáculo es menor (como un cono), el estado invulnerable absorbe el impacto
-            if (isInvulnerable) return;
-
-            if (collision.CompareTag("Obstaculo") || obs != null)
+            if (collision.CompareTag("Obstaculo") || obs != null || isCar)
             {
-                TakeDamage(false);
+                // Si es un bache (pothole), no resta vidas (solo genera desequilibrio/animación manejada por el obstáculo)
+                if (obs != null && obs.Type == TipoObstaculo.Pothole)
+                {
+                    Debug.Log($"🕳️ [BACHES] Entró en bache: {collision.gameObject.name}. Genera desequilibrio temporal sin restar vidas.");
+                    return;
+                }
+
+                if (isCar)
+                {
+                    Debug.Log($"💥 [COLISIÓN VEHÍCULO] Choque con vehículo: {collision.gameObject.name}. Muerte instantánea.");
+                    TakeDamage(true);
+                }
+                else
+                {
+                    Debug.Log($"⚠️ [COLISIÓN MENOR] Choque con obstáculo: {collision.gameObject.name}. Resta 1 vida. Vidas restantes: {AdministradorJuego.Instance.CurrentLives - 1}");
+                    TakeDamage(false);
+                }
             }
         }
 
         private void TakeDamage(bool instantKill = false)
         {
             currentBalance = maxBalance;
+            if (AdministradorAudio.Instance != null)
+            {
+                AdministradorAudio.Instance.PlayCollisionSound();
+            }
             if (AdministradorJuego.Instance != null)
             {
                 if (instantKill)
@@ -480,6 +541,34 @@ namespace DeliveryExpress
             {
                 animator.updateMode = AnimatorUpdateMode.Normal;
             }
+        }
+
+        public void ActivarPotenciadorVelocidad(float duracion, float multiplicador)
+        {
+            isSpeedBoostActive = true;
+            speedBoostDurationMax = duracion;
+            speedBoostDurationRemaining = duracion;
+            speedBoostMultiplier = multiplicador;
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = new Color(0.3f, 0.8f, 1f, 1f);
+            }
+
+            Debug.Log($"⚡ Potenciador de velocidad activado por {duracion} segundos con multiplicador {multiplicador}x!");
+        }
+
+        private void DesactivarPotenciadorVelocidad()
+        {
+            isSpeedBoostActive = false;
+            speedBoostDurationRemaining = 0f;
+
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.color = Color.white;
+            }
+
+            Debug.Log("⚡ Potenciador de velocidad terminado.");
         }
     }
 }
