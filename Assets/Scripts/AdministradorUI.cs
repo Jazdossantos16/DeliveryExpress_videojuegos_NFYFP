@@ -63,6 +63,15 @@ namespace DeliveryExpress
         [SerializeField] private Sprite imgConfigNone;
         [SerializeField] private InputField usernameInputField;
 
+        [Header("Leaderboard UI")]
+        [SerializeField] private Font customFont;
+        [SerializeField] private InputField gameOverNameInputField;
+        [SerializeField] private Button gameOverSaveButton;
+        [SerializeField] private Text gameOverLeaderboardText;
+        [SerializeField] private InputField victoryNameInputField;
+        [SerializeField] private Button victorySaveButton;
+        [SerializeField] private Text victoryLeaderboardText;
+
         [Header("Iconos de Configuración")]
         [SerializeField] private Image musicIconImage;
         [SerializeField] private Image soundIconImage;
@@ -291,6 +300,10 @@ namespace DeliveryExpress
 
         public void RestartGame()
         {
+            if (AdministradorJuego.Instance != null)
+            {
+                AdministradorJuego.Instance.ResetCoins();
+            }
             skipStartPanel = true;
             Time.timeScale = 1f; // Asegura restablecer la escala de tiempo
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -298,6 +311,10 @@ namespace DeliveryExpress
 
         public void CargarMenu()
         {
+            if (AdministradorJuego.Instance != null)
+            {
+                AdministradorJuego.Instance.ResetCoins();
+            }
             skipStartPanel = false;
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -515,6 +532,18 @@ namespace DeliveryExpress
                         txt.text = "";
                     }
                 }
+
+                // Inicializar y limpiar el Leaderboard para GameOver
+                if (gameOverNameInputField != null)
+                {
+                    gameOverNameInputField.text = "";
+                    gameOverNameInputField.interactable = true;
+                }
+                if (gameOverSaveButton != null)
+                {
+                    gameOverSaveButton.interactable = true;
+                }
+                ActualizarLeaderboardTexto(gameOverLeaderboardText);
             }
             Time.timeScale = 0f;
         }
@@ -635,6 +664,18 @@ namespace DeliveryExpress
                     img.sprite = victorySprite;
                     img.color = Color.white;
                 }
+
+                // Inicializar y limpiar el Leaderboard para Victoria
+                if (victoryNameInputField != null)
+                {
+                    victoryNameInputField.text = "";
+                    victoryNameInputField.interactable = true;
+                }
+                if (victorySaveButton != null)
+                {
+                    victorySaveButton.interactable = true;
+                }
+                ActualizarLeaderboardTexto(victoryLeaderboardText);
             }
             Time.timeScale = 0f;
         }
@@ -652,6 +693,9 @@ namespace DeliveryExpress
 
             Transform hudPause = transform.Find("Boton_PausaPlay");
             if (hudPause != null) hudPause.gameObject.SetActive(active);
+
+            Transform hudWin = transform.Find("Boton_Ganar");
+            if (hudWin != null) hudWin.gameObject.SetActive(active);
 
             Transform hudBooster = transform.Find("Barra_Potenciador");
             if (hudBooster != null)
@@ -794,6 +838,127 @@ namespace DeliveryExpress
                 soundStateText.text = "";
                 soundStateText.gameObject.SetActive(false);
             }
+        }
+
+        // LÓGICA Y ESTRUCTURAS DEL LEADERBOARD
+        private const string LeaderboardPrefsKey = "DeliveryExpress_Leaderboard";
+
+        [System.Serializable]
+        public class HighScoreEntry
+        {
+            public string name;
+            public int score;
+        }
+
+        [System.Serializable]
+        public class LeaderboardData
+        {
+            public System.Collections.Generic.List<HighScoreEntry> entries = new System.Collections.Generic.List<HighScoreEntry>();
+        }
+
+        private LeaderboardData LoadLeaderboard()
+        {
+            string json = PlayerPrefs.GetString(LeaderboardPrefsKey, "");
+            if (string.IsNullOrEmpty(json))
+            {
+                return new LeaderboardData();
+            }
+            try
+            {
+                return JsonUtility.FromJson<LeaderboardData>(json);
+            }
+            catch
+            {
+                return new LeaderboardData();
+            }
+        }
+
+        private void SaveLeaderboard(LeaderboardData data)
+        {
+            string json = JsonUtility.ToJson(data);
+            PlayerPrefs.SetString(LeaderboardPrefsKey, json);
+            PlayerPrefs.Save();
+        }
+
+        public void SaveGameOverScore()
+        {
+            if (gameOverNameInputField != null && AdministradorJuego.Instance != null)
+            {
+                string name = gameOverNameInputField.text;
+                int coins = AdministradorJuego.Instance.Coins;
+                GuardarYActualizarUI(name, coins, gameOverNameInputField, gameOverSaveButton, gameOverLeaderboardText);
+            }
+        }
+
+        public void SaveVictoryScore()
+        {
+            if (victoryNameInputField != null && AdministradorJuego.Instance != null)
+            {
+                string name = victoryNameInputField.text;
+                int coins = AdministradorJuego.Instance.Coins;
+                GuardarYActualizarUI(name, coins, victoryNameInputField, victorySaveButton, victoryLeaderboardText);
+            }
+        }
+
+        private void GuardarYActualizarUI(string name, int coins, InputField inputField, Button saveBtn, Text leaderboardTxt)
+        {
+            if (string.IsNullOrEmpty(name)) return;
+            name = name.Trim();
+            if (string.IsNullOrEmpty(name)) return;
+
+            LeaderboardData data = LoadLeaderboard();
+
+            // Buscar si ya existe el nombre para sumarle las monedas ("ir sumando")
+            HighScoreEntry entry = data.entries.Find(e => e.name.Equals(name, System.StringComparison.OrdinalIgnoreCase));
+            if (entry != null)
+            {
+                entry.score += coins;
+            }
+            else
+            {
+                data.entries.Add(new HighScoreEntry { name = name, score = coins });
+            }
+
+            // Ordenar de mayor a menor
+            data.entries.Sort((a, b) => b.score.CompareTo(a.score));
+
+            // Limitar a top 10
+            if (data.entries.Count > 10)
+            {
+                data.entries.RemoveRange(10, data.entries.Count - 10);
+            }
+
+            SaveLeaderboard(data);
+
+            // Desactivar el input y el botón para evitar doble guardado
+            if (inputField != null) inputField.interactable = false;
+            if (saveBtn != null) saveBtn.interactable = false;
+
+            // Actualizar la lista en pantalla
+            ActualizarLeaderboardTexto(leaderboardTxt);
+        }
+
+        private void ActualizarLeaderboardTexto(Text textComponent)
+        {
+            if (textComponent == null) return;
+
+            LeaderboardData data = LoadLeaderboard();
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+            if (data.entries.Count == 0)
+            {
+                sb.AppendLine("Aún no hay puntuaciones");
+            }
+            else
+            {
+                int limit = Mathf.Min(data.entries.Count, 5);
+                for (int i = 0; i < limit; i++)
+                {
+                    sb.AppendLine($"{i + 1}. {data.entries[i].name.ToUpper()} - {data.entries[i].score} pts");
+                }
+            }
+
+            textComponent.text = sb.ToString();
         }
     }
 }

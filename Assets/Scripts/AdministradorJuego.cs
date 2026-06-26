@@ -298,5 +298,15 @@ namespace DeliveryExpress
         {
             StartNewDay();
         }
+
+        /// <summary>
+        /// Reinicia el contador de monedas a 0.
+        /// </summary>
+        public void ResetCoins()
+        {
+            coinsAccumulated = 0;
+            OnCoinsChanged?.Invoke(coinsAccumulated);
+            Debug.Log("🪙 Monedas reiniciadas a 0.");
+        }
     }
 }
