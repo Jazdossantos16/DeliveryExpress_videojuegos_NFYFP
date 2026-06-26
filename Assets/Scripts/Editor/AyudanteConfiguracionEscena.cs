@@ -390,7 +390,7 @@ namespace DeliveryExpress.Editor
             // Actualiza los Pixels Per Unit a 181 en las imágenes nuevas
             if (!needsFix)
             {
-                TextureImporter importer = AssetImporter.GetAtPath("Assets/sprites/Calle_cruce.png") as TextureImporter;
+                TextureImporter importer = AssetImporter.GetAtPath("Assets/sprites/Gameplay/Calle_cruce.png") as TextureImporter;
                 if (importer != null && importer.spritePixelsPerUnit != 181f)
                 {
                     needsFix = true;
@@ -458,7 +458,7 @@ namespace DeliveryExpress.Editor
             RegisterRequiredTags();
             Debug.Log("🛣️ Configurando nueva calle y vereda desde calleyvereda.png...");
 
-            string spritePath = "Assets/sprites/calle_vereda.png";
+            string spritePath = "Assets/sprites/Gameplay/calle_vereda.png";
             if (!System.IO.File.Exists(spritePath))
             {
                 spritePath = "Assets/sprites/vereda_calle.png";
@@ -511,10 +511,10 @@ namespace DeliveryExpress.Editor
             GameObject scrollingBackground = new GameObject("_FondoCalle");
             CapaParallax scrollScript = scrollingBackground.AddComponent<CapaParallax>();
 
-            EnsureIsSprite("Assets/sprites/Calle_cruce.png");
-            EnsureIsSprite("Assets/sprites/calle_final.png");
-            Sprite crossroadSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Calle_cruce.png");
-            Sprite finalStreetSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/calle_final.png");
+            EnsureIsSprite("Assets/sprites/Gameplay/Calle_cruce.png");
+            EnsureIsSprite("Assets/sprites/Gameplay/calle_final.png");
+            Sprite crossroadSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Gameplay/Calle_cruce.png");
+            Sprite finalStreetSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Gameplay/calle_final.png");
             
             scrollScript.SetupSequence(streetSprite, crossroadSprite, finalStreetSprite);
 
@@ -523,7 +523,7 @@ namespace DeliveryExpress.Editor
             scrollScript.Setup(streetSprite, 1.0f, -10, new Vector3(0f, 0f, 0f), finalScale);
 
             // Cargar sprite de la casa final
-            string finalHousePath = "Assets/sprites/casa_final.png";
+            string finalHousePath = "Assets/sprites/Gameplay/casa_final.png";
             Sprite finalHouseSprite = null;
             try
             {
@@ -557,7 +557,7 @@ namespace DeliveryExpress.Editor
                 SpriteRenderer sr = riderObj.AddComponent<SpriteRenderer>();
                 
                 // Cargar sprite inicial de sprite_repartidor.png
-                string playerSpriteSheetPath = "Assets/sprites/sprite_repartidor.png";
+                string playerSpriteSheetPath = "Assets/sprites/Personaje/sprite_repartidor.png";
                 var assets = AssetDatabase.LoadAllAssetsAtPath(playerSpriteSheetPath);
                 foreach (var asset in assets)
                 {
@@ -648,7 +648,7 @@ namespace DeliveryExpress.Editor
                 EditorUtility.SetDirty(spawner);
 
                 // Carga los sprites de casas desde imagenes_ casas.png (se siguen spawneando dinámicamente)
-                string houseSpritePath = "Assets/sprites/imagenes_ casas.png";
+                string houseSpritePath = "Assets/sprites/Gameplay/imagenes_ casas.png";
                 Sprite[] houseSprites = null;
                 try
                 {
@@ -755,7 +755,7 @@ namespace DeliveryExpress.Editor
             balanceRect.anchoredPosition = new Vector2(0f, 40f);
 
             // Cargar los sprites múltiples
-            string balanceSpritePath = "Assets/sprites/barra_equilibrio.png";
+            string balanceSpritePath = "Assets/sprites/UI/barra_equilibrio.png";
             Sprite[] balanceSprites = AssetDatabase.LoadAllAssetsAtPath(balanceSpritePath)
                 .OfType<Sprite>()
                 .OrderBy(s => s.name)
@@ -792,7 +792,7 @@ namespace DeliveryExpress.Editor
             boosterRect.anchoredPosition = new Vector2(170f, 40f); // 170 - (270/2) = 35 de margen izquierdo, alineación Y=40 idéntica
 
             // Cargar los sprites múltiples de la barra de potenciador
-            string boosterSpritePath = "Assets/sprites/barra_potenciador.png";
+            string boosterSpritePath = "Assets/sprites/UI/barra_potenciador.png";
             Sprite[] boosterSprites = AssetDatabase.LoadAllAssetsAtPath(boosterSpritePath)
                 .OfType<Sprite>()
                 .OrderBy(s => s.name)
@@ -908,7 +908,7 @@ namespace DeliveryExpress.Editor
             layout.childAlignment = TextAnchor.MiddleCenter;
 
             // Carga los sprites de hamburguesas
-            string hamburgerSpritePath = "Assets/sprites/hamburguesa_ui.png";
+            string hamburgerSpritePath = "Assets/sprites/UI/hamburguesa_ui.png";
             Sprite[] hamburgerSprites = null;
             bool fileExists = System.IO.File.Exists(hamburgerSpritePath);
             Debug.Log($"[HAMBURGERS DEBUG] File exists at {hamburgerSpritePath}: {fileExists}");
@@ -1014,7 +1014,7 @@ namespace DeliveryExpress.Editor
             Image panelImage = panelObj.AddComponent<Image>();
 
             // Carga el sprite de derrota
-            string loseSpritePath = "Assets/sprites/imagen_perdiste.jpg";
+            string loseSpritePath = "Assets/sprites/UI/imagen_perdiste.jpg";
             Sprite loseSprite = null;
             try
             {
@@ -1106,7 +1106,7 @@ namespace DeliveryExpress.Editor
             Image coinIconImage = coinIconObj.AddComponent<Image>();
             coinIconImage.preserveAspect = true;
 
-            Sprite coinSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/moneda.png");
+            Sprite coinSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Gameplay/moneda.png");
             if (coinSprite != null)
             {
                 coinIconImage.sprite = coinSprite;
@@ -1163,8 +1163,8 @@ namespace DeliveryExpress.Editor
             pauseBtnRect.sizeDelta = new Vector2(65f, 65f); // Tamaño del botón
 
             Image pauseBtnImage = pauseBtnObj.AddComponent<Image>();
-            Sprite spPausa = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_pausa.png");
-            Sprite spPlay = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_play.png");
+            Sprite spPausa = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_pausa.png");
+            Sprite spPlay = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_play.png");
             if (spPausa != null)
             {
                 pauseBtnImage.sprite = spPausa;
@@ -1198,8 +1198,8 @@ namespace DeliveryExpress.Editor
             winBtnRect.sizeDelta = new Vector2(200f, 65f);
 
             Image winBtnImage = winBtnObj.AddComponent<Image>();
-            EnsureIsSprite("Assets/sprites/boton_ganar.png");
-            Sprite spGanar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_ganar.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_ganar.png");
+            Sprite spGanar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_ganar.png");
             if (spGanar != null)
             {
                 winBtnImage.sprite = spGanar;
@@ -1243,7 +1243,7 @@ namespace DeliveryExpress.Editor
             btnIntentoRect.sizeDelta = new Vector2(300f, 105f); // Tamaño proporcional (390x136 nativo)
 
             Image btnIntentoImg = btnIntentoObj.AddComponent<Image>();
-            Sprite spIntento = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_intenuevo.png");
+            Sprite spIntento = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_intenuevo.png");
             if (spIntento != null)
             {
                 btnIntentoImg.sprite = spIntento;
@@ -1268,7 +1268,7 @@ namespace DeliveryExpress.Editor
             btnMenuRect.sizeDelta = new Vector2(300f, 105f); // Tamaño idéntico proporcional
 
             Image btnMenuImg = btnMenuObj.AddComponent<Image>();
-            Sprite spMenu = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_menu.png");
+            Sprite spMenu = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_menu.png");
             if (spMenu != null)
             {
                 btnMenuImg.sprite = spMenu;
@@ -1515,7 +1515,7 @@ namespace DeliveryExpress.Editor
             Image startPanelImage = startPanelObj.AddComponent<Image>();
 
             // Carga el sprite de inicio
-            string startSpritePath = "Assets/sprites/imagen_inicio.jpg";
+            string startSpritePath = "Assets/sprites/UI/imagen_inicio.jpg";
             EnsureIsSprite(startSpritePath);
             Sprite startSprite = AssetDatabase.LoadAssetAtPath<Sprite>(startSpritePath);
             if (startSprite != null)
@@ -1531,16 +1531,16 @@ namespace DeliveryExpress.Editor
             }
 
             // Asegurarse de que los botones estén importados como Sprites
-            EnsureIsSprite("Assets/sprites/boton_jugar.png");
-            EnsureIsSprite("Assets/sprites/boton_mapa.png");
-            EnsureIsSprite("Assets/sprites/boton_configuracion.png");
-            EnsureIsSprite("Assets/sprites/boton_instrucciones.png");
-            EnsureIsSprite("Assets/sprites/boton_ganar.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_jugar.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_mapa.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_configuracion.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_instrucciones.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_ganar.png");
 
-            Sprite spriteJugar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_jugar.png");
-            Sprite spriteMapa = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_mapa.png");
-            Sprite spriteConfiguracion = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_configuracion.png");
-            Sprite spriteInstrucciones = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_instrucciones.png");
+            Sprite spriteJugar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_jugar.png");
+            Sprite spriteMapa = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_mapa.png");
+            Sprite spriteConfiguracion = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_configuracion.png");
+            Sprite spriteInstrucciones = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_instrucciones.png");
 
             // Crear Botón "BotonJugar" (Verde, Y: -50)
             GameObject btnJugarObj = new GameObject("BotonJugar", typeof(RectTransform));
@@ -1670,10 +1670,10 @@ namespace DeliveryExpress.Editor
             Image configPanelImage = configPanelObj.AddComponent<Image>();
 
             // Cargar los 4 sprites para configuración
-            string pathBoth = "Assets/sprites/imagen_config.jpg";
-            string pathNoMusic = "Assets/sprites/imagen_nomusica.jpg";
-            string pathNoSound = "Assets/sprites/imagen_nosonido.jpg";
-            string pathNone = "Assets/sprites/imagen_noambas.jpg";
+            string pathBoth = "Assets/sprites/UI/imagen_config.jpg";
+            string pathNoMusic = "Assets/sprites/UI/imagen_nomusica.jpg";
+            string pathNoSound = "Assets/sprites/UI/imagen_nosonido.jpg";
+            string pathNone = "Assets/sprites/UI/imagen_noambas.jpg";
 
             EnsureIsSprite(pathBoth);
             EnsureIsSprite(pathNoMusic);
@@ -1696,17 +1696,17 @@ namespace DeliveryExpress.Editor
             }
 
             // Cargar los sprites de los iconos de configuración
-            EnsureIsSprite("Assets/sprites/imagen_usuario.png");
-            EnsureIsSprite("Assets/sprites/boton_musica.png");
-            EnsureIsSprite("Assets/sprites/boton_nomusica.png");
-            EnsureIsSprite("Assets/sprites/boton_sonido.png");
-            EnsureIsSprite("Assets/sprites/boton_nosonido.png");
+            EnsureIsSprite("Assets/sprites/UI/imagen_usuario.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_musica.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_nomusica.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_sonido.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_nosonido.png");
 
-            Sprite spriteUser = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/imagen_usuario.png");
-            Sprite spriteMusicOn = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_musica.png");
-            Sprite spriteMusicOff = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_nomusica.png");
-            Sprite spriteSoundOn = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_sonido.png");
-            Sprite spriteSoundOff = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_nosonido.png");
+            Sprite spriteUser = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/imagen_usuario.png");
+            Sprite spriteMusicOn = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_musica.png");
+            Sprite spriteMusicOff = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_nomusica.png");
+            Sprite spriteSoundOn = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_sonido.png");
+            Sprite spriteSoundOff = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_nosonido.png");
 
             // Cargar fuente estándar para los textos de la interfaz
             Font standardFont = null;
@@ -1798,8 +1798,8 @@ namespace DeliveryExpress.Editor
             btnCerrarRect.sizeDelta = new Vector2(85f, 85f); // Tamaño unificado a 85x85
 
             Image btnCerrarImg = btnCerrarObj.AddComponent<Image>();
-            EnsureIsSprite("Assets/sprites/boton_cerrar.png");
-            Sprite spriteCerrar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_cerrar.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_cerrar.png");
+            Sprite spriteCerrar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_cerrar.png");
             if (spriteCerrar != null)
             {
                 btnCerrarImg.sprite = spriteCerrar;
@@ -1983,16 +1983,16 @@ namespace DeliveryExpress.Editor
 
             Image popupImg = popupObj.AddComponent<Image>();
             
-            EnsureIsSprite("Assets/sprites/imagen_instrucciones.png");
+            EnsureIsSprite("Assets/sprites/UI/imagen_instrucciones.png");
             Sprite spriteInstruccionesContent = null;
-            var subAssetsInst = AssetDatabase.LoadAllAssetsAtPath("Assets/sprites/imagen_instrucciones.png");
+            var subAssetsInst = AssetDatabase.LoadAllAssetsAtPath("Assets/sprites/UI/imagen_instrucciones.png");
             if (subAssetsInst != null)
             {
                 spriteInstruccionesContent = subAssetsInst.OfType<Sprite>().FirstOrDefault(s => s.name == "imagen_instrucciones_0" || s.name.EndsWith("_0"));
             }
             if (spriteInstruccionesContent == null)
             {
-                spriteInstruccionesContent = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/imagen_instrucciones.png");
+                spriteInstruccionesContent = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/imagen_instrucciones.png");
             }
 
             if (spriteInstruccionesContent != null)
@@ -2013,8 +2013,8 @@ namespace DeliveryExpress.Editor
             btnCerrarInstRect.anchoredPosition = Vector2.zero; // Posición exacta en el ancla proporcional
             btnCerrarInstRect.sizeDelta = new Vector2(85f, 85f); // Tamaño cuadrado
 
-            EnsureIsSprite("Assets/sprites/boton_cerrar.png");
-            Sprite spriteCerrarInst = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_cerrar.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_cerrar.png");
+            Sprite spriteCerrarInst = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_cerrar.png");
             Image btnCerrarInstImg = btnCerrarInstObj.AddComponent<Image>();
             if (spriteCerrarInst != null)
             {
@@ -2082,8 +2082,8 @@ namespace DeliveryExpress.Editor
 
             Image mapPopupImg = mapPopupObj.AddComponent<Image>();
             
-            EnsureIsSprite("Assets/sprites/pantalla_mapa.png");
-            Sprite spriteMapContent = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/pantalla_mapa.png");
+            EnsureIsSprite("Assets/sprites/UI/pantalla_mapa.png");
+            Sprite spriteMapContent = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/pantalla_mapa.png");
             if (spriteMapContent != null)
             {
                 mapPopupImg.sprite = spriteMapContent;
@@ -2101,8 +2101,8 @@ namespace DeliveryExpress.Editor
             btnCerrarMapRect.anchoredPosition = Vector2.zero;
             btnCerrarMapRect.sizeDelta = new Vector2(85f, 85f);
 
-            EnsureIsSprite("Assets/sprites/boton_cerrar.png");
-            Sprite spriteCerrarMap = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_cerrar.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_cerrar.png");
+            Sprite spriteCerrarMap = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_cerrar.png");
             Image btnCerrarMapImg = btnCerrarMapObj.AddComponent<Image>();
             if (spriteCerrarMap != null)
             {
@@ -2128,8 +2128,8 @@ namespace DeliveryExpress.Editor
             btnPedido1Rect.anchoredPosition = new Vector2(-370f, -30f);
             btnPedido1Rect.sizeDelta = new Vector2(90f, 90f);
 
-            EnsureIsSprite("Assets/sprites/boton_nopedido.png");
-            Sprite spriteNoPedido = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_nopedido.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_nopedido.png");
+            Sprite spriteNoPedido = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_nopedido.png");
             Image btnPedido1Img = btnPedido1Obj.AddComponent<Image>();
             if (spriteNoPedido != null)
             {
@@ -2152,8 +2152,8 @@ namespace DeliveryExpress.Editor
             btnPedido2Rect.anchoredPosition = new Vector2(-60f, -60f);
             btnPedido2Rect.sizeDelta = new Vector2(90f, 90f);
 
-            EnsureIsSprite("Assets/sprites/boton_pedido.png");
-            Sprite spritePedido = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_pedido.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_pedido.png");
+            Sprite spritePedido = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_pedido.png");
             Image btnPedido2Img = btnPedido2Obj.AddComponent<Image>();
             if (spritePedido != null)
             {
@@ -2242,8 +2242,8 @@ namespace DeliveryExpress.Editor
 
             Image detailsPopupImg = detailsPopupObj.AddComponent<Image>();
             
-            EnsureIsSprite("Assets/sprites/imagen_pedido.png");
-            Sprite spriteDetailsContent = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/imagen_pedido.png");
+            EnsureIsSprite("Assets/sprites/UI/imagen_pedido.png");
+            Sprite spriteDetailsContent = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/imagen_pedido.png");
             if (spriteDetailsContent != null)
             {
                 detailsPopupImg.sprite = spriteDetailsContent;
@@ -2261,8 +2261,8 @@ namespace DeliveryExpress.Editor
             btnCerrarDetailsRect.anchoredPosition = Vector2.zero;
             btnCerrarDetailsRect.sizeDelta = new Vector2(85f, 85f);
 
-            EnsureIsSprite("Assets/sprites/boton_cerrar.png");
-            Sprite spriteCerrarDetails = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_cerrar.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_cerrar.png");
+            Sprite spriteCerrarDetails = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_cerrar.png");
             Image btnCerrarDetailsImg = btnCerrarDetailsObj.AddComponent<Image>();
             if (spriteCerrarDetails != null)
             {
@@ -2287,8 +2287,8 @@ namespace DeliveryExpress.Editor
             btnComenzarRect.anchoredPosition = new Vector2(0f, -240f);
             btnComenzarRect.sizeDelta = new Vector2(390f, 136f);
 
-            EnsureIsSprite("Assets/sprites/boton_comenzar.png");
-            Sprite spriteComenzar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_comenzar.png");
+            EnsureIsSprite("Assets/sprites/UI/boton_comenzar.png");
+            Sprite spriteComenzar = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_comenzar.png");
             Image btnComenzarImg = btnComenzarObj.AddComponent<Image>();
             if (spriteComenzar != null)
             {
@@ -2331,7 +2331,7 @@ namespace DeliveryExpress.Editor
             Image victoryPanelImage = victoryPanelObj.AddComponent<Image>();
 
             // Carga el sprite de victoria
-            string victorySpritePath = "Assets/sprites/imagen_ganaste.jpg";
+            string victorySpritePath = "Assets/sprites/UI/imagen_ganaste.jpg";
             EnsureIsSprite(victorySpritePath);
             Sprite victorySprite = AssetDatabase.LoadAssetAtPath<Sprite>(victorySpritePath);
             if (victorySprite != null)
@@ -2357,7 +2357,7 @@ namespace DeliveryExpress.Editor
             btnSiguienteRect.sizeDelta = new Vector2(300f, 102f); // Tamaño proporcional
 
             Image btnSiguienteImg = btnSiguienteObj.AddComponent<Image>();
-            Sprite spSiguiente = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_jugar.png");
+            Sprite spSiguiente = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_jugar.png");
             if (spSiguiente != null)
             {
                 btnSiguienteImg.sprite = spSiguiente;
@@ -2382,7 +2382,7 @@ namespace DeliveryExpress.Editor
             btnVicMenuRect.sizeDelta = new Vector2(300f, 105f); // Tamaño proporcional
 
             Image btnVicMenuImg = btnVicMenuObj.AddComponent<Image>();
-            Sprite spVicMenu = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/boton_menu.png");
+            Sprite spVicMenu = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_menu.png");
             if (spVicMenu != null)
             {
                 btnVicMenuImg.sprite = spVicMenu;
@@ -2885,7 +2885,7 @@ namespace DeliveryExpress.Editor
                 animator = riderObj.AddComponent<Animator>();
             }
 
-            string spritePath = "Assets/sprites/sprite_repartidor.png";
+            string spritePath = "Assets/sprites/Personaje/sprite_repartidor.png";
             var assets = AssetDatabase.LoadAllAssetsAtPath(spritePath);
             System.Collections.Generic.List<Sprite> spritesList = new System.Collections.Generic.List<Sprite>();
             foreach (var asset in assets)
@@ -2917,11 +2917,11 @@ namespace DeliveryExpress.Editor
             Sprite[] choqueSprites = new Sprite[1];
             choqueSprites[0] = spritesList[8]; // fotograma de choque
 
-            AnimationClip pedaleandoClip = CreateOrReplaceClip("Assets/sprites/Pedaleando.anim", pedaleandoSprites, 12f, true);
-            AnimationClip tambaleoClip = CreateOrReplaceClip("Assets/sprites/Tambaleo.anim", tambaleoSprites, 8f, true);
-            AnimationClip choqueClip = CreateOrReplaceClip("Assets/sprites/Choque.anim", choqueSprites, 1f, false);
+            AnimationClip pedaleandoClip = CreateOrReplaceClip("Assets/sprites/Personaje/Pedaleando.anim", pedaleandoSprites, 12f, true);
+            AnimationClip tambaleoClip = CreateOrReplaceClip("Assets/sprites/Personaje/Tambaleo.anim", tambaleoSprites, 8f, true);
+            AnimationClip choqueClip = CreateOrReplaceClip("Assets/sprites/Personaje/Choque.anim", choqueSprites, 1f, false);
 
-            string controllerPath = "Assets/sprites/sprite_repartidor.controller";
+            string controllerPath = "Assets/sprites/Personaje/sprite_repartidor.controller";
             var controller = AssetDatabase.LoadAssetAtPath<UnityEditor.Animations.AnimatorController>(controllerPath);
             if (controller == null)
             {
@@ -3045,7 +3045,7 @@ namespace DeliveryExpress.Editor
             var basuraPrefabField = typeof(GeneradorObstaculos).GetField("basuraPrefab", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var autoPrefabsField = typeof(GeneradorObstaculos).GetField("autoPrefabs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
-            Sprite[] minorSprites = LoadSpritesFromPath("Assets/sprites/imagen_obstaculos.png");
+            Sprite[] minorSprites = LoadSpritesFromPath("Assets/sprites/Gameplay/imagen_obstaculos.png");
 
             // 1. Crear Prefab de Cono si no existe
             string conoPrefabPath = "Assets/Prefabs/Obstaculo_Cono.prefab";
@@ -3162,7 +3162,7 @@ namespace DeliveryExpress.Editor
             }
 
             // 2. Crear Prefabs de Autos si no existen
-            Sprite[] carSprites = LoadSpritesFromPath("Assets/sprites/imagenes_autos.png");
+            Sprite[] carSprites = LoadSpritesFromPath("Assets/sprites/Gameplay/imagenes_autos.png");
             if (carSprites != null && carSprites.Length > 0)
             {
                 GameObject[] autoPrefabs = new GameObject[carSprites.Length];
@@ -3223,7 +3223,7 @@ namespace DeliveryExpress.Editor
                 Image img = tempObj.AddComponent<Image>();
                 img.preserveAspect = true;
 
-                Sprite[] hamburgerSprites = LoadSpritesFromPath("Assets/sprites/hamburguesa_ui.png");
+                Sprite[] hamburgerSprites = LoadSpritesFromPath("Assets/sprites/UI/hamburguesa_ui.png");
                 if (hamburgerSprites != null && hamburgerSprites.Length > 0)
                 {
                     img.sprite = hamburgerSprites[0];
@@ -3261,7 +3261,7 @@ namespace DeliveryExpress.Editor
                 sr.sortingOrder = 10;
 
                 // Usar el primer sprite de hamburguesa disponible
-                Sprite[] hamburgerSprites = LoadSpritesFromPath("Assets/sprites/hamburguesa_ui.png");
+                Sprite[] hamburgerSprites = LoadSpritesFromPath("Assets/sprites/UI/hamburguesa_ui.png");
                 if (hamburgerSprites != null && hamburgerSprites.Length > 0)
                 {
                     sr.sprite = hamburgerSprites[0];
@@ -3305,15 +3305,15 @@ namespace DeliveryExpress.Editor
                 sr.sortingOrder = 9;
 
                 // Cargar sprite estático de moneda.png
-                EnsureIsSprite("Assets/sprites/moneda.png");
-                Sprite singleCoinSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/moneda.png");
+                EnsureIsSprite("Assets/sprites/Gameplay/moneda.png");
+                Sprite singleCoinSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Gameplay/moneda.png");
                 sr.sprite = singleCoinSprite;
 
                 Moneda coinScript = tempObj.AddComponent<Moneda>();
                 
                 // Intentar cargar fotogramas de la hoja de animación (8 columnas, 1 fila)
-                EnsureSpritesheetSliced("Assets/sprites/moneda_spritesheet.png", 8, 1);
-                Sprite[] animationFrames = LoadSpritesFromPath("Assets/sprites/moneda_spritesheet.png");
+                EnsureSpritesheetSliced("Assets/sprites/Gameplay/moneda_spritesheet.png", 8, 1);
+                Sprite[] animationFrames = LoadSpritesFromPath("Assets/sprites/Gameplay/moneda_spritesheet.png");
                 if (animationFrames != null && animationFrames.Length > 1)
                 {
                     var animFramesField = typeof(Moneda).GetField("animationFrames", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -3356,15 +3356,15 @@ namespace DeliveryExpress.Editor
                 sr.sortingOrder = 9;
 
                 // Cargar sprite estático de potenciador_energia.png
-                EnsureIsSprite("Assets/sprites/potenciador_energia.png");
-                Sprite singlePowerUpSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/potenciador_energia.png");
+                EnsureIsSprite("Assets/sprites/Gameplay/potenciador_energia.png");
+                Sprite singlePowerUpSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Gameplay/potenciador_energia.png");
                 sr.sprite = singlePowerUpSprite;
 
                 PotenciadorEnergia powerScript = tempObj.AddComponent<PotenciadorEnergia>();
                 
                 // Intentar cargar fotogramas de la hoja de animación (8 columnas, 1 fila)
-                EnsureSpritesheetSliced("Assets/sprites/potenciador_energia_spritesheet.png", 8, 1);
-                Sprite[] animationFrames = LoadSpritesFromPath("Assets/sprites/potenciador_energia_spritesheet.png");
+                EnsureSpritesheetSliced("Assets/sprites/Gameplay/potenciador_energia_spritesheet.png", 8, 1);
+                Sprite[] animationFrames = LoadSpritesFromPath("Assets/sprites/Gameplay/potenciador_energia_spritesheet.png");
                 if (animationFrames != null && animationFrames.Length > 1)
                 {
                     var animFramesField = typeof(PotenciadorEnergia).GetField("animationFrames", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
