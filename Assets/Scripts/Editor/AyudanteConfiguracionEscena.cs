@@ -2001,12 +2001,15 @@ namespace DeliveryExpress.Editor
             RectTransform popupRect = popupObj.GetComponent<RectTransform>();
             popupRect.SetParent(instructionsPanelRect, false);
             
-            // Centrado en pantalla
-            popupRect.anchorMin = Vector2.zero;
-            popupRect.anchorMax = Vector2.one;
-            popupRect.offsetMin = Vector2.zero;
-            popupRect.offsetMax = Vector2.zero;
+            // Centrado en pantalla con AspectRatioFitter para escalar exactamente con la imagen de fondo 16:9
+            popupRect.anchorMin = new Vector2(0.5f, 0.5f);
+            popupRect.anchorMax = new Vector2(0.5f, 0.5f);
             popupRect.pivot = new Vector2(0.5f, 0.5f);
+            popupRect.sizeDelta = new Vector2(1920f, 1080f);
+
+            UnityEngine.UI.AspectRatioFitter aspectFitter = popupObj.AddComponent<UnityEngine.UI.AspectRatioFitter>();
+            aspectFitter.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.FitInParent;
+            aspectFitter.aspectRatio = 1920f / 1080f;
 
             Image popupImg = popupObj.AddComponent<Image>();
             
