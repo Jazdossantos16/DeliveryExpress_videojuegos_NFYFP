@@ -137,6 +137,7 @@ namespace DeliveryExpress
 
                 private void Update()
         {
+            if (AdministradorUI.Instance != null && AdministradorUI.Instance.IsPlayingVideo) return;
             if (stopScrolling) return;
 
             // Si se alcanzó la línea de meta, frenamos el desplazamiento de todas las capas

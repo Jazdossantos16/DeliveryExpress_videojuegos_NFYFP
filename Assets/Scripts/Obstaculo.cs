@@ -56,6 +56,7 @@ namespace DeliveryExpress
 
         private void Update()
         {
+            if (AdministradorUI.Instance != null && AdministradorUI.Instance.IsPlayingVideo) return;
             // Los autos avanzan y salen de la pantalla aunque termine la partida, salvo al cruzar la meta
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsFinishLineReached)
             {

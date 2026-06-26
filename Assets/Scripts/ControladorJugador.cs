@@ -178,6 +178,12 @@ namespace DeliveryExpress
 
         private void Update()
         {
+            if (AdministradorUI.Instance != null && AdministradorUI.Instance.IsPlayingVideo)
+            {
+                if (rb2d != null) rb2d.linearVelocity = Vector2.zero;
+                return;
+            }
+
             // Decrementar duración del potenciador de velocidad si está activo
             if (isSpeedBoostActive)
             {
