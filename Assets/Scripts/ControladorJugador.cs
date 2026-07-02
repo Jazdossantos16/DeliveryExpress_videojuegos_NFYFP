@@ -57,6 +57,15 @@ namespace DeliveryExpress
         [Tooltip("Tasa de recuperación del equilibrio por segundo al viajar de forma estable")]
         [SerializeField] private float balanceRecoveryRate = 15f;
 
+        [Header("Mecánica de Salto (Jump)")]
+        [SerializeField] private float jumpDuration = 0.8f;
+        [SerializeField] private float jumpScaleMultiplier = 1.3f;
+
+        private bool isJumping = false;
+        private Vector3 originalScale;
+
+        public bool IsJumping => isJumping;
+
         public float CurrentBalance => currentBalance;
         public float MaxBalance => maxBalance;
         public float CurrentTiltAngle => currentTiltAngle;
@@ -174,6 +183,8 @@ namespace DeliveryExpress
                     currentLaneIndex = i;
                 }
             }
+
+            originalScale = transform.localScale;
         }
 
         private void Update()
@@ -204,6 +215,7 @@ namespace DeliveryExpress
             bool leftPressed = false;
             bool rightPressed = false;
 
+            bool jumpPressed = false;
             #if UNITY_INPUT_SYSTEM || ENABLE_INPUT_SYSTEM
             try
             {
@@ -212,12 +224,14 @@ namespace DeliveryExpress
                     leftPressed = UnityEngine.InputSystem.Keyboard.current.aKey.wasPressedThisFrame || UnityEngine.InputSystem.Keyboard.current.leftArrowKey.wasPressedThisFrame;
                     rightPressed = UnityEngine.InputSystem.Keyboard.current.dKey.wasPressedThisFrame || UnityEngine.InputSystem.Keyboard.current.rightArrowKey.wasPressedThisFrame;
                     IsBraking = UnityEngine.InputSystem.Keyboard.current.spaceKey.isPressed;
+                    jumpPressed = UnityEngine.InputSystem.Keyboard.current.wKey.wasPressedThisFrame || UnityEngine.InputSystem.Keyboard.current.upArrowKey.wasPressedThisFrame;
                 }
                 else
                 {
                     leftPressed = Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow);
                     rightPressed = Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow);
                     IsBraking = Input.GetKey(KeyCode.Space);
+                    jumpPressed = Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow);
                 }
             }
             catch (System.Exception)
@@ -230,9 +244,15 @@ namespace DeliveryExpress
                 leftPressed = Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow);
                 rightPressed = Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow);
                 IsBraking = Input.GetKey(KeyCode.Space);
+                jumpPressed = Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow);
             }
             catch (System.Exception) {}
             #endif
+
+            if (jumpPressed && !isJumping && !isInvulnerable)
+            {
+                StartCoroutine(JumpRoutine());
+            }
 
             if (leftPressed)
             {
@@ -454,6 +474,13 @@ namespace DeliveryExpress
                         || objName.Contains("car") 
                         || (obs != null && (obs.Type == TipoObstaculo.BlackCar || obs.Type == TipoObstaculo.GreenCar));
 
+            // Si el jugador está saltando, esquiva todos los obstáculos que no sean autos (los salta por arriba)
+            if (isJumping && !isCar)
+            {
+                Debug.Log($"🦘 [SALTO] Saltó con éxito sobre: {collision.gameObject.name}");
+                return;
+            }
+
             // Si el jugador está invulnerable o tiene el potenciador de velocidad activo, absorbe el impacto de cualquier colisión
             if (isInvulnerable || isSpeedBoostActive) return;
 
@@ -578,6 +605,31 @@ namespace DeliveryExpress
             }
 
             Debug.Log("⚡ Potenciador de velocidad terminado.");
+        }
+
+        private IEnumerator JumpRoutine()
+        {
+            isJumping = true;
+            float elapsed = 0f;
+            Vector3 startScale = originalScale;
+            Vector3 targetScale = originalScale * jumpScaleMultiplier;
+
+            while (elapsed < jumpDuration)
+            {
+                elapsed += Time.deltaTime;
+                float progress = elapsed / jumpDuration;
+                
+                // Curva parabólica: el factor de altura sube de 0 a 1 y vuelve a 0
+                float heightFactor = Mathf.Sin(progress * Mathf.PI);
+                
+                // Efecto de escala para representar altura visual
+                transform.localScale = Vector3.Lerp(startScale, targetScale, heightFactor);
+                
+                yield return null;
+            }
+
+            transform.localScale = originalScale;
+            isJumping = false;
         }
     }
 }
