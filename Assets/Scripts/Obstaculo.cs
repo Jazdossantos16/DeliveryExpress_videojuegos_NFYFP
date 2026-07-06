@@ -145,10 +145,16 @@ namespace DeliveryExpress
         {
             if (other.CompareTag("Player"))
             {
+                ControladorJugador player = other.GetComponent<ControladorJugador>();
+                if (player != null && player.IsJumping)
+                {
+                    // Si el jugador está saltando, se ignora la colisión del obstáculo
+                    return;
+                }
+
                 // El bache genera inestabilidad temporal en lugar de restar vidas directamente
                 if (type == TipoObstaculo.Pothole)
                 {
-                    ControladorJugador player = other.GetComponent<ControladorJugador>();
                     if (player != null)
                     {
                         player.TriggerDeliveryAnimation();
