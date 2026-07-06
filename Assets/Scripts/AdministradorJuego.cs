@@ -301,6 +301,15 @@ namespace DeliveryExpress
         }
 
         /// <summary>
+        /// Configura una jornada laboral específica y reinicia el estado para esa jornada.
+        /// </summary>
+        public void ConfigurarJornada(int dia)
+        {
+            currentDay = dia;
+            StartNewDay();
+        }
+
+        /// <summary>
         /// Reinicia el contador de monedas a 0.
         /// </summary>
         public void ResetCoins()

@@ -2255,7 +2255,7 @@ namespace DeliveryExpress.Editor
             }
             btnPedido1Obj.AddComponent<Button>(); // Sin acción, solo visual / inactivo
 
-            // Pedido 2: Centro (Activo)
+            // Pedido 2: Centro (Activo - Nivel 1)
             GameObject btnPedido2Obj = new GameObject("Pedido_Centro", typeof(RectTransform));
             RectTransform btnPedido2Rect = btnPedido2Obj.GetComponent<RectTransform>();
             btnPedido2Rect.SetParent(mapPopupRect, false);
@@ -2278,9 +2278,9 @@ namespace DeliveryExpress.Editor
                 btnPedido2Img.color = Color.yellow;
             }
             Button btnPedido2 = btnPedido2Obj.AddComponent<Button>();
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnPedido2.onClick, uiManager.AbrirDetallePedido);
+            UnityEditor.Events.UnityEventTools.AddIntPersistentListener(btnPedido2.onClick, uiManager.SeleccionarNivelMapa, 1);
 
-            // Pedido 3: Derecha (Inactivo)
+            // Pedido 3: Derecha (Activo - Nivel 2)
             GameObject btnPedido3Obj = new GameObject("Pedido_Derecha", typeof(RectTransform));
             RectTransform btnPedido3Rect = btnPedido3Obj.GetComponent<RectTransform>();
             btnPedido3Rect.SetParent(mapPopupRect, false);
@@ -2291,16 +2291,17 @@ namespace DeliveryExpress.Editor
             btnPedido3Rect.sizeDelta = new Vector2(90f, 90f);
 
             Image btnPedido3Img = btnPedido3Obj.AddComponent<Image>();
-            if (spriteNoPedido != null)
+            if (spritePedido != null)
             {
-                btnPedido3Img.sprite = spriteNoPedido;
+                btnPedido3Img.sprite = spritePedido;
                 btnPedido3Img.color = Color.white;
             }
             else
             {
-                btnPedido3Img.color = Color.gray;
+                btnPedido3Img.color = Color.yellow;
             }
-            btnPedido3Obj.AddComponent<Button>(); // Sin acción
+            Button btnPedido3 = btnPedido3Obj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddIntPersistentListener(btnPedido3.onClick, uiManager.SeleccionarNivelMapa, 2);
 
             // Inyectar el panel del mapa en el AdministradorUI por reflexión
             var mapPanelField = typeof(AdministradorUI).GetField("mapPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
