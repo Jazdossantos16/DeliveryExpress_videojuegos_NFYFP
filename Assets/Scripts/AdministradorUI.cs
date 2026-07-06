@@ -910,6 +910,19 @@ namespace DeliveryExpress
             }
         }
 
+        /// <summary>
+        /// Selecciona un nivel desde el mapa y abre el detalle del pedido.
+        /// </summary>
+        public void SeleccionarNivelMapa(int nivel)
+        {
+            PlayClickSound();
+            if (AdministradorJuego.Instance != null)
+            {
+                AdministradorJuego.Instance.ConfigurarJornada(nivel);
+            }
+            AbrirDetallePedido();
+        }
+
         public void AbrirDetallePedido()
         {
             PlayClickSound();
