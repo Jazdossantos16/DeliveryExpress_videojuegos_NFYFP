@@ -825,11 +825,17 @@ namespace DeliveryExpress
             // Jornada 1: Tutorial, pocos obstáculos, velocidad lenta.
             // Jornadas 2-4: Mayor densidad.
             // Jornadas finales: Máxima presión, más tráfico, mayor velocidad del scroll.
-            if (day == 1 || day == 2)
+            if (day == 1)
             {
                 baseLevelScrollSpeed = 5.0f;
                 baseMinSpawnDelay = 1.8f;
                 baseMaxSpawnDelay = 2.8f;
+            }
+            else if (day == 2)
+            {
+                baseLevelScrollSpeed = 5.5f;
+                baseMinSpawnDelay = 1.6f;
+                baseMaxSpawnDelay = 2.5f;
             }
             else if (day >= 3 && day <= 4)
             {
