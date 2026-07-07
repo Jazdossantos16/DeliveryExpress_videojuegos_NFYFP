@@ -3748,10 +3748,16 @@ namespace DeliveryExpress.Editor
             centerCardImg.color = new Color(0.11f, 0.13f, 0.18f, 0.95f); // Gris azulado oscuro
 
             // Cargar fuente estándar
-            Font standardFont = null;
-            Text existingText = canvas.GetComponentInChildren<Text>(true);
-            if (existingText != null) standardFont = existingText.font;
-            if (standardFont == null) standardFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            Font standardFont = AssetDatabase.LoadAssetAtPath<Font>("Assets/Fonts/RobotoCondensed-Bold.ttf");
+            if (standardFont == null)
+            {
+                Text existingText = canvas.GetComponentInChildren<Text>(true);
+                if (existingText != null) standardFont = existingText.font;
+            }
+            if (standardFont == null)
+            {
+                standardFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            }
 
             // Título de la Tienda
             GameObject titleObj = new GameObject("Titulo", typeof(RectTransform));
@@ -3765,6 +3771,8 @@ namespace DeliveryExpress.Editor
             titleTxt.fontSize = 38;
             titleTxt.alignment = TextAnchor.MiddleCenter;
             titleTxt.color = new Color(1f, 0.8f, 0f, 1f); // Amarillo dorado
+            titleTxt.horizontalOverflow = HorizontalWrapMode.Overflow;
+            titleTxt.verticalOverflow = VerticalWrapMode.Overflow;
 
             // Monedas del Jugador
             GameObject coinsObj = new GameObject("Texto_Monedas", typeof(RectTransform));
@@ -3778,6 +3786,8 @@ namespace DeliveryExpress.Editor
             coinsTxt.fontSize = 32;
             coinsTxt.alignment = TextAnchor.MiddleRight;
             coinsTxt.color = new Color(1f, 0.8f, 0f, 1f);
+            coinsTxt.horizontalOverflow = HorizontalWrapMode.Overflow;
+            coinsTxt.verticalOverflow = VerticalWrapMode.Overflow;
 
             // Crear las 4 filas de mejoras
             string[] upgradeKeys = { "Bici", "Suspension", "Mochila", "Tiempo" };
@@ -3810,6 +3820,8 @@ namespace DeliveryExpress.Editor
                 labelTxt.fontSize = 24;
                 labelTxt.alignment = TextAnchor.MiddleLeft;
                 labelTxt.color = Color.white;
+                labelTxt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                labelTxt.verticalOverflow = VerticalWrapMode.Overflow;
 
                 // Descripción de la mejora
                 GameObject descObj = new GameObject("Descripcion", typeof(RectTransform));
@@ -3823,6 +3835,8 @@ namespace DeliveryExpress.Editor
                 descTxt.fontSize = 16;
                 descTxt.alignment = TextAnchor.MiddleLeft;
                 descTxt.color = Color.gray;
+                descTxt.horizontalOverflow = HorizontalWrapMode.Overflow;
+                descTxt.verticalOverflow = VerticalWrapMode.Overflow;
 
                 // Circulitos / Cuadraditos de niveles
                 GameObject levelsObj = new GameObject("Niveles", typeof(RectTransform));
@@ -3863,6 +3877,8 @@ namespace DeliveryExpress.Editor
                 btnText.fontSize = 22;
                 btnText.alignment = TextAnchor.MiddleCenter;
                 btnText.color = Color.black;
+                btnText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                btnText.verticalOverflow = VerticalWrapMode.Overflow;
 
                 Button btnBuy = btnBuyObj.AddComponent<Button>();
 
@@ -3898,6 +3914,8 @@ namespace DeliveryExpress.Editor
             btnContText.fontSize = 24;
             btnContText.alignment = TextAnchor.MiddleCenter;
             btnContText.color = Color.white;
+            btnContText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            btnContText.verticalOverflow = VerticalWrapMode.Overflow;
 
             Button btnCont = btnContObj.AddComponent<Button>();
             UnityEditor.Events.UnityEventTools.AddPersistentListener(btnCont.onClick, uiManager.CerrarTienda);

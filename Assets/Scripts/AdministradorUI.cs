@@ -1208,6 +1208,7 @@ namespace DeliveryExpress
             PlayClickSound();
             if (shopPanel != null)
             {
+                shopPanel.transform.SetAsLastSibling();
                 shopPanel.SetActive(true);
                 ActualizarTiendaUI();
             }
