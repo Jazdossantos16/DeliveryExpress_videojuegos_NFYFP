@@ -64,6 +64,7 @@ namespace DeliveryExpress
         [SerializeField] private GameObject instructionsPanel;
         [SerializeField] private GameObject mapPanel;
         [SerializeField] private GameObject orderDetailsPanel;
+        [SerializeField] private GameObject shopPanel;
         [SerializeField] private Image configBackgroundImage;
         [SerializeField] private Sprite imgConfigBoth;
         [SerializeField] private Sprite imgConfigNoMusic;
@@ -271,6 +272,22 @@ namespace DeliveryExpress
                 if (startPanel == null || !startPanel.activeSelf)
                 {
                     AlternarPausa();
+                }
+            }
+
+            // Tecla T para abrir la tienda para pruebas rápidas
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                if (shopPanel != null)
+                {
+                    if (shopPanel.activeSelf)
+                    {
+                        shopPanel.SetActive(false);
+                    }
+                    else
+                    {
+                        AbrirTienda();
+                    }
                 }
             }
 
@@ -1163,5 +1180,161 @@ namespace DeliveryExpress
 
             textComponent.text = sb.ToString();
         }
+
+        #region Tienda de Mejoras
+        public void AbrirTienda()
+        {
+            PlayClickSound();
+            if (shopPanel != null)
+            {
+                shopPanel.SetActive(true);
+                ActualizarTiendaUI();
+            }
+        }
+
+        public void CerrarTienda()
+        {
+            PlayClickSound();
+            if (shopPanel != null)
+            {
+                shopPanel.SetActive(false);
+            }
+            AvanzarSiguienteDia();
+        }
+
+        private void ActualizarTiendaUI()
+        {
+            if (shopPanel == null) return;
+
+            if (AdministradorJuego.Instance != null)
+            {
+                Transform coinsTextTrans = shopPanel.transform.Find("TarjetaCentro/Texto_Monedas");
+                if (coinsTextTrans != null)
+                {
+                    Text t = coinsTextTrans.GetComponent<Text>();
+                    if (t != null) t.text = "$" + AdministradorJuego.Instance.Coins.ToString();
+                }
+            }
+
+            if (AdministradorMejoras.Instance != null)
+            {
+                ActualizarFilaMejora("Bici", 
+                    AdministradorMejoras.Instance.CurrentBicycleLevel, 
+                    AdministradorMejoras.Instance.BicycleSpeedTiers);
+                
+                ActualizarFilaMejora("Suspension", 
+                    AdministradorMejoras.Instance.CurrentSuspensionLevel, 
+                    AdministradorMejoras.Instance.SuspensionTiers);
+
+                ActualizarFilaMejora("Mochila", 
+                    AdministradorMejoras.Instance.CurrentBackpackLevel, 
+                    AdministradorMejoras.Instance.BackpackTiers);
+
+                ActualizarFilaMejora("Tiempo", 
+                    AdministradorMejoras.Instance.CurrentExtraTimeLevel, 
+                    AdministradorMejoras.Instance.ExtraTimeTiers);
+            }
+        }
+
+        private void ActualizarFilaMejora(string nombreClave, int currentLevel, AdministradorMejoras.UpgradeTier[] tiers)
+        {
+            Transform rowTrans = shopPanel.transform.Find("TarjetaCentro/Mejora_" + nombreClave);
+            if (rowTrans == null) return;
+
+            Transform btnTrans = rowTrans.Find("Boton_Comprar");
+            if (btnTrans != null)
+            {
+                Button btn = btnTrans.GetComponent<Button>();
+                Text btnText = btnTrans.Find("Text")?.GetComponent<Text>();
+                
+                bool isMax = currentLevel >= tiers.Length;
+                if (isMax)
+                {
+                    if (btn != null) btn.interactable = false;
+                    if (btnText != null) btnText.text = "MAX";
+                }
+                else
+                {
+                    int cost = tiers[currentLevel].cost;
+                    bool canAfford = AdministradorJuego.Instance != null && AdministradorJuego.Instance.Coins >= cost;
+                    
+                    if (btn != null) btn.interactable = canAfford;
+                    if (btnText != null) btnText.text = "$" + cost;
+                }
+            }
+
+            Transform levelsTrans = rowTrans.Find("Niveles");
+            if (levelsTrans != null)
+            {
+                for (int i = 0; i < levelsTrans.childCount; i++)
+                {
+                    Image levelDot = levelsTrans.GetChild(i).GetComponent<Image>();
+                    if (levelDot != null)
+                    {
+                        if (currentLevel >= (i + 1))
+                        {
+                            levelDot.color = new Color(0f, 0.8f, 0.4f, 1f);
+                        }
+                        else
+                        {
+                            levelDot.color = new Color(0.4f, 0.4f, 0.4f, 1f);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void ComprarMejoraBici()
+        {
+            PlayClickSound();
+            if (AdministradorMejoras.Instance != null && AdministradorMejoras.Instance.BuyUpgradeBicycleSpeed())
+            {
+                ActualizarTiendaUI();
+                if (AdministradorJuego.Instance != null)
+                {
+                    UpdateCoinsUI(AdministradorJuego.Instance.Coins);
+                }
+            }
+        }
+
+        public void ComprarMejoraSuspension()
+        {
+            PlayClickSound();
+            if (AdministradorMejoras.Instance != null && AdministradorMejoras.Instance.BuyUpgradeSuspension())
+            {
+                ActualizarTiendaUI();
+                if (AdministradorJuego.Instance != null)
+                {
+                    UpdateCoinsUI(AdministradorJuego.Instance.Coins);
+                }
+            }
+        }
+
+        public void ComprarMejoraMochila()
+        {
+            PlayClickSound();
+            if (AdministradorMejoras.Instance != null && AdministradorMejoras.Instance.BuyUpgradeBackpack())
+            {
+                ActualizarTiendaUI();
+                if (AdministradorJuego.Instance != null)
+                {
+                    UpdateCoinsUI(AdministradorJuego.Instance.Coins);
+                }
+            }
+        }
+
+        public void ComprarMejoraTiempo()
+        {
+            PlayClickSound();
+            if (AdministradorMejoras.Instance != null && AdministradorMejoras.Instance.BuyUpgradeExtraTime())
+            {
+                ActualizarTiendaUI();
+                if (AdministradorJuego.Instance != null)
+                {
+                    UpdateCoinsUI(AdministradorJuego.Instance.Coins);
+                }
+            }
+        }
+        #endregion
     }
 }

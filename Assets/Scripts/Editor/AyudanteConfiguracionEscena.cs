@@ -2426,6 +2426,9 @@ namespace DeliveryExpress.Editor
                 Debug.Log("✅ orderDetailsPanel inyectado en AdministradorUI.");
             }
 
+            // Crear el panel de la tienda de mejoras
+            CrearPanelTienda(canvas, uiManager);
+
             // 7.7 Crear o buscar VictoryPanel
             Transform oldVictoryPanel = canvas.transform.Find("VictoryPanel");
             if (oldVictoryPanel != null)
@@ -2483,7 +2486,7 @@ namespace DeliveryExpress.Editor
             }
 
             Button btnSiguiente = btnSiguienteObj.AddComponent<Button>();
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnSiguiente.onClick, uiManager.AvanzarSiguienteDia);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnSiguiente.onClick, uiManager.AbrirTienda);
 
             // Botón "Menú" (Abajo a la Izquierda, blue Menu button)
             GameObject btnVicMenuObj = new GameObject("BotonMenu", typeof(RectTransform));
@@ -3670,6 +3673,225 @@ namespace DeliveryExpress.Editor
             catch (System.Exception) { }
 
             return null;
+        }
+
+        private static void CrearPanelTienda(Canvas canvas, AdministradorUI uiManager)
+        {
+            Transform oldShopPanel = canvas.transform.Find("PanelTienda");
+            if (oldShopPanel != null)
+            {
+                UnityEngine.Object.DestroyImmediate(oldShopPanel.gameObject);
+            }
+
+            GameObject shopPanelObj = new GameObject("PanelTienda", typeof(RectTransform));
+            RectTransform shopPanelRect = shopPanelObj.GetComponent<RectTransform>();
+            shopPanelRect.SetParent(canvas.transform, false);
+            shopPanelObj.SetActive(false); // Empieza oculto
+
+            // Ocupar toda la pantalla con overflow
+            shopPanelRect.anchorMin = Vector2.zero;
+            shopPanelRect.anchorMax = Vector2.one;
+            shopPanelRect.offsetMin = new Vector2(-10f, -10f);
+            shopPanelRect.offsetMax = new Vector2(10f, 10f);
+            shopPanelRect.pivot = new Vector2(0.5f, 0.5f);
+            shopPanelRect.localScale = Vector3.one;
+
+            // Fondo semitransparente oscuro
+            Image shopPanelBg = shopPanelObj.AddComponent<Image>();
+            shopPanelBg.color = new Color(0f, 0f, 0f, 0.6f);
+
+            // Crear el panel de contenido
+            GameObject shopPopupObj = new GameObject("Contenido", typeof(RectTransform));
+            RectTransform shopPopupRect = shopPopupObj.GetComponent<RectTransform>();
+            shopPopupRect.SetParent(shopPanelRect, false);
+            shopPopupRect.anchorMin = new Vector2(0.5f, 0.5f);
+            shopPopupRect.anchorMax = new Vector2(0.5f, 0.5f);
+            shopPopupRect.pivot = new Vector2(0.5f, 0.5f);
+            shopPopupRect.sizeDelta = new Vector2(1920f, 1080f);
+            shopPopupRect.anchoredPosition = Vector2.zero;
+            shopPopupRect.localScale = Vector3.one;
+
+            UnityEngine.UI.AspectRatioFitter aspectFitter = shopPopupObj.AddComponent<UnityEngine.UI.AspectRatioFitter>();
+            aspectFitter.aspectMode = UnityEngine.UI.AspectRatioFitter.AspectMode.FitInParent;
+            aspectFitter.aspectRatio = 1920f / 1080f;
+
+            // Tarjeta Centro (La tienda física)
+            GameObject centerCardObj = new GameObject("TarjetaCentro", typeof(RectTransform));
+            RectTransform centerCardRect = centerCardObj.GetComponent<RectTransform>();
+            centerCardRect.SetParent(shopPopupRect, false);
+            centerCardRect.anchorMin = new Vector2(0.5f, 0.5f);
+            centerCardRect.anchorMax = new Vector2(0.5f, 0.5f);
+            centerCardRect.pivot = new Vector2(0.5f, 0.5f);
+            centerCardRect.sizeDelta = new Vector2(960f, 750f);
+            centerCardRect.anchoredPosition = Vector2.zero;
+            centerCardRect.localScale = Vector3.one;
+
+            Image centerCardImg = centerCardObj.AddComponent<Image>();
+            centerCardImg.color = new Color(0.11f, 0.13f, 0.18f, 0.95f); // Gris azulado oscuro
+
+            // Cargar fuente estándar
+            Font standardFont = null;
+            Text existingText = canvas.GetComponentInChildren<Text>(true);
+            if (existingText != null) standardFont = existingText.font;
+            if (standardFont == null) standardFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+
+            // Título de la Tienda
+            GameObject titleObj = new GameObject("Titulo", typeof(RectTransform));
+            RectTransform titleRect = titleObj.GetComponent<RectTransform>();
+            titleRect.SetParent(centerCardRect, false);
+            titleRect.anchoredPosition = new Vector2(0f, 310f);
+            titleRect.sizeDelta = new Vector2(600f, 60f);
+            Text titleTxt = titleObj.AddComponent<Text>();
+            titleTxt.font = standardFont;
+            titleTxt.text = "MEJORAS DE EQUIPAMIENTO";
+            titleTxt.fontSize = 38;
+            titleTxt.alignment = TextAnchor.MiddleCenter;
+            titleTxt.color = new Color(1f, 0.8f, 0f, 1f); // Amarillo dorado
+
+            // Monedas del Jugador
+            GameObject coinsObj = new GameObject("Texto_Monedas", typeof(RectTransform));
+            RectTransform coinsRect = coinsObj.GetComponent<RectTransform>();
+            coinsRect.SetParent(centerCardRect, false);
+            coinsRect.anchoredPosition = new Vector2(350f, 310f);
+            coinsRect.sizeDelta = new Vector2(200f, 50f);
+            Text coinsTxt = coinsObj.AddComponent<Text>();
+            coinsTxt.font = standardFont;
+            coinsTxt.text = "$0";
+            coinsTxt.fontSize = 32;
+            coinsTxt.alignment = TextAnchor.MiddleRight;
+            coinsTxt.color = new Color(1f, 0.8f, 0f, 1f);
+
+            // Crear las 4 filas de mejoras
+            string[] upgradeKeys = { "Bici", "Suspension", "Mochila", "Tiempo" };
+            string[] upgradeTitles = { "Bicicleta (Giro)", "Suspensión (Estabilidad)", "Mochila Ligera", "Tiempo Extra" };
+            string[] upgradeDescs = { "Gira más rápido", "Reduce el tambaleo", "Reduce penalización de peso", "Más tiempo en el reloj" };
+            float[] verticalPositions = { 160f, 40f, -80f, -200f };
+
+            for (int k = 0; k < 4; k++)
+            {
+                string key = upgradeKeys[k];
+                GameObject rowObj = new GameObject("Mejora_" + key, typeof(RectTransform));
+                RectTransform rowRect = rowObj.GetComponent<RectTransform>();
+                rowRect.SetParent(centerCardRect, false);
+                rowRect.anchoredPosition = new Vector2(0f, verticalPositions[k]);
+                rowRect.sizeDelta = new Vector2(900f, 100f);
+
+                // Fondo de la celda de mejora (ligeramente más claro)
+                Image rowBg = rowObj.AddComponent<Image>();
+                rowBg.color = new Color(0.16f, 0.19f, 0.26f, 0.8f);
+
+                // Título de la mejora
+                GameObject labelObj = new GameObject("Titulo", typeof(RectTransform));
+                RectTransform labelRect = labelObj.GetComponent<RectTransform>();
+                labelRect.SetParent(rowRect, false);
+                labelRect.anchoredPosition = new Vector2(-280f, 20f);
+                labelRect.sizeDelta = new Vector2(300f, 35f);
+                Text labelTxt = labelObj.AddComponent<Text>();
+                labelTxt.font = standardFont;
+                labelTxt.text = upgradeTitles[k];
+                labelTxt.fontSize = 24;
+                labelTxt.alignment = TextAnchor.MiddleLeft;
+                labelTxt.color = Color.white;
+
+                // Descripción de la mejora
+                GameObject descObj = new GameObject("Descripcion", typeof(RectTransform));
+                RectTransform descRect = descObj.GetComponent<RectTransform>();
+                descRect.SetParent(rowRect, false);
+                descRect.anchoredPosition = new Vector2(-280f, -20f);
+                descRect.sizeDelta = new Vector2(300f, 30f);
+                Text descTxt = descObj.AddComponent<Text>();
+                descTxt.font = standardFont;
+                descTxt.text = upgradeDescs[k];
+                descTxt.fontSize = 16;
+                descTxt.alignment = TextAnchor.MiddleLeft;
+                descTxt.color = Color.gray;
+
+                // Circulitos / Cuadraditos de niveles
+                GameObject levelsObj = new GameObject("Niveles", typeof(RectTransform));
+                RectTransform levelsRect = levelsObj.GetComponent<RectTransform>();
+                levelsRect.SetParent(rowRect, false);
+                levelsRect.anchoredPosition = new Vector2(50f, 0f);
+                levelsRect.sizeDelta = new Vector2(150f, 30f);
+
+                for (int d = 0; d < 3; d++)
+                {
+                    GameObject dotObj = new GameObject("Dot_" + d, typeof(RectTransform));
+                    RectTransform dotRect = dotObj.GetComponent<RectTransform>();
+                    dotRect.SetParent(levelsRect, false);
+                    dotRect.anchoredPosition = new Vector2(-45f + (d * 45f), 0f);
+                    dotRect.sizeDelta = new Vector2(25f, 25f);
+                    Image dotImg = dotObj.AddComponent<Image>();
+                    dotImg.color = new Color(0.4f, 0.4f, 0.4f, 1f); // Gris inactivo por defecto
+                }
+
+                // Botón comprar
+                GameObject btnBuyObj = new GameObject("Boton_Comprar", typeof(RectTransform));
+                RectTransform btnBuyRect = btnBuyObj.GetComponent<RectTransform>();
+                btnBuyRect.SetParent(rowRect, false);
+                btnBuyRect.anchoredPosition = new Vector2(280f, 0f);
+                btnBuyRect.sizeDelta = new Vector2(160f, 60f);
+
+                Image btnBuyImg = btnBuyObj.AddComponent<Image>();
+                btnBuyImg.color = new Color(1f, 0.8f, 0f, 1f); // Amarillo
+
+                GameObject btnTxtObj = new GameObject("Text", typeof(RectTransform));
+                RectTransform btnTxtRect = btnTxtObj.GetComponent<RectTransform>();
+                btnTxtRect.SetParent(btnBuyRect, false);
+                btnTxtRect.anchoredPosition = Vector2.zero;
+                btnTxtRect.sizeDelta = new Vector2(160f, 60f);
+                Text btnText = btnTxtObj.AddComponent<Text>();
+                btnText.font = standardFont;
+                btnText.text = "$50";
+                btnText.fontSize = 22;
+                btnText.alignment = TextAnchor.MiddleCenter;
+                btnText.color = Color.black;
+
+                Button btnBuy = btnBuyObj.AddComponent<Button>();
+
+                // Vincular eventos persistentemente por reflexión / UnityEventTools
+                if (key == "Bici")
+                    UnityEditor.Events.UnityEventTools.AddPersistentListener(btnBuy.onClick, uiManager.ComprarMejoraBici);
+                else if (key == "Suspension")
+                    UnityEditor.Events.UnityEventTools.AddPersistentListener(btnBuy.onClick, uiManager.ComprarMejoraSuspension);
+                else if (key == "Mochila")
+                    UnityEditor.Events.UnityEventTools.AddPersistentListener(btnBuy.onClick, uiManager.ComprarMejoraMochila);
+                else if (key == "Tiempo")
+                    UnityEditor.Events.UnityEventTools.AddPersistentListener(btnBuy.onClick, uiManager.ComprarMejoraTiempo);
+            }
+
+            // Botón Continuar / Siguiente Nivel
+            GameObject btnContObj = new GameObject("BotonContinuar", typeof(RectTransform));
+            RectTransform btnContRect = btnContObj.GetComponent<RectTransform>();
+            btnContRect.SetParent(centerCardRect, false);
+            btnContRect.anchoredPosition = new Vector2(0f, -310f);
+            btnContRect.sizeDelta = new Vector2(300f, 75f);
+
+            Image btnContImg = btnContObj.AddComponent<Image>();
+            btnContImg.color = new Color(0f, 0.7f, 0.3f, 1f); // Verde
+
+            GameObject btnContTxtObj = new GameObject("Text", typeof(RectTransform));
+            RectTransform btnContTxtRect = btnContTxtObj.GetComponent<RectTransform>();
+            btnContTxtRect.SetParent(btnContRect, false);
+            btnContTxtRect.anchoredPosition = Vector2.zero;
+            btnContTxtRect.sizeDelta = new Vector2(300f, 75f);
+            Text btnContText = btnContTxtObj.AddComponent<Text>();
+            btnContText.font = standardFont;
+            btnContText.text = "CONTINUAR";
+            btnContText.fontSize = 24;
+            btnContText.alignment = TextAnchor.MiddleCenter;
+            btnContText.color = Color.white;
+
+            Button btnCont = btnContObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnCont.onClick, uiManager.CerrarTienda);
+
+            // Inyectar el panel de la tienda en el AdministradorUI por reflexión
+            var shopPanelField = typeof(AdministradorUI).GetField("shopPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (shopPanelField != null)
+            {
+                shopPanelField.SetValue(uiManager, shopPanelObj);
+                EditorUtility.SetDirty(uiManager);
+                Debug.Log("✅ shopPanel inyectado en AdministradorUI.");
+            }
         }
     }
 }

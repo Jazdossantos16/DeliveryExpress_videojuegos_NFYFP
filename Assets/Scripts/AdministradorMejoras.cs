@@ -30,6 +30,16 @@ namespace DeliveryExpress
         private int currentBackpackLevel = 0;
         private int currentExtraTimeLevel = 0;
 
+        public int CurrentBicycleLevel => currentBicycleLevel;
+        public int CurrentSuspensionLevel => currentSuspensionLevel;
+        public int CurrentBackpackLevel => currentBackpackLevel;
+        public int CurrentExtraTimeLevel => currentExtraTimeLevel;
+
+        public UpgradeTier[] BicycleSpeedTiers => bicycleSpeedTiers;
+        public UpgradeTier[] SuspensionTiers => suspensionTiers;
+        public UpgradeTier[] BackpackTiers => backpackTiers;
+        public UpgradeTier[] ExtraTimeTiers => extraTimeTiers;
+
         private void Awake()
         {
             if (Instance == null)
