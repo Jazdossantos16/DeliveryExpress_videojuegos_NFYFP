@@ -85,7 +85,14 @@ namespace DeliveryExpress
             // Restablecemos las vidas al iniciar el día
             currentLives = startingLives;
             
-            baseLevelDuration = 60f;
+            if (currentDay == 2)
+            {
+                baseLevelDuration = 75f;
+            }
+            else
+            {
+                baseLevelDuration = 60f;
+            }
             // Sumamos el tiempo de las mejoras adquiridas
             totalLevelDuration = baseLevelDuration + extraTimeUpgrade;
             timeRemaining = totalLevelDuration;
