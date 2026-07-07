@@ -2426,6 +2426,24 @@ namespace DeliveryExpress.Editor
                 Debug.Log("✅ orderDetailsPanel inyectado en AdministradorUI.");
             }
 
+            // Inyectar los sprites de detalle de pedido de nivel 1 y 2
+            EnsureIsSprite("Assets/sprites/UI/imagen_pedido.png");
+            EnsureIsSprite("Assets/sprites/UI/imagen_nivel2.png");
+            Sprite spriteDetailsLvl1 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/imagen_pedido.png");
+            Sprite spriteDetailsLvl2 = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/imagen_nivel2.png");
+
+            var fieldLvl1 = typeof(AdministradorUI).GetField("orderDetailsSpriteLevel1", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldLvl1 != null && spriteDetailsLvl1 != null)
+            {
+                fieldLvl1.SetValue(uiManager, spriteDetailsLvl1);
+            }
+
+            var fieldLvl2 = typeof(AdministradorUI).GetField("orderDetailsSpriteLevel2", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldLvl2 != null && spriteDetailsLvl2 != null)
+            {
+                fieldLvl2.SetValue(uiManager, spriteDetailsLvl2);
+            }
+
             // Crear el panel de la tienda de mejoras
             CrearPanelTienda(canvas, uiManager);
 

@@ -80,6 +80,9 @@ namespace DeliveryExpress
         [SerializeField] private InputField victoryNameInputField;
         [SerializeField] private Button victorySaveButton;
         [SerializeField] private Text victoryLeaderboardText;
+        [Header("Sprites de Detalle de Pedido")]
+        [SerializeField] private Sprite orderDetailsSpriteLevel1;
+        [SerializeField] private Sprite orderDetailsSpriteLevel2;
 
         [Header("Iconos de Configuración")]
         [SerializeField] private Image musicIconImage;
@@ -955,6 +958,24 @@ namespace DeliveryExpress
 
             if (orderDetailsPanel != null)
             {
+                Transform contentTrans = orderDetailsPanel.transform.Find("Contenido");
+                if (contentTrans != null)
+                {
+                    Image img = contentTrans.GetComponent<Image>();
+                    if (img != null)
+                    {
+                        int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+                        if (currentDay == 2 && orderDetailsSpriteLevel2 != null)
+                        {
+                            img.sprite = orderDetailsSpriteLevel2;
+                        }
+                        else if (orderDetailsSpriteLevel1 != null)
+                        {
+                            img.sprite = orderDetailsSpriteLevel1;
+                        }
+                    }
+                }
+
                 orderDetailsPanel.SetActive(true);
                 Debug.Log("📦 Panel de detalle del pedido abierto. ¿Viene del mapa? " + cameFromMap);
             }
