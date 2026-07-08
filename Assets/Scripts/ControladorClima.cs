@@ -56,10 +56,14 @@ namespace DeliveryExpress
             main.duration = 10f;
             main.loop = true;
             main.startLifetime = 1.2f; // Tiempo de vida suficiente para cruzar la pantalla en 2D
-            main.startSpeed = 20f;
+            main.startSpeed = 22f; // Velocidad constante y rápida
             main.startSize = 0.035f; // Gotas finas y estéticas
             main.startColor = new Color(0.85f, 0.9f, 1f, 0.15f); // Translúcido
-            main.gravityModifier = 1.3f;
+            
+            // CRÍTICO: Desactivamos la gravedad (0f) para que las gotas viajen en línea recta
+            // perfecta según el ángulo del viento. Si hay gravedad, la trayectoria se curva
+            // hacia abajo a mitad de camino, haciendo que las gotas se doblen de forma muy rara.
+            main.gravityModifier = 0f;
             
             // CRÍTICO: Simulación LOCAL para que las partículas se desplacen con la cámara
             // y nunca se corten al final de la pantalla por movimiento de scroll
