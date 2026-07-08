@@ -100,6 +100,12 @@ namespace DeliveryExpress
                 pRenderer.renderMode = ParticleSystemRenderMode.Stretch;
                 pRenderer.lengthScale = 2.0f; // Estiramiento natural
                 pRenderer.velocityScale = 0.15f; // Estirado suave por velocidad
+                
+                // CRÍTICO: Asignar Sorting Layer y Order alto para renderizar en el frente (Foreground)
+                // Evita que la lluvia quede tapada por los edificios, obstáculos o la casa final (meta)
+                pRenderer.sortingLayerName = "Default";
+                pRenderer.sortingOrder = 25; 
+                
                 if (defaultSpriteMat != null)
                 {
                     pRenderer.material = defaultSpriteMat;
