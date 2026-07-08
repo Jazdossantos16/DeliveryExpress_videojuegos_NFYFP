@@ -61,6 +61,16 @@ namespace DeliveryExpress
             // Inclinamos el ángulo de caída simulando el empuje del viento lateral
             rainObj.transform.rotation = Quaternion.Euler(75f, 0f, 18f);
 
+            // Obtener el material de Sprite por defecto para evitar el shader rosa (magenta)
+            Material defaultSpriteMat = null;
+            GameObject tempObj = new GameObject("TempSprite");
+            SpriteRenderer tempRenderer = tempObj.AddComponent<SpriteRenderer>();
+            if (tempRenderer != null)
+            {
+                defaultSpriteMat = tempRenderer.sharedMaterial;
+            }
+            Destroy(tempObj);
+
             // Configurar el renderizador en modo estirado (Stretch) para simular gotas veloces
             var pRenderer = rainObj.GetComponent<ParticleSystemRenderer>();
             if (pRenderer != null)
@@ -68,6 +78,10 @@ namespace DeliveryExpress
                 pRenderer.renderMode = ParticleSystemRenderMode.Stretch;
                 pRenderer.lengthScale = 3.5f;
                 pRenderer.velocityScale = 0.4f;
+                if (defaultSpriteMat != null)
+                {
+                    pRenderer.material = defaultSpriteMat;
+                }
             }
 
             rainParticles.Play();
