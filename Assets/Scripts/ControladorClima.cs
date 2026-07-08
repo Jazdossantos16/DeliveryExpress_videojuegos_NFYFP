@@ -56,18 +56,20 @@ namespace DeliveryExpress
             main.duration = 10f;
             main.loop = true;
             main.startLifetime = 1.2f; // Tiempo de vida suficiente para cruzar la pantalla en 2D
-            main.startSpeed = 22f; // Velocidad constante y rápida
+            main.startSpeed = 0f; // CRÍTICO: 0f para evitar que salgan disparadas en el eje Z (profundidad 3D) de la caja
             main.startSize = 0.035f; // Gotas finas y estéticas
             main.startColor = new Color(0.85f, 0.9f, 1f, 0.15f); // Translúcido
-            
-            // CRÍTICO: Desactivamos la gravedad (0f) para que las gotas viajen en línea recta
-            // perfecta según el ángulo del viento. Si hay gravedad, la trayectoria se curva
-            // hacia abajo a mitad de camino, haciendo que las gotas se doblen de forma muy rara.
-            main.gravityModifier = 0f;
-            
-            // CRÍTICO: Simulación LOCAL para que las partículas se desplacen con la cámara
-            // y nunca se corten al final de la pantalla por movimiento de scroll
+            main.gravityModifier = 0f; // Sin gravedad para evitar curvaturas
             main.simulationSpace = ParticleSystemSimulationSpace.Local;
+
+            // --- CONFIGURAR VELOCIDAD EN 2D STRICTO (X, Y) ---
+            var velocityModule = rainParticles.velocityOverLifetime;
+            velocityModule.enabled = true;
+            velocityModule.space = ParticleSystemSimulationSpace.Local;
+            // Para caer inclinado a la izquierda (X negativo) y hacia abajo (Y negativo) a ~22 units/sec
+            velocityModule.x = new ParticleSystem.MinMaxCurve(-5.7f);
+            velocityModule.y = new ParticleSystem.MinMaxCurve(-21.2f);
+            velocityModule.z = new ParticleSystem.MinMaxCurve(0f); // Estrictamente 0 en profundidad 2D
 
             // Emisión constante
             var emission = rainParticles.emission;
@@ -78,10 +80,8 @@ namespace DeliveryExpress
             shape.shapeType = ParticleSystemShapeType.Box;
             shape.scale = new Vector3(22f, 1f, 1f);
 
-            // CRÍTICO: Inclinamos SOLO en el eje Z (15 grados) para que caiga de costado en 2D.
-            // Si inclinamos en X o Y, las partículas se mueven en el eje Z de profundidad
-            // y desaparecen detrás del fondo o fuera del plano de la cámara 2D.
-            rainObj.transform.rotation = Quaternion.Euler(0f, 0f, 15f);
+            // Mantenemos la rotación en cero para asegurar que la caja emita horizontalmente en el plano 2D
+            rainObj.transform.rotation = Quaternion.identity;
 
             // Obtener el material de Sprite por defecto para evitar el shader rosa (magenta)
             Material defaultSpriteMat = null;
