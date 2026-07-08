@@ -55,9 +55,11 @@ namespace DeliveryExpress
             var main = rainParticles.main;
             main.duration = 10f;
             main.loop = true;
-            main.startLifetime = 1.2f; // Tiempo de vida suficiente para cruzar la pantalla en 2D
+            // Aleatorizar tiempo de vida para que no desaparezcan todas a la misma altura
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.9f, 1.4f); 
             main.startSpeed = 0f; // CRÍTICO: 0f para evitar que salgan disparadas en el eje Z (profundidad 3D) de la caja
-            main.startSize = 0.035f; // Gotas finas y estéticas
+            // Aleatorizar tamaño de gota para dar sensación de profundidad natural (primer plano vs fondo)
+            main.startSize = new ParticleSystem.MinMaxCurve(0.018f, 0.035f); 
             main.startColor = new Color(0.85f, 0.9f, 1f, 0.15f); // Translúcido
             main.gravityModifier = 0f; // Sin gravedad para evitar curvaturas
             main.simulationSpace = ParticleSystemSimulationSpace.Local;
@@ -66,9 +68,9 @@ namespace DeliveryExpress
             var velocityModule = rainParticles.velocityOverLifetime;
             velocityModule.enabled = true;
             velocityModule.space = ParticleSystemSimulationSpace.Local;
-            // Para caer de forma totalmente vertical (arriba a abajo) a 22 units/sec
+            // Aleatorizar velocidad de caída (Y) para que no caigan en una grilla perfecta computarizada
             velocityModule.x = new ParticleSystem.MinMaxCurve(0f);
-            velocityModule.y = new ParticleSystem.MinMaxCurve(-22f);
+            velocityModule.y = new ParticleSystem.MinMaxCurve(-16f, -26f); 
             velocityModule.z = new ParticleSystem.MinMaxCurve(0f); // Estrictamente 0 en profundidad 2D
 
             // Emisión constante
