@@ -248,8 +248,7 @@ namespace DeliveryExpress
         {
             if (isPlayingVideo && !isTransitioning)
             {
-                // Permitir saltar presionando cualquier tecla común de acción (E, Espacio, Enter, Escape) o haciendo clic con el mouse
-                if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Return) || Input.GetMouseButtonDown(0))
+                if (Input.GetKeyDown(KeyCode.E))
                 {
                     isTransitioning = true;
                     StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => {
@@ -442,9 +441,8 @@ namespace DeliveryExpress
             videoPlayer.SetDirectAudioMute(0, !musicOn);
 #endif
             
-            // Suscribirse al evento de finalización y error de reproducción
+            // Suscribirse al evento de finalización
             videoPlayer.loopPointReached += AlTerminarVideo;
-            videoPlayer.errorReceived += AlRecibirErrorVideo;
 
             // Activar y traer al frente el texto de Skip persistente (o su panel contenedor)
             if (skipText != null)
@@ -476,32 +474,6 @@ namespace DeliveryExpress
 
             // Hacemos fade-out del overlay negro para revelar el video
             StartCoroutine(FadeScreen(1f, 0f, 0.8f));
-
-            // CORUTINA DE SEGURIDAD INTERNA: Si el video se congela o falla en reproducirse sin lanzar error,
-            // forzamos el salto automático del video tras un tiempo máximo (duración del clip + 1s, o 6s por defecto)
-            float maxPlayDuration = 6f;
-            if (videoPlayer.clip != null && videoPlayer.clip.length > 0)
-            {
-                maxPlayDuration = (float)videoPlayer.clip.length + 1f;
-            }
-            
-            float playStartTime = Time.realtimeSinceStartup;
-            while (isPlayingVideo)
-            {
-                if (Time.realtimeSinceStartup - playStartTime > maxPlayDuration)
-                {
-                    Debug.LogWarning("⚠️ Tiempo máximo de reproducción excedido (Safety Timeout). Saltando intro de forma forzada...");
-                    FinalizarIntroVideo();
-                    yield break;
-                }
-                yield return null;
-            }
-        }
-
-        private void AlRecibirErrorVideo(UnityEngine.Video.VideoPlayer vp, string message)
-        {
-            Debug.LogError("⚠️ Error al reproducir video de intro: " + message + ". Saltando video...");
-            FinalizarIntroVideo();
         }
 
         private void AlTerminarVideo(UnityEngine.Video.VideoPlayer vp)
@@ -522,7 +494,6 @@ namespace DeliveryExpress
             if (videoPlayer != null)
             {
                 videoPlayer.loopPointReached -= AlTerminarVideo;
-                videoPlayer.errorReceived -= AlRecibirErrorVideo;
             }
 
             // Desactivar el texto de Skip persistente (o su panel contenedor)
