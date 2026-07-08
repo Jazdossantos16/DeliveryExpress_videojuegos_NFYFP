@@ -441,8 +441,9 @@ namespace DeliveryExpress
             videoPlayer.SetDirectAudioMute(0, !musicOn);
 #endif
             
-            // Suscribirse al evento de finalización
+            // Suscribirse al evento de finalización y error de reproducción
             videoPlayer.loopPointReached += AlTerminarVideo;
+            videoPlayer.errorReceived += AlRecibirErrorVideo;
 
             // Activar y traer al frente el texto de Skip persistente (o su panel contenedor)
             if (skipText != null)
@@ -476,6 +477,12 @@ namespace DeliveryExpress
             StartCoroutine(FadeScreen(1f, 0f, 0.8f));
         }
 
+        private void AlRecibirErrorVideo(UnityEngine.Video.VideoPlayer vp, string message)
+        {
+            Debug.LogError("⚠️ Error al reproducir video de intro: " + message + ". Saltando video...");
+            FinalizarIntroVideo();
+        }
+
         private void AlTerminarVideo(UnityEngine.Video.VideoPlayer vp)
         {
             if (isTransitioning) return;
@@ -494,6 +501,7 @@ namespace DeliveryExpress
             if (videoPlayer != null)
             {
                 videoPlayer.loopPointReached -= AlTerminarVideo;
+                videoPlayer.errorReceived -= AlRecibirErrorVideo;
             }
 
             // Desactivar el texto de Skip persistente (o su panel contenedor)
