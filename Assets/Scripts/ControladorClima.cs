@@ -42,16 +42,16 @@ namespace DeliveryExpress
             var main = rainParticles.main;
             main.duration = 10f;
             main.loop = true;
-            main.startLifetime = 1.5f;
-            main.startSpeed = 16f;
-            main.startSize = 0.12f;
-            main.startColor = new Color(0.65f, 0.78f, 0.95f, 0.35f); // Celeste lluvia suave y translúcido
-            main.gravityModifier = 1.2f;
+            main.startLifetime = 1.0f;
+            main.startSpeed = 24f;
+            main.startSize = 0.03f; // Gotas mucho más finas
+            main.startColor = new Color(0.85f, 0.9f, 1f, 0.15f); // Muy translúcido para evitar barras opacas
+            main.gravityModifier = 1.3f;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
 
             // Emisión de partículas por segundo
             var emission = rainParticles.emission;
-            emission.rateOverTime = 95f; 
+            emission.rateOverTime = 120f; // Más cantidad pero más finas
 
             // Caja de emisión para cubrir todo el ancho de la calle
             var shape = rainParticles.shape;
@@ -76,8 +76,8 @@ namespace DeliveryExpress
             if (pRenderer != null)
             {
                 pRenderer.renderMode = ParticleSystemRenderMode.Stretch;
-                pRenderer.lengthScale = 3.5f;
-                pRenderer.velocityScale = 0.4f;
+                pRenderer.lengthScale = 2.0f; // Estiramiento menos exagerado
+                pRenderer.velocityScale = 0.15f; // Ajuste suave de estirado por velocidad
                 if (defaultSpriteMat != null)
                 {
                     pRenderer.material = defaultSpriteMat;
