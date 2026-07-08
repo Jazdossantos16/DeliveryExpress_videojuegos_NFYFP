@@ -51,6 +51,9 @@ namespace DeliveryExpress
             // Añadir el componente de sistema de partículas
             rainParticles = rainObj.AddComponent<ParticleSystem>();
             
+            // CRÍTICO: Detener la reproducción automática para poder modificar la duración sin errores de consola
+            rainParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            
             // --- CONFIGURACIÓN DEL SISTEMA DE PARTÍCULAS ---
             var main = rainParticles.main;
             main.duration = 10f;
@@ -68,10 +71,12 @@ namespace DeliveryExpress
             var velocityModule = rainParticles.velocityOverLifetime;
             velocityModule.enabled = true;
             velocityModule.space = ParticleSystemSimulationSpace.Local;
-            // Aleatorizar velocidad de caída (Y) para que no caigan en una grilla perfecta computarizada
-            velocityModule.x = new ParticleSystem.MinMaxCurve(0f);
+            
+            // CRÍTICO: Todas las curvas de velocidad deben estar en el mismo modo (Dos Constantes).
+            // Si Y usa (-16, -26), X y Z también deben usar (0, 0) en lugar de una constante simple.
+            velocityModule.x = new ParticleSystem.MinMaxCurve(0f, 0f);
             velocityModule.y = new ParticleSystem.MinMaxCurve(-16f, -26f); 
-            velocityModule.z = new ParticleSystem.MinMaxCurve(0f); // Estrictamente 0 en profundidad 2D
+            velocityModule.z = new ParticleSystem.MinMaxCurve(0f, 0f); // Estrictamente 0 en profundidad 2D
 
             // Emisión constante
             var emission = rainParticles.emission;
