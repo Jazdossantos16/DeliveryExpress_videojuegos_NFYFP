@@ -10,7 +10,7 @@ namespace DeliveryExpress
     public class ControladorClima : MonoBehaviour
     {
         private ParticleSystem rainParticles;
-        private float steadyEmissionRate = 240f;
+        private float steadyEmissionRate = 120f;
 
         /// <summary>
         /// Intensidad climática constante del nivel (1.0 cuando está activo).
