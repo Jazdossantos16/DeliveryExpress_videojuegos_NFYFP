@@ -967,7 +967,7 @@ namespace DeliveryExpress
                             {
                                 if (currentDay == 2)
                                 {
-                                    comenzarRect.anchoredPosition = new Vector2(0f, -310f); // Bajarlo en el Nivel 2
+                                    comenzarRect.anchoredPosition = new Vector2(0f, -280f); // Posición intermedia perfecta para el Nivel 2
                                 }
                                 else
                                 {
