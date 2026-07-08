@@ -55,10 +55,10 @@ namespace DeliveryExpress
             var main = rainParticles.main;
             main.duration = 10f;
             main.loop = true;
-            main.startLifetime = 1.0f; // Con simulación local, 1 segundo es suficiente para cruzar toda la pantalla
-            main.startSpeed = 24f;
-            main.startSize = 0.03f; // Gotas finas y realistas
-            main.startColor = new Color(0.85f, 0.9f, 1f, 0.15f); // Translúcido y estético
+            main.startLifetime = 1.2f; // Tiempo de vida suficiente para cruzar la pantalla en 2D
+            main.startSpeed = 20f;
+            main.startSize = 0.035f; // Gotas finas y estéticas
+            main.startColor = new Color(0.85f, 0.9f, 1f, 0.15f); // Translúcido
             main.gravityModifier = 1.3f;
             
             // CRÍTICO: Simulación LOCAL para que las partículas se desplacen con la cámara
@@ -69,13 +69,15 @@ namespace DeliveryExpress
             var emission = rainParticles.emission;
             emission.rateOverTime = steadyEmissionRate; 
 
-            // Caja de emisión para cubrir todo el ancho de la calle
+            // Caja de emisión para cubrir todo el ancho de la calle (más ancha por la inclinación)
             var shape = rainParticles.shape;
             shape.shapeType = ParticleSystemShapeType.Box;
-            shape.scale = new Vector3(16f, 1f, 1f);
+            shape.scale = new Vector3(22f, 1f, 1f);
 
-            // Inclinamos el ángulo de caída simulando el empuje del viento lateral
-            rainObj.transform.rotation = Quaternion.Euler(75f, 0f, 18f);
+            // CRÍTICO: Inclinamos SOLO en el eje Z (15 grados) para que caiga de costado en 2D.
+            // Si inclinamos en X o Y, las partículas se mueven en el eje Z de profundidad
+            // y desaparecen detrás del fondo o fuera del plano de la cámara 2D.
+            rainObj.transform.rotation = Quaternion.Euler(0f, 0f, 15f);
 
             // Obtener el material de Sprite por defecto para evitar el shader rosa (magenta)
             Material defaultSpriteMat = null;
