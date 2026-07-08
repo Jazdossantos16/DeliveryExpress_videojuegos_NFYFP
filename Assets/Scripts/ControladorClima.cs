@@ -5,18 +5,44 @@ namespace DeliveryExpress
     /// <summary>
     /// Controlador de efectos climáticos procedurales para las distintas jornadas de trabajo.
     /// Genera sistemas de partículas de lluvia en tiempo de ejecución sin depender de assets externos.
+    /// Soporta intervalos de lluvia y viento con ráfagas suaves que van y vienen.
     /// </summary>
     public class ControladorClima : MonoBehaviour
     {
         private ParticleSystem rainParticles;
+        private float maxEmissionRate = 140f;
+
+        /// <summary>
+        /// Intensidad climática actual de la ráfaga (de 0 a 1).
+        /// Afecta tanto la cantidad de lluvia visual como la fuerza física del viento en el jugador.
+        /// </summary>
+        public static float IntensidadClima { get; private set; } = 0f;
 
         private void Start()
         {
+            IntensidadClima = 0f; // Resetear al iniciar la jornada
+            
             int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
             if (currentDay == 2)
             {
                 CrearSistemaLluvia();
             }
+        }
+
+        private void Update()
+        {
+            if (rainParticles == null) return;
+
+            // Oscilación suave con períodos de calma total.
+            // La función Seno oscila entre -1 y 1. La escalamos y limitamos para tener:
+            // - Un período de tormenta de viento y lluvia (cuando es > 0)
+            // - Un período de calma absoluta (cuando es <= 0)
+            float wave = Mathf.Sin(Time.time * 0.25f); // Ciclo completo de aprox 25 segundos
+            IntensidadClima = Mathf.Clamp01(wave * 1.6f + 0.4f); 
+
+            // Actualizar tasa de emisión de partículas dinámicamente
+            var emission = rainParticles.emission;
+            emission.rateOverTime = IntensidadClima * maxEmissionRate;
         }
 
         private void CrearSistemaLluvia()
@@ -28,7 +54,7 @@ namespace DeliveryExpress
             Camera cam = Camera.main;
             if (cam != null)
             {
-                rainObj.transform.position = new Vector3(0f, cam.orthographicSize + 2f, 0f);
+                rainObj.transform.position = new Vector3(0f, cam.orthographicSize + 2.5f, 0f);
             }
             else
             {
@@ -42,16 +68,16 @@ namespace DeliveryExpress
             var main = rainParticles.main;
             main.duration = 10f;
             main.loop = true;
-            main.startLifetime = 1.0f;
-            main.startSpeed = 24f;
-            main.startSize = 0.03f; // Gotas mucho más finas
-            main.startColor = new Color(0.85f, 0.9f, 1f, 0.15f); // Muy translúcido para evitar barras opacas
+            main.startLifetime = 1.8f; // Mayor duración para asegurar que caigan por debajo del límite de pantalla sin cortarse
+            main.startSpeed = 22f;
+            main.startSize = 0.035f; // Gotas muy finas y estilizadas
+            main.startColor = new Color(0.85f, 0.9f, 1f, 0.15f); // Muy translúcido para evitar barras opacas molestas
             main.gravityModifier = 1.3f;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
 
-            // Emisión de partículas por segundo
+            // Emisión inicial (será controlada en el Update)
             var emission = rainParticles.emission;
-            emission.rateOverTime = 120f; // Más cantidad pero más finas
+            emission.rateOverTime = 0f; 
 
             // Caja de emisión para cubrir todo el ancho de la calle
             var shape = rainParticles.shape;
@@ -85,7 +111,12 @@ namespace DeliveryExpress
             }
 
             rainParticles.Play();
-            Debug.Log("🌧️ Sistema de lluvia procedural creado para la Jornada 2.");
+            Debug.Log("🌧️ Sistema de lluvia procedural creado para la Jornada 2 con ciclo dinámico.");
+        }
+
+        private void OnDestroy()
+        {
+            IntensidadClima = 0f; // Asegurar que el clima vuelva a cero al destruir el nivel
         }
     }
 }

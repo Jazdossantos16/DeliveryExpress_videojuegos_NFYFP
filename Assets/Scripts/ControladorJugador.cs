@@ -310,8 +310,8 @@ namespace DeliveryExpress
             float windTiltEffect = 0f;
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.CurrentDay == 2)
             {
-                // Un viento cruzado que sopla rítmicamente inclinando la bicicleta
-                windTiltEffect = Mathf.Sin(Time.time * 0.8f) * 11f;
+                // El viento cruzado escala con la intensidad actual del clima (las ráfagas de lluvia)
+                windTiltEffect = Mathf.Sin(Time.time * 0.8f) * 12f * ControladorClima.IntensidadClima;
             }
 
             currentTiltAngle = Mathf.Lerp(currentTiltAngle, targetTilt + wobbleTiltEffect + windTiltEffect, 8f * Time.deltaTime);
@@ -404,8 +404,8 @@ namespace DeliveryExpress
             float windWobble = 0f;
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.CurrentDay == 2)
             {
-                // El viento empuja físicamente la bicicleta de forma oscilante
-                windWobble = Mathf.Sin(Time.time * 0.8f) * 0.16f;
+                // El empuje lateral del viento escala con la intensidad actual del clima (las ráfagas de lluvia)
+                windWobble = Mathf.Sin(Time.time * 0.8f) * 0.18f * ControladorClima.IntensidadClima;
             }
 
             float finalX = targetX + wobbleOffset + windWobble;
