@@ -97,6 +97,13 @@ namespace DeliveryExpress
             totalLevelDuration = baseLevelDuration + extraTimeUpgrade;
             timeRemaining = totalLevelDuration;
 
+            // Instanciar el controlador de clima si es la Jornada 2
+            if (currentDay == 2)
+            {
+                GameObject climaObj = new GameObject("ControladorClima");
+                climaObj.AddComponent<ControladorClima>();
+            }
+
             // No hay entregas intermedias en este modo
             totalDeliveriesRequired = 0;
             currentDeliveriesCompleted = 0;

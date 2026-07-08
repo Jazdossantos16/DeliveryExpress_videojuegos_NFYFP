@@ -302,12 +302,19 @@ namespace DeliveryExpress
             targetX = Mathf.MoveTowards(targetX, targetLaneX, currentLateralSpeed * Time.deltaTime);
 
             // --- CÁLCULO DE INCLINACIÓN Y EQUILIBRIO ---
-            // 1. Inclinación visual basada en la velocidad de transición lateral y el efecto de tambaleo
+            // 1. Inclinación visual basada en la velocidad de transición lateral, el efecto de tambaleo y el viento de costado
             float rawLateralSpeed = Time.deltaTime > 0 ? (targetX - prevX) / Time.deltaTime : 0f;
             float targetTilt = (rawLateralSpeed / laneTransitionSpeed) * maxTiltAngle;
             float wobbleTiltEffect = wobbleOffset * 15f; // Convertir el offset lateral a grados visuales
+            
+            float windTiltEffect = 0f;
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.CurrentDay == 2)
+            {
+                // Un viento cruzado que sopla rítmicamente inclinando la bicicleta
+                windTiltEffect = Mathf.Sin(Time.time * 0.8f) * 11f;
+            }
 
-            currentTiltAngle = Mathf.Lerp(currentTiltAngle, targetTilt + wobbleTiltEffect, 8f * Time.deltaTime);
+            currentTiltAngle = Mathf.Lerp(currentTiltAngle, targetTilt + wobbleTiltEffect + windTiltEffect, 8f * Time.deltaTime);
             currentTiltAngle = Mathf.Clamp(currentTiltAngle, -maxTiltAngle - 5f, maxTiltAngle + 5f);
 
             // 2. Desgaste y recuperación del nivel de equilibrio del jugador
@@ -394,12 +401,19 @@ namespace DeliveryExpress
                 wobbleOffset = 0f;
             }
 
-            float finalX = targetX + wobbleOffset;
+            float windWobble = 0f;
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.CurrentDay == 2)
+            {
+                // El viento empuja físicamente la bicicleta de forma oscilante
+                windWobble = Mathf.Sin(Time.time * 0.8f) * 0.16f;
+            }
+
+            float finalX = targetX + wobbleOffset + windWobble;
             
             if (Mathf.Abs(finalX) >= screenLimitX)
             {
                 finalX = Mathf.Sign(finalX) * screenLimitX;
-                targetX = finalX - wobbleOffset; // Limitamos la variable objetivo para evitar el desplazamiento fuera de la calle
+                targetX = finalX - wobbleOffset - windWobble; // Limitamos la variable objetivo para evitar el desplazamiento fuera de la calle
 
                 // Si colisionar contra el cordón de la vereda inflige daño (parámetro configurable)
                 if (curbDamage && !isInvulnerable)
