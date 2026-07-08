@@ -10,7 +10,7 @@ namespace DeliveryExpress
     public class ControladorClima : MonoBehaviour
     {
         private ParticleSystem rainParticles;
-        private float steadyEmissionRate = 120f;
+        private float steadyEmissionRate = 240f;
 
         /// <summary>
         /// Intensidad climática constante del nivel (1.0 cuando está activo).
@@ -75,10 +75,10 @@ namespace DeliveryExpress
             var emission = rainParticles.emission;
             emission.rateOverTime = steadyEmissionRate; 
 
-            // Caja de emisión para cubrir todo el ancho de la calle
+            // Caja de emisión extremadamente ancha para cubrir toda la pantalla globalmente (calle, veredas y edificios)
             var shape = rainParticles.shape;
             shape.shapeType = ParticleSystemShapeType.Box;
-            shape.scale = new Vector3(16f, 1f, 1f);
+            shape.scale = new Vector3(32f, 1f, 1f);
 
             // Mantenemos la rotación en cero para asegurar que la caja emita horizontalmente en el plano 2D
             rainObj.transform.rotation = Quaternion.identity;
