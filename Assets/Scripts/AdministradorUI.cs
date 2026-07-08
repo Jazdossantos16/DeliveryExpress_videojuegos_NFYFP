@@ -967,8 +967,8 @@ namespace DeliveryExpress
                             {
                                 if (currentDay == 2)
                                 {
-                                    comenzarRect.anchoredPosition = new Vector2(0f, -265f); // Ajuste fino de altura
-                                    comenzarRect.sizeDelta = new Vector2(350f, 110f); // Tamaño intermedio optimizado (ni muy chico, ni sobresalido)
+                                    comenzarRect.anchoredPosition = new Vector2(0f, -250f); // Posición ligeramente adaptada para Nivel 2
+                                    comenzarRect.sizeDelta = new Vector2(390f, 136f); // Restaurar tamaño original grande
                                 }
                                 else
                                 {
