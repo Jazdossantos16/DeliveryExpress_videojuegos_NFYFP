@@ -66,19 +66,19 @@ namespace DeliveryExpress
             var velocityModule = rainParticles.velocityOverLifetime;
             velocityModule.enabled = true;
             velocityModule.space = ParticleSystemSimulationSpace.Local;
-            // Para caer inclinado a la izquierda (X negativo) y hacia abajo (Y negativo) a ~22 units/sec
-            velocityModule.x = new ParticleSystem.MinMaxCurve(-5.7f);
-            velocityModule.y = new ParticleSystem.MinMaxCurve(-21.2f);
+            // Para caer de forma totalmente vertical (arriba a abajo) a 22 units/sec
+            velocityModule.x = new ParticleSystem.MinMaxCurve(0f);
+            velocityModule.y = new ParticleSystem.MinMaxCurve(-22f);
             velocityModule.z = new ParticleSystem.MinMaxCurve(0f); // Estrictamente 0 en profundidad 2D
 
             // Emisión constante
             var emission = rainParticles.emission;
             emission.rateOverTime = steadyEmissionRate; 
 
-            // Caja de emisión para cubrir todo el ancho de la calle (más ancha por la inclinación)
+            // Caja de emisión para cubrir todo el ancho de la calle
             var shape = rainParticles.shape;
             shape.shapeType = ParticleSystemShapeType.Box;
-            shape.scale = new Vector3(22f, 1f, 1f);
+            shape.scale = new Vector3(16f, 1f, 1f);
 
             // Mantenemos la rotación en cero para asegurar que la caja emita horizontalmente en el plano 2D
             rainObj.transform.rotation = Quaternion.identity;

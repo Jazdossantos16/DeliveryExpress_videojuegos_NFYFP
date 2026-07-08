@@ -310,8 +310,8 @@ namespace DeliveryExpress
             float windTiltEffect = 0f;
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.CurrentDay == 2)
             {
-                // Viento cruzado hacia la izquierda (negativo) para coincidir con la dirección de la lluvia diagonal
-                windTiltEffect = (-7f + Mathf.Sin(Time.time * 0.8f) * -4f) * ControladorClima.IntensidadClima;
+                // Viento cruzado oscilante de lado a lado (+/- 8 grados)
+                windTiltEffect = Mathf.Sin(Time.time * 0.8f) * 8f * ControladorClima.IntensidadClima;
             }
 
             currentTiltAngle = Mathf.Lerp(currentTiltAngle, targetTilt + wobbleTiltEffect + windTiltEffect, 8f * Time.deltaTime);
@@ -404,8 +404,8 @@ namespace DeliveryExpress
             float windWobble = 0f;
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.CurrentDay == 2)
             {
-                // Empuje lateral hacia la izquierda (negativo) para coincidir con la dirección de la lluvia diagonal
-                windWobble = (-0.08f + Mathf.Sin(Time.time * 0.8f) * -0.08f) * ControladorClima.IntensidadClima;
+                // Empuje lateral oscilante simétrico (+/- 0.12f)
+                windWobble = Mathf.Sin(Time.time * 0.8f) * 0.12f * ControladorClima.IntensidadClima;
             }
 
             float finalX = targetX + wobbleOffset + windWobble;
