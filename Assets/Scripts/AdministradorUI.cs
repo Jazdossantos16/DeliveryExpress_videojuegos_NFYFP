@@ -967,11 +967,13 @@ namespace DeliveryExpress
                             {
                                 if (currentDay == 2)
                                 {
-                                    comenzarRect.anchoredPosition = new Vector2(0f, -280f); // Posición intermedia perfecta para el Nivel 2
+                                    comenzarRect.anchoredPosition = new Vector2(0f, -260f); // Ajuste fino de altura
+                                    comenzarRect.sizeDelta = new Vector2(320f, 95f); // Reducir tamaño para que quepa perfectamente dentro de los márgenes azules
                                 }
                                 else
                                 {
-                                    comenzarRect.anchoredPosition = new Vector2(0f, -240f); // Posición original en el Nivel 1
+                                    comenzarRect.anchoredPosition = new Vector2(0f, -240f); // Posición original
+                                    comenzarRect.sizeDelta = new Vector2(390f, 136f); // Tamaño original
                                 }
                             }
                         }
