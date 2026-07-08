@@ -105,8 +105,8 @@ namespace DeliveryExpress
             if (pRenderer != null)
             {
                 pRenderer.renderMode = ParticleSystemRenderMode.Stretch;
-                pRenderer.lengthScale = 2.0f; // Estiramiento natural
-                pRenderer.velocityScale = 0.15f; // Estirado suave por velocidad
+                pRenderer.lengthScale = 1.2f; // Gotas más cortas y sutiles
+                pRenderer.velocityScale = 0.04f; // Estirado suave y natural por velocidad
                 
                 // CRÍTICO: Asignar Sorting Layer y Order alto para renderizar en el frente (Foreground)
                 // Evita que la lluvia quede tapada por los edificios, obstáculos o la casa final (meta)
