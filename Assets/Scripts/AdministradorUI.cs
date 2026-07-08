@@ -957,6 +957,24 @@ namespace DeliveryExpress
                         {
                             img.sprite = orderDetailsSpriteLevel1;
                         }
+
+                        // Reposicionar dinámicamente el botón Comenzar para adaptarlo al diseño de la tarjeta de nivel
+                        Transform comenzarTrans = contentTrans.Find("BotonComenzar");
+                        if (comenzarTrans != null)
+                        {
+                            RectTransform comenzarRect = comenzarTrans.GetComponent<RectTransform>();
+                            if (comenzarRect != null)
+                            {
+                                if (currentDay == 2)
+                                {
+                                    comenzarRect.anchoredPosition = new Vector2(0f, -310f); // Bajarlo en el Nivel 2
+                                }
+                                else
+                                {
+                                    comenzarRect.anchoredPosition = new Vector2(0f, -240f); // Posición original en el Nivel 1
+                                }
+                            }
+                        }
                     }
                 }
 
