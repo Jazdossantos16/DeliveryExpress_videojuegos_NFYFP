@@ -341,7 +341,6 @@ namespace DeliveryExpress
                 AdministradorJuego.Instance.ResetCoins();
             }
             skipStartPanel = true;
-            showDetailsOnLoad = false; // No mostrar detalles al reiniciar
             Time.timeScale = 1f; // Asegura restablecer la escala de tiempo
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
