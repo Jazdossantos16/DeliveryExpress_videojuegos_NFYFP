@@ -119,6 +119,12 @@ namespace DeliveryExpress
                 {
                     startPanel.SetActive(false);
                 }
+
+                // CRÍTICO: Reiniciar el estado del juego para la nueva jornada
+                if (AdministradorJuego.Instance != null)
+                {
+                    AdministradorJuego.Instance.StartNewDay();
+                }
                 
                 int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
                 if (currentDay == 2)
