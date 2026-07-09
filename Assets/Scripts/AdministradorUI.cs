@@ -930,13 +930,17 @@ namespace DeliveryExpress
             }
             else
             {
-                // Pasar al Nivel 2: ocultar la pantalla de victoria y mostrar la tarjeta azul directamente.
-                // No hace falta recargar la escena — IniciarJuego() lo hará al presionar "Comenzar".
+                // Pasar al Nivel 2: ocultar la pantalla de victoria y mostrar la tarjeta azul.
+                // Detener el game loop para que el timer no dispare TriggerVictory mientras se lee la tarjeta.
+                if (AdministradorJuego.Instance != null)
+                {
+                    AdministradorJuego.Instance.StopGameLoop();
+                }
                 if (victoryPanel != null)
                 {
                     victoryPanel.SetActive(false);
                 }
-                Time.timeScale = 1f;
+                Time.timeScale = 0f; // Pausado mientras el jugador lee la tarjeta
                 AbrirDetallePedido();
             }
         }

@@ -320,6 +320,15 @@ namespace DeliveryExpress
         }
 
         /// <summary>
+        /// Detiene el loop de juego (timer) sin reiniciar el estado. Útil para transiciones entre niveles.
+        /// </summary>
+        public void StopGameLoop()
+        {
+            isGameRunning = false;
+            isGameOver = true;
+        }
+
+        /// <summary>
         /// Configura una jornada laboral específica y reinicia el estado para esa jornada.
         /// </summary>
         public void ConfigurarJornada(int dia)
