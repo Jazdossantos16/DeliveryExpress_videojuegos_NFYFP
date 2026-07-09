@@ -136,6 +136,43 @@ namespace DeliveryExpress
                 }
             }
 
+            // Si se debe reproducir el video de introducción tras la carga de escena
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.PlayVideoOnLoad)
+            {
+                AdministradorJuego.Instance.PlayVideoOnLoad = false;
+                skipStartPanel = false;
+                showDetailsOnLoad = false;
+
+                if (startPanel != null)
+                {
+                    startPanel.SetActive(false);
+                }
+                if (orderDetailsPanel != null)
+                {
+                    orderDetailsPanel.SetActive(false);
+                }
+                SetHUDActive(false);
+
+                // Configurar la jornada antes de reproducir el video
+                AdministradorJuego.Instance.StartNewDay();
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+                StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
+#else
+                string videoPath = System.IO.Path.Combine(Application.streamingAssetsPath, "videojuego_prueba_202606182214.mp4");
+                if (System.IO.File.Exists(videoPath))
+                {
+                    StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
+                }
+                else
+                {
+                    Debug.LogWarning("⚠️ No se encontró el video de intro en StreamingAssets: " + videoPath);
+                    ComenzarPartidaReal();
+                }
+#endif
+                return;
+            }
+
             if (skipStartPanel)
             {
                 skipStartPanel = false;
@@ -398,7 +435,11 @@ namespace DeliveryExpress
 
             if (currentDay >= 2)
             {
-                // Para el Nivel 2+: recargar la escena directamente con el día ya configurado
+                // Para el Nivel 2+: recargar la escena directamente con el día ya configurado y reproducir el video de intro en la carga
+                if (AdministradorJuego.Instance != null)
+                {
+                    AdministradorJuego.Instance.PlayVideoOnLoad = true;
+                }
                 skipStartPanel = true;
                 showDetailsOnLoad = false;
                 Time.timeScale = 1f;
@@ -798,6 +839,7 @@ namespace DeliveryExpress
             {
                 int nextDay = AdministradorJuego.Instance.CurrentDay + 1;
                 AdministradorJuego.Instance.ConfigurarJornada(nextDay);
+                AdministradorJuego.Instance.StopGameLoop();
             }
             ShowVictory();
         }
