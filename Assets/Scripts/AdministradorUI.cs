@@ -871,12 +871,15 @@ namespace DeliveryExpress
             int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
             if (currentDay > 2)
             {
-                // Si ya completó el Nivel 2 (no hay más niveles), volver al menú principal y resetear jornada
+                // Si ya completó el Nivel 2, simplemente reiniciar el Nivel 2 directamente
                 if (AdministradorJuego.Instance != null)
                 {
-                    AdministradorJuego.Instance.ConfigurarJornada(1);
+                    AdministradorJuego.Instance.ConfigurarJornada(2);
                 }
-                CargarMenu();
+                skipStartPanel = true;
+                showDetailsOnLoad = false; // No mostrar detalles, ir directo
+                Time.timeScale = 1f;
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             }
             else
             {
