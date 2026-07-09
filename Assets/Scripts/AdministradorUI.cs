@@ -33,6 +33,7 @@ namespace DeliveryExpress
         [Header("Pantalla de Inicio")]
         [SerializeField] private GameObject startPanel;
         private static bool skipStartPanel = false;
+        private static bool showDetailsOnLoad = false;
 
         [Header("Pantalla de Victoria")]
         [SerializeField] private GameObject victoryPanel;
@@ -127,14 +128,16 @@ namespace DeliveryExpress
                 }
                 
                 int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
-                if (currentDay == 2)
+                if (currentDay == 2 && showDetailsOnLoad)
                 {
+                    showDetailsOnLoad = false; // Restablecer
                     Time.timeScale = 0f; // Pausado para ver los detalles
                     SetHUDActive(false);
                     AbrirDetallePedido();
                 }
                 else
                 {
+                    showDetailsOnLoad = false; // Restablecer
                     Time.timeScale = 1f;
                     SetHUDActive(true);
                 }
@@ -339,6 +342,7 @@ namespace DeliveryExpress
                 AdministradorJuego.Instance.ResetCoins();
             }
             skipStartPanel = true;
+            showDetailsOnLoad = false; // No mostrar detalles al reiniciar
             Time.timeScale = 1f; // Asegura restablecer la escala de tiempo
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
@@ -852,6 +856,7 @@ namespace DeliveryExpress
             {
                 // Si va a jugar el Nivel 2, recargar la escena y abrir la tarjeta de detalles directamente
                 skipStartPanel = true;
+                showDetailsOnLoad = true; // Mostrar la tarjeta de detalles al cargar
                 Time.timeScale = 0f; // Mantener pausado para el popup de detalles
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             }
