@@ -256,6 +256,119 @@ namespace DeliveryExpress
                 }
             }
 
+            // CRÍTICO: Suscribir eventos y resolver componentes del HUD antes de cualquier early return
+            if (AdministradorJuego.Instance != null)
+            {
+                // Si la escena se recargó por derrota, se reinicia el día acá para mantener el scroll congelado durante la carga.
+                if (AdministradorJuego.Instance.IsGameOver)
+                {
+                    AdministradorJuego.Instance.RestartCurrentDay();
+                }
+
+                AdministradorJuego.Instance.OnLivesChanged += UpdateLivesUI;
+                AdministradorJuego.Instance.OnCoinsChanged += UpdateCoinsUI;
+                
+                // Busca componentes si no están asignados en el Inspector
+                if (heartImages == null || heartImages.Length == 0)
+                {
+                    FindHeartImages();
+                }
+
+                Transform pauseBtnTrans = transform.Find("Boton_PausaPlay");
+                if (pauseBtnTrans != null)
+                {
+                    pausePlayButtonImage = pauseBtnTrans.GetComponent<Image>();
+                    if (pausePlayButtonImage != null && pauseSprite != null)
+                    {
+                        pausePlayButtonImage.sprite = pauseSprite;
+                    }
+                }
+
+                if (livesText == null)
+                {
+                    Transform t = transform.Find("Texto_Vidas");
+                    if (t != null) livesText = t.GetComponent<Text>();
+                }
+
+                if (gameOverPanel == null)
+                {
+                    Transform t = transform.Find("GameOverPanel");
+                    if (t != null) gameOverPanel = t.gameObject;
+                }
+
+                if (coinsText == null)
+                {
+                    Debug.Log("[AdministradorUI.Start] coinsText es null inicialmente. Iniciando búsqueda...");
+                    // Buscar primero de forma específica en el panel del HUD (Marco_Monedas) para evitar conflictos de jerarquía
+                    Transform hudCoins = transform.Find("Marco_Monedas");
+                    Debug.Log($"[AdministradorUI.Start] Búsqueda de Marco_Monedas: {hudCoins != null}");
+                    Transform t = null;
+                    if (hudCoins != null)
+                    {
+                        t = FindDeepChild(hudCoins, "Texto_Monedas");
+                        Debug.Log($"[AdministradorUI.Start] Búsqueda de Texto_Monedas dentro de Marco_Monedas: {t != null}");
+                    }
+                    
+                    // Fallback: si no se encuentra allí, buscar en todo el Canvas
+                    if (t == null)
+                    {
+                        t = FindDeepChild(this.transform, "Texto_Monedas");
+                        Debug.Log($"[AdministradorUI.Start] Fallback Búsqueda de Texto_Monedas en todo el Canvas: {t != null}");
+                    }
+
+                    if (t != null)
+                    {
+                        coinsText = t.GetComponent<Text>();
+                        t.gameObject.layer = this.gameObject.layer;
+                        Debug.Log($"[AdministradorUI.Start] coinsText asignado correctamente al objeto: {coinsText.gameObject.name} (ID: {coinsText.gameObject.GetInstanceID()})");
+                    }
+                    else
+                    {
+                        // Crear automáticamente el objeto de texto para monedas en la parte superior derecha
+                        GameObject coinsObj = new GameObject("Texto_Monedas", typeof(RectTransform));
+                        coinsObj.layer = this.gameObject.layer;
+                        coinsObj.transform.SetParent(this.transform, false);
+                        
+                        coinsText = coinsObj.AddComponent<Text>();
+                        
+                        // Copiar fuente de livesText si está disponible, o buscar cualquier texto (incluyendo inactivos)
+                        Text anyText = GetComponentInChildren<Text>(true);
+                        if (anyText != null)
+                        {
+                            coinsText.font = anyText.font;
+                        }
+                        else
+                        {
+                            coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                            if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                        }
+                        
+                        coinsText.fontSize = 24;
+                        coinsText.color = new Color(1f, 0.84f, 0f); // Dorado
+                        coinsText.alignment = TextAnchor.MiddleRight;
+                        
+                        RectTransform rect = coinsObj.GetComponent<RectTransform>();
+                        rect.anchorMin = new Vector2(1f, 1f);
+                        rect.anchorMax = new Vector2(1f, 1f);
+                        rect.pivot = new Vector2(1f, 1f);
+                        rect.anchoredPosition = new Vector2(-35f, -35f); // 35px de margen
+                        rect.sizeDelta = new Vector2(200f, 50f);
+                        
+                        Shadow shadow = coinsObj.AddComponent<Shadow>();
+                        shadow.effectColor = Color.black;
+                        shadow.effectDistance = new Vector2(1f, -1f);
+                    }
+                }
+
+                if (coinsText != null)
+                {
+                    coinsText.gameObject.layer = this.gameObject.layer;
+                }
+
+                UpdateLivesUI(AdministradorJuego.Instance.CurrentLives);
+                UpdateCoinsUI(AdministradorJuego.Instance.Coins);
+            }
+
             // Si se debe reproducir el video de introducción tras la carga de escena
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.PlayVideoOnLoad)
             {
@@ -334,100 +447,6 @@ namespace DeliveryExpress
                     Time.timeScale = 1f;
                     SetHUDActive(true);
                 }
-            }
-
-            if (AdministradorJuego.Instance != null)
-            {
-                // Si la escena se recargó por derrota, se reinicia el día acá para mantener el scroll congelado durante la carga.
-                if (AdministradorJuego.Instance.IsGameOver)
-                {
-                    AdministradorJuego.Instance.RestartCurrentDay();
-                }
-
-                AdministradorJuego.Instance.OnLivesChanged += UpdateLivesUI;
-                AdministradorJuego.Instance.OnCoinsChanged += UpdateCoinsUI;
-                
-                // Busca componentes si no están asignados en el Inspector
-                if (heartImages == null || heartImages.Length == 0)
-                {
-                    FindHeartImages();
-                }
-
-                Transform pauseBtnTrans = transform.Find("Boton_PausaPlay");
-                if (pauseBtnTrans != null)
-                {
-                    pausePlayButtonImage = pauseBtnTrans.GetComponent<Image>();
-                    if (pausePlayButtonImage != null && pauseSprite != null)
-                    {
-                        pausePlayButtonImage.sprite = pauseSprite;
-                    }
-                }
-
-                if (livesText == null)
-                {
-                    Transform t = transform.Find("Texto_Vidas");
-                    if (t != null) livesText = t.GetComponent<Text>();
-                }
-
-                if (gameOverPanel == null)
-                {
-                    Transform t = transform.Find("GameOverPanel");
-                    if (t != null) gameOverPanel = t.gameObject;
-                }
-
-                if (coinsText == null)
-                {
-                    Transform t = transform.Find("Texto_Monedas");
-                    if (t != null)
-                    {
-                        coinsText = t.GetComponent<Text>();
-                        t.gameObject.layer = this.gameObject.layer;
-                    }
-                    else
-                    {
-                        // Crear automáticamente el objeto de texto para monedas en la parte superior derecha
-                        GameObject coinsObj = new GameObject("Texto_Monedas", typeof(RectTransform));
-                        coinsObj.layer = this.gameObject.layer;
-                        coinsObj.transform.SetParent(this.transform, false);
-                        
-                        coinsText = coinsObj.AddComponent<Text>();
-                        
-                        // Copiar fuente de livesText si está disponible, o buscar cualquier texto (incluyendo inactivos)
-                        Text anyText = GetComponentInChildren<Text>(true);
-                        if (anyText != null)
-                        {
-                            coinsText.font = anyText.font;
-                        }
-                        else
-                        {
-                            coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                            if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-                        }
-                        
-                        coinsText.fontSize = 24;
-                        coinsText.color = new Color(1f, 0.84f, 0f); // Dorado
-                        coinsText.alignment = TextAnchor.MiddleRight;
-                        
-                        RectTransform rect = coinsObj.GetComponent<RectTransform>();
-                        rect.anchorMin = new Vector2(1f, 1f);
-                        rect.anchorMax = new Vector2(1f, 1f);
-                        rect.pivot = new Vector2(1f, 1f);
-                        rect.anchoredPosition = new Vector2(-35f, -35f); // 35px de margen
-                        rect.sizeDelta = new Vector2(200f, 50f);
-                        
-                        Shadow shadow = coinsObj.AddComponent<Shadow>();
-                        shadow.effectColor = Color.black;
-                        shadow.effectDistance = new Vector2(1f, -1f);
-                    }
-                }
-
-                if (coinsText != null)
-                {
-                    coinsText.gameObject.layer = this.gameObject.layer;
-                }
-
-                UpdateLivesUI(AdministradorJuego.Instance.CurrentLives);
-                UpdateCoinsUI(AdministradorJuego.Instance.Coins);
             }
         }
 
@@ -1697,9 +1716,11 @@ namespace DeliveryExpress
 
         public void UpdateCoinsUI(int coins)
         {
+            Debug.Log($"[AdministradorUI.UpdateCoinsUI] Recibido evento. Monedas: {coins}. coinsText es null: {coinsText == null}");
             if (coinsText != null)
             {
                 coinsText.text = coins.ToString();
+                Debug.Log($"[AdministradorUI.UpdateCoinsUI] coinsText.text actualizado a: {coinsText.text} (GameObject: {coinsText.gameObject.name}, ID: {coinsText.gameObject.GetInstanceID()})");
             }
         }
 
