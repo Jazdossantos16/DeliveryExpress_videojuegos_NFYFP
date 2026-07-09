@@ -32,8 +32,18 @@ namespace DeliveryExpress
 
         [Header("Pantalla de Inicio")]
         [SerializeField] private GameObject startPanel;
-        private static bool skipStartPanel = false;
-        private static bool showDetailsOnLoad = false;
+
+        // Shortcuts para los flags de transición que viven en AdministradorJuego (DontDestroyOnLoad)
+        private bool skipStartPanel
+        {
+            get => AdministradorJuego.Instance != null && AdministradorJuego.Instance.SkipStartPanel;
+            set { if (AdministradorJuego.Instance != null) AdministradorJuego.Instance.SkipStartPanel = value; }
+        }
+        private bool showDetailsOnLoad
+        {
+            get => AdministradorJuego.Instance != null && AdministradorJuego.Instance.ShowDetailsOnLoad;
+            set { if (AdministradorJuego.Instance != null) AdministradorJuego.Instance.ShowDetailsOnLoad = value; }
+        }
 
         [Header("Pantalla de Victoria")]
         [SerializeField] private GameObject victoryPanel;

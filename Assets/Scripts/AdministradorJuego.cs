@@ -49,6 +49,10 @@ namespace DeliveryExpress
         public bool IsVictory => isVictory;
         public int CurrentDay => currentDay;
         public float TimeRemaining => timeRemaining;
+
+        // Flags de transición entre escenas (persisten porque AdministradorJuego usa DontDestroyOnLoad)
+        public bool SkipStartPanel { get; set; } = false;
+        public bool ShowDetailsOnLoad { get; set; } = false;
         public int CurrentLives => currentLives;
         public int StartingLives => startingLives;
         public bool IsFinishLineReached { get; set; } = false;
