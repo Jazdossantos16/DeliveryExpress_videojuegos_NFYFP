@@ -393,6 +393,19 @@ namespace DeliveryExpress
             {
                 orderDetailsPanel.SetActive(false);
             }
+
+            int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+
+            if (currentDay >= 2)
+            {
+                // Para el Nivel 2+: recargar la escena directamente con el día ya configurado
+                skipStartPanel = true;
+                showDetailsOnLoad = false;
+                Time.timeScale = 1f;
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                return;
+            }
+
 #if UNITY_WEBGL && !UNITY_EDITOR
             StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
 #else
@@ -883,23 +896,26 @@ namespace DeliveryExpress
             Debug.Log($"[AdministradorUI.AvanzarSiguienteDia] currentDay={currentDay}");
             if (currentDay > 2)
             {
-                // Si ya completó el Nivel 2, simplemente reiniciar el Nivel 2 directamente
+                // Si ya completó el Nivel 2, reiniciarlo directamente
                 if (AdministradorJuego.Instance != null)
                 {
                     AdministradorJuego.Instance.ConfigurarJornada(2);
                 }
                 skipStartPanel = true;
-                showDetailsOnLoad = false; // No mostrar detalles, ir directo
+                showDetailsOnLoad = false;
                 Time.timeScale = 1f;
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
             }
             else
             {
-                // Si va a jugar el Nivel 2, recargar la escena y abrir la tarjeta de detalles directamente
-                skipStartPanel = true;
-                showDetailsOnLoad = true; // Mostrar la tarjeta de detalles al cargar
-                Time.timeScale = 0f; // Mantener pausado para el popup de detalles
-                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                // Pasar al Nivel 2: ocultar la pantalla de victoria y mostrar la tarjeta azul directamente.
+                // No hace falta recargar la escena — IniciarJuego() lo hará al presionar "Comenzar".
+                if (victoryPanel != null)
+                {
+                    victoryPanel.SetActive(false);
+                }
+                Time.timeScale = 1f;
+                AbrirDetallePedido();
             }
         }
 
