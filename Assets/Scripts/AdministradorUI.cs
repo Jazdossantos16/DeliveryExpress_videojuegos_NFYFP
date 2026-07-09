@@ -1117,8 +1117,11 @@ namespace DeliveryExpress
 
             // Si venimos del menú principal (startPanel activo) y ya estamos en el Nivel 2+,
             // iniciamos el juego directamente sin pasar por la tarjeta de detalles ni el video.
+            // EXCEPCIÓN: Si el panel del mapa está activo, significa que el jugador explícitamente
+            // abrió el mapa y seleccionó el Nivel 2; en ese caso SÍ queremos mostrar la pantalla azul.
             int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
-            if (startPanel != null && startPanel.activeSelf && currentDay >= 2)
+            bool isSelectingFromMap = mapPanel != null && mapPanel.activeSelf;
+            if (startPanel != null && startPanel.activeSelf && currentDay >= 2 && !isSelectingFromMap)
             {
                 // Venimos del menú principal en Nivel 2: ir directo sin tarjeta ni video
                 IniciarJuego();
