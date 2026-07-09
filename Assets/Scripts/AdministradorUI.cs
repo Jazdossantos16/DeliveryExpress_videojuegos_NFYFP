@@ -1117,7 +1117,7 @@ namespace DeliveryExpress
                     Image img = contentTrans.GetComponent<Image>();
                     if (img != null)
                     {
-                        int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+                        currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
                         if (currentDay == 2 && orderDetailsSpriteLevel2 != null)
                         {
                             img.sprite = orderDetailsSpriteLevel2;
