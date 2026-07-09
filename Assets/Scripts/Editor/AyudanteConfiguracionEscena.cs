@@ -421,6 +421,50 @@ namespace DeliveryExpress.Editor
                 }
             }
 
+            // Si el panel de la tienda tiene overlays con el botón de "Usar" o el tamaño grande, forzar reconstrucción a MAX
+            if (!needsFix)
+            {
+                Canvas canvas = GameObject.FindFirstObjectByType<Canvas>();
+                if (canvas != null)
+                {
+                    Transform tPanel = canvas.transform.Find("TiendaPanel");
+                    if (tPanel != null)
+                    {
+                        Transform grid = tPanel.Find("ShopBox/GridPanel");
+                        if (grid != null)
+                        {
+                            Transform overlay = grid.Find("MaxOverlay_0");
+                            if (overlay != null)
+                            {
+                                RectTransform rect = overlay.GetComponent<RectTransform>();
+                                Button btn = overlay.GetComponent<Button>();
+                                // Si tiene botón (Usar) o su tamaño no es exactamente 134f, necesita reconstruirse a MAX
+                                if (rect == null || Mathf.Abs(rect.sizeDelta.x - 134f) > 0.1f || btn != null)
+                                {
+                                    needsFix = true;
+                                }
+                            }
+                            else
+                            {
+                                needsFix = true; // Si faltan overlays
+                            }
+                        }
+                        else
+                        {
+                            needsFix = true; // Si falta el grid
+                        }
+                    }
+                    else
+                    {
+                        needsFix = true; // Si falta TiendaPanel
+                    }
+                }
+                else
+                {
+                    needsFix = true; // Si no hay Canvas
+                }
+            }
+
 
 
             if (needsFix)
@@ -470,6 +514,33 @@ namespace DeliveryExpress.Editor
                 // Al volver a Edit Mode, realiza un chequeo de autocuración
                 AutoCheckAndFixScene();
             }
+        }
+
+        [MenuItem("DeliveryExpress/Reconstruir Tienda Manualmente")]
+        public static void RebuildShopMenu()
+        {
+            SetupNewStreetAndSidewalkInternal(false);
+        }
+
+        [MenuItem("DeliveryExpress/Resetear Solo Niveles de Mejoras")]
+        public static void ResetOnlyUpgrades()
+        {
+            string currentName = PlayerPrefs.GetString("PlayerName", "");
+            if (!string.IsNullOrEmpty(currentName))
+            {
+                PlayerPrefs.DeleteKey(currentName + "_BicycleSpeedLvl");
+                PlayerPrefs.DeleteKey(currentName + "_SuspensionLvl");
+                PlayerPrefs.DeleteKey(currentName + "_BackpackLvl");
+                PlayerPrefs.DeleteKey(currentName + "_ExtraLivesLvl");
+                PlayerPrefs.DeleteKey(currentName + "_PowerUpUpgradeLvl");
+            }
+            PlayerPrefs.DeleteKey("BicycleSpeedLvl");
+            PlayerPrefs.DeleteKey("SuspensionLvl");
+            PlayerPrefs.DeleteKey("BackpackLvl");
+            PlayerPrefs.DeleteKey("ExtraLivesLvl");
+            PlayerPrefs.DeleteKey("PowerUpUpgradeLvl");
+            PlayerPrefs.Save();
+            Debug.Log("🔄 Niveles de mejoras reseteados a 0. ¡Tus monedas y la tabla de posiciones siguen intactas!");
         }
 
         public static void SetupNewStreetAndSidewalk()
@@ -616,6 +687,152 @@ namespace DeliveryExpress.Editor
                     pc = riderObj.AddComponent<ControladorJugador>();
                 }
 
+                // Cargar los sprites de mochila pro y asignarlos
+                string pathMochila = "Assets/sprites/Personaje/sprite_repartidor_mochila.png";
+                object[] assets = AssetDatabase.LoadAllAssetsAtPath(pathMochila);
+                if (assets != null && assets.Length > 0)
+                {
+                    var listMochila = new System.Collections.Generic.List<Sprite>();
+                    foreach (var asset in assets)
+                    {
+                        if (asset is Sprite spr)
+                        {
+                            listMochila.Add(spr);
+                        }
+                    }
+                    if (listMochila.Count > 0)
+                    {
+                        pc.spritesMochilaPro = listMochila.ToArray();
+                        Debug.Log($"✅ [AUTOPREP] Asignados {listMochila.Count} sprites de Mochila Pro al ControladorJugador.");
+                    }
+                }
+
+                // Cargar los sprites del casco y asignarlos
+                string pathCasco = "Assets/sprites/Personaje/sprite_repartidor_casco.png";
+                object[] assetsCasco = AssetDatabase.LoadAllAssetsAtPath(pathCasco);
+                if (assetsCasco != null && assetsCasco.Length > 0)
+                {
+                    var listCasco = new System.Collections.Generic.List<Sprite>();
+                    foreach (var asset in assetsCasco)
+                    {
+                        if (asset is Sprite spr)
+                        {
+                            listCasco.Add(spr);
+                        }
+                    }
+                    if (listCasco.Count > 0)
+                    {
+                        pc.spritesCasco = listCasco.ToArray();
+                        Debug.Log($"✅ [AUTOPREP] Asignados {listCasco.Count} sprites de Casco al ControladorJugador.");
+                    }
+                }
+
+                // Cargar los sprites de la moto y asignarlos
+                string pathMoto = "Assets/sprites/Personaje/sprite_repartidor_moto.png";
+                object[] assetsMoto = AssetDatabase.LoadAllAssetsAtPath(pathMoto);
+                if (assetsMoto != null && assetsMoto.Length > 0)
+                {
+                    var listMoto = new System.Collections.Generic.List<Sprite>();
+                    foreach (var asset in assetsMoto)
+                    {
+                        if (asset is Sprite spr)
+                        {
+                            listMoto.Add(spr);
+                        }
+                    }
+                    if (listMoto.Count > 0)
+                    {
+                        pc.spritesMoto = listMoto.ToArray();
+                        Debug.Log($"✅ [AUTOPREP] Asignados {listMoto.Count} sprites de Moto al ControladorJugador.");
+                    }
+                }
+
+                // Cargar los sprites de casco + moto
+                string pathCascoMoto = "Assets/sprites/Personaje/sprite_repartidor_casco_moto.png";
+                object[] assetsCascoMoto = AssetDatabase.LoadAllAssetsAtPath(pathCascoMoto);
+                if (assetsCascoMoto != null && assetsCascoMoto.Length > 0)
+                {
+                    var listCascoMoto = new System.Collections.Generic.List<Sprite>();
+                    foreach (var asset in assetsCascoMoto)
+                    {
+                        if (asset is Sprite spr)
+                        {
+                            listCascoMoto.Add(spr);
+                        }
+                    }
+                    if (listCascoMoto.Count > 0)
+                    {
+                        pc.spritesCascoMoto = listCascoMoto.ToArray();
+                        Debug.Log($"✅ [AUTOPREP] Asignados {listCascoMoto.Count} sprites de Casco + Moto al ControladorJugador.");
+                    }
+                }
+
+                // Cargar los sprites de mochila + moto
+                string pathMochilaMoto = "Assets/sprites/Personaje/sprite_repartidor_mochila_moto.png";
+                object[] assetsMochilaMoto = AssetDatabase.LoadAllAssetsAtPath(pathMochilaMoto);
+                if (assetsMochilaMoto != null && assetsMochilaMoto.Length > 0)
+                {
+                    var listMochilaMoto = new System.Collections.Generic.List<Sprite>();
+                    foreach (var asset in assetsMochilaMoto)
+                    {
+                        if (asset is Sprite spr)
+                        {
+                            listMochilaMoto.Add(spr);
+                        }
+                    }
+                    if (listMochilaMoto.Count > 0)
+                    {
+                        pc.spritesMochilaMoto = listMochilaMoto.ToArray();
+                        Debug.Log($"✅ [AUTOPREP] Asignados {listMochilaMoto.Count} sprites de Mochila + Moto al ControladorJugador.");
+                    }
+                }
+
+                // Cargar los sprites de mochila + casco
+                string pathMochilaCasco = "Assets/sprites/Personaje/sprite_repartidor_mochila_casco.png";
+                object[] assetsMochilaCasco = AssetDatabase.LoadAllAssetsAtPath(pathMochilaCasco);
+                if (assetsMochilaCasco == null || assetsMochilaCasco.Length == 0)
+                {
+                    // Fallback al nombre alternativo que teníamos
+                    pathMochilaCasco = "Assets/sprites/Personaje/sprite_repartidor_mochila_casco.png";
+                    assetsMochilaCasco = AssetDatabase.LoadAllAssetsAtPath("Assets/sprites/Personaje/sprite_repartidor_mochila_casco.png");
+                }
+                if (assetsMochilaCasco != null && assetsMochilaCasco.Length > 0)
+                {
+                    var listMochilaCasco = new System.Collections.Generic.List<Sprite>();
+                    foreach (var asset in assetsMochilaCasco)
+                    {
+                        if (asset is Sprite spr)
+                        {
+                            listMochilaCasco.Add(spr);
+                        }
+                    }
+                    if (listMochilaCasco.Count > 0)
+                    {
+                        pc.spritesMochilaYCasco = listMochilaCasco.ToArray();
+                        Debug.Log($"✅ [AUTOPREP] Asignados {listMochilaCasco.Count} sprites de Mochila + Casco al ControladorJugador.");
+                    }
+                }
+
+                // Cargar los sprites de mochila + casco + moto
+                string pathMochilaCascoMoto = "Assets/sprites/Personaje/sprite_repartidor_mochila_casco_moto.png";
+                object[] assetsMochilaCascoMoto = AssetDatabase.LoadAllAssetsAtPath(pathMochilaCascoMoto);
+                if (assetsMochilaCascoMoto != null && assetsMochilaCascoMoto.Length > 0)
+                {
+                    var listMochilaCascoMoto = new System.Collections.Generic.List<Sprite>();
+                    foreach (var asset in assetsMochilaCascoMoto)
+                    {
+                        if (asset is Sprite spr)
+                        {
+                            listMochilaCascoMoto.Add(spr);
+                        }
+                    }
+                    if (listMochilaCascoMoto.Count > 0)
+                    {
+                        pc.spritesMochilaCascoMoto = listMochilaCascoMoto.ToArray();
+                        Debug.Log($"✅ [AUTOPREP] Asignados {listMochilaCascoMoto.Count} sprites de Mochila + Casco + Moto al ControladorJugador.");
+                    }
+                }
+
                 // Configura los carriles de la calle
                 var laneField = typeof(ControladorJugador).GetField("lanePositionsX", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (laneField != null)
@@ -752,6 +969,20 @@ namespace DeliveryExpress.Editor
             {
                 audioManager = audioObj.AddComponent<AdministradorAudio>();
             }
+
+            // Configurar el Administrador de Mejoras automáticamente
+            GameObject mejorasObj = GameObject.Find("_AdministradorMejoras");
+            if (mejorasObj == null)
+            {
+                mejorasObj = new GameObject("_AdministradorMejoras");
+                Debug.Log("✅ Se creó el objeto '_AdministradorMejoras' para el sistema de mejoras.");
+            }
+            AdministradorMejoras upgradesManager = mejorasObj.GetComponent<AdministradorMejoras>();
+            if (upgradesManager == null)
+            {
+                upgradesManager = mejorasObj.AddComponent<AdministradorMejoras>();
+            }
+            ConfigurarAdministradorMejoras(upgradesManager);
 
             // Crear la carpeta de sonido si no existe
             string audioFolderPath = "Assets/Audio";
@@ -1725,6 +1956,32 @@ namespace DeliveryExpress.Editor
 
             Button btnConfig = btnConfigObj.AddComponent<Button>();
             UnityEditor.Events.UnityEventTools.AddPersistentListener(btnConfig.onClick, uiManager.AbrirConfiguracion);
+
+            // Crear Botón "BotonTienda" (Y: -380)
+            EnsureIsSprite("Assets/sprites/UI/boton_tienda.png");
+            Sprite spriteTienda = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_tienda.png");
+
+            GameObject btnTiendaObj = new GameObject("BotonTienda", typeof(RectTransform));
+            RectTransform btnTiendaRect = btnTiendaObj.GetComponent<RectTransform>();
+            btnTiendaRect.SetParent(startPanelRect, false);
+            btnTiendaRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnTiendaRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnTiendaRect.pivot = new Vector2(0.5f, 0.5f);
+            btnTiendaRect.anchoredPosition = new Vector2(0f, -380f);
+            btnTiendaRect.sizeDelta = new Vector2(300f, 98f);
+            Image btnTiendaImg = btnTiendaObj.AddComponent<Image>();
+            if (spriteTienda != null)
+            {
+                btnTiendaImg.sprite = spriteTienda;
+                btnTiendaImg.color = Color.white;
+            }
+            else
+            {
+                btnTiendaImg.color = Color.magenta;
+            }
+
+            Button btnTienda = btnTiendaObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(btnTienda.onClick, uiManager.AbrirTienda);
 
             // Crear Botón "Boton_instrucciones" (Rojo, esquina superior derecha)
             GameObject btnInstruccionesObj = new GameObject("Boton_instrucciones", typeof(RectTransform));
@@ -2788,6 +3045,9 @@ namespace DeliveryExpress.Editor
                 }
             }
 
+            // 7.9 Crear o buscar TiendaPanel
+            CrearPanelTienda(canvas, uiManager, customFont);
+
             // Asigna la capa UI de forma recursiva
             int uiLayer = LayerMask.NameToLayer("UI");
             if (uiLayer >= 0)
@@ -2939,6 +3199,10 @@ namespace DeliveryExpress.Editor
                 if (importer.textureType != TextureImporterType.Sprite)
                 {
                     importer.textureType = TextureImporterType.Sprite;
+                    changed = true;
+                }
+                if (importer.spriteImportMode != SpriteImportMode.Single)
+                {
                     importer.spriteImportMode = SpriteImportMode.Single;
                     changed = true;
                 }
@@ -3690,6 +3954,433 @@ namespace DeliveryExpress.Editor
             catch (System.Exception) { }
 
             return null;
+        }
+
+        private static void ConfigurarAdministradorMejoras(AdministradorMejoras mgr)
+        {
+        }
+
+        private static void CrearPanelTienda(Canvas canvas, AdministradorUI uiManager, Font customFont)
+        {
+            Transform oldShop = canvas.transform.Find("TiendaPanel");
+            if (oldShop != null) UnityEngine.Object.DestroyImmediate(oldShop.gameObject);
+
+            GameObject shopPanelObj = new GameObject("TiendaPanel", typeof(RectTransform));
+            RectTransform shopPanelRect = shopPanelObj.GetComponent<RectTransform>();
+            shopPanelRect.SetParent(canvas.transform, false);
+            shopPanelObj.SetActive(false); // Empieza desactivado
+            shopPanelRect.anchorMin = Vector2.zero;
+            shopPanelRect.anchorMax = Vector2.one;
+            shopPanelRect.sizeDelta = Vector2.zero;
+
+            Image shopPanelImage = shopPanelObj.AddComponent<Image>();
+            shopPanelImage.color = new Color(0f, 0f, 0f, 0.85f); // Fondo oscuro traslúcido
+
+            // Caja contenedor de la tienda (1500 x 1060) - Llena casi toda la pantalla
+            UnityEngine.UI.DefaultControls.Resources uiResources = new UnityEngine.UI.DefaultControls.Resources();
+            Sprite roundedBoxSprite = uiResources.background;
+
+            GameObject shopBox = new GameObject("ShopBox", typeof(RectTransform));
+            RectTransform shopBoxRect = shopBox.GetComponent<RectTransform>();
+            shopBoxRect.SetParent(shopPanelRect, false);
+            shopBoxRect.anchorMin = new Vector2(0.5f, 0.5f);
+            shopBoxRect.anchorMax = new Vector2(0.5f, 0.5f);
+            shopBoxRect.pivot = new Vector2(0.5f, 0.5f);
+            shopBoxRect.anchoredPosition = Vector2.zero;
+            shopBoxRect.sizeDelta = new Vector2(1500f, 1060f);
+            Image shopBoxImage = shopBox.AddComponent<Image>();
+            shopBoxImage.sprite = roundedBoxSprite;
+            shopBoxImage.type = Image.Type.Sliced;
+            shopBoxImage.color = new Color(0.08f, 0.08f, 0.08f, 0.85f); // Fondo elegante y oscuro traslúcido igual que la tabla de posiciones
+
+            Shadow shopShadow = shopBox.AddComponent<Shadow>();
+            shopShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            shopShadow.effectDistance = new Vector2(5f, -5f);
+
+            // Monedas de la tienda (Icono de estrella + texto en la esquina izquierda arriba)
+            GameObject coinsDisplayObj = new GameObject("CoinsDisplay", typeof(RectTransform));
+            RectTransform coinsDisplayRect = coinsDisplayObj.GetComponent<RectTransform>();
+            coinsDisplayRect.SetParent(shopBoxRect, false);
+            coinsDisplayRect.anchorMin = new Vector2(0f, 1f);
+            coinsDisplayRect.anchorMax = new Vector2(0f, 1f);
+            coinsDisplayRect.pivot = new Vector2(0f, 1f);
+            coinsDisplayRect.anchoredPosition = new Vector2(40f, -40f); // Esquina izquierda superior
+            coinsDisplayRect.sizeDelta = new Vector2(300f, 60f);
+
+            // Icono de la moneda estrella
+            GameObject coinsIconObj = new GameObject("CoinsIcon", typeof(RectTransform));
+            RectTransform coinsIconRect = coinsIconObj.GetComponent<RectTransform>();
+            coinsIconRect.SetParent(coinsDisplayRect, false);
+            coinsIconRect.anchorMin = new Vector2(0f, 0.5f);
+            coinsIconRect.anchorMax = new Vector2(0f, 0.5f);
+            coinsIconRect.pivot = new Vector2(0f, 0.5f);
+            coinsIconRect.anchoredPosition = new Vector2(0f, 0f);
+            coinsIconRect.sizeDelta = new Vector2(50f, 50f); // Icono cuadrado
+            Image coinsIconImg = coinsIconObj.AddComponent<Image>();
+            EnsureIsSprite("Assets/sprites/UI/tienda_moneda.png");
+            Sprite coinSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/tienda_moneda.png");
+            if (coinSprite != null)
+            {
+                coinsIconImg.sprite = coinSprite;
+                coinsIconImg.color = Color.white;
+            }
+            else
+            {
+                coinsIconImg.color = Color.yellow; // Fallback
+            }
+
+            // Texto de los puntos/monedas
+            GameObject coinsTextObj = new GameObject("CoinsText", typeof(RectTransform));
+            RectTransform coinsTextRect = coinsTextObj.GetComponent<RectTransform>();
+            coinsTextRect.SetParent(coinsDisplayRect, false);
+            coinsTextRect.anchorMin = new Vector2(0f, 0.5f);
+            coinsTextRect.anchorMax = new Vector2(0f, 0.5f);
+            coinsTextRect.pivot = new Vector2(0f, 0.5f);
+            coinsTextRect.anchoredPosition = new Vector2(60f, 0f); // Desplazado para dejar espacio al icono
+            coinsTextRect.sizeDelta = new Vector2(240f, 60f);
+            Text coinsDisplayText = coinsTextObj.AddComponent<Text>();
+            coinsDisplayText.text = "0";
+            coinsDisplayText.font = customFont;
+            if (coinsDisplayText.font == null) coinsDisplayText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            coinsDisplayText.fontSize = 32;
+            coinsDisplayText.color = Color.yellow;
+            coinsDisplayText.alignment = TextAnchor.MiddleLeft;
+
+            Shadow coinsDisplayShadow = coinsTextObj.AddComponent<Shadow>();
+            coinsDisplayShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            coinsDisplayShadow.effectDistance = new Vector2(3f, -3f);
+
+            // Bloque para ingresar nombre (Igual que la tabla de posiciones)
+            GameObject nameInputPanel = new GameObject("NameInputPanel", typeof(RectTransform));
+            RectTransform nameInputPanelRect = nameInputPanel.GetComponent<RectTransform>();
+            nameInputPanelRect.SetParent(shopBoxRect, false);
+            nameInputPanelRect.anchorMin = new Vector2(0.5f, 0.5f);
+            nameInputPanelRect.anchorMax = new Vector2(0.5f, 0.5f);
+            nameInputPanelRect.pivot = new Vector2(0.5f, 0.5f);
+            nameInputPanelRect.anchoredPosition = Vector2.zero; // Centrado en la ventana
+            nameInputPanelRect.sizeDelta = new Vector2(500f, 360f); // Tamaño exacto de la tabla de posiciones
+
+            Image nameInputBg = nameInputPanel.AddComponent<Image>();
+            nameInputBg.sprite = roundedBoxSprite;
+            nameInputBg.type = Image.Type.Sliced;
+            nameInputBg.color = new Color(0.08f, 0.08f, 0.08f, 0.95f);
+
+            Shadow nameInputShadow = nameInputPanel.AddComponent<Shadow>();
+            nameInputShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            nameInputShadow.effectDistance = new Vector2(5f, -5f);
+
+            // Título del bloque
+            GameObject nameInputTitleObj = new GameObject("TitleText", typeof(RectTransform));
+            RectTransform nameInputTitleRect = nameInputTitleObj.GetComponent<RectTransform>();
+            nameInputTitleRect.SetParent(nameInputPanelRect, false);
+            nameInputTitleRect.anchorMin = new Vector2(0f, 1f);
+            nameInputTitleRect.anchorMax = new Vector2(1f, 1f);
+            nameInputTitleRect.pivot = new Vector2(0.5f, 1f);
+            nameInputTitleRect.anchoredPosition = new Vector2(0f, -40f);
+            nameInputTitleRect.sizeDelta = new Vector2(0f, 40f);
+            Text nameInputTitleText = nameInputTitleObj.AddComponent<Text>();
+            nameInputTitleText.font = coinsDisplayText.font;
+            nameInputTitleText.fontSize = 28;
+            nameInputTitleText.color = new Color(1f, 0.84f, 0f); // Dorado
+            nameInputTitleText.alignment = TextAnchor.MiddleCenter;
+            nameInputTitleText.text = "INGRESAR NOMBRE";
+
+            // InputField para escribir el nombre
+            GameObject inputFieldObj = new GameObject("InputField_Nombre", typeof(RectTransform));
+            RectTransform inputFieldRect = inputFieldObj.GetComponent<RectTransform>();
+            inputFieldRect.SetParent(nameInputPanelRect, false);
+            inputFieldRect.anchorMin = new Vector2(0.5f, 0.5f);
+            inputFieldRect.anchorMax = new Vector2(0.5f, 0.5f);
+            inputFieldRect.pivot = new Vector2(0.5f, 0.5f);
+            inputFieldRect.anchoredPosition = new Vector2(0f, 10f); // En el centro del bloque
+            inputFieldRect.sizeDelta = new Vector2(350f, 55f);
+
+            Image inputFieldBg = inputFieldObj.AddComponent<Image>();
+            inputFieldBg.sprite = roundedBoxSprite;
+            inputFieldBg.type = Image.Type.Sliced;
+            inputFieldBg.color = new Color(0.15f, 0.15f, 0.15f, 1f);
+
+            InputField inputField = inputFieldObj.AddComponent<InputField>();
+
+            // Texto de entrada del InputField
+            GameObject inputTextObj = new GameObject("Text", typeof(RectTransform));
+            RectTransform inputTextRect = inputTextObj.GetComponent<RectTransform>();
+            inputTextRect.SetParent(inputFieldRect, false);
+            inputTextRect.anchorMin = Vector2.zero;
+            inputTextRect.anchorMax = Vector2.one;
+            inputTextRect.offsetMin = new Vector2(15f, 5f);
+            inputTextRect.offsetMax = new Vector2(-15f, -5f);
+            Text inputText = inputTextObj.AddComponent<Text>();
+            inputText.font = nameInputTitleText.font;
+            inputText.fontSize = 22;
+            inputText.color = Color.white;
+            inputText.alignment = TextAnchor.MiddleLeft;
+            inputText.supportRichText = false;
+
+            // Placeholder de texto
+            GameObject placeholderObj = new GameObject("Placeholder", typeof(RectTransform));
+            RectTransform placeholderRect = placeholderObj.GetComponent<RectTransform>();
+            placeholderRect.SetParent(inputFieldRect, false);
+            placeholderRect.anchorMin = Vector2.zero;
+            placeholderRect.anchorMax = Vector2.one;
+            placeholderRect.offsetMin = new Vector2(15f, 5f);
+            placeholderRect.offsetMax = new Vector2(-15f, -5f);
+            Text placeholderText = placeholderObj.AddComponent<Text>();
+            placeholderText.font = nameInputTitleText.font;
+            placeholderText.fontSize = 22;
+            placeholderText.fontStyle = FontStyle.Italic;
+            placeholderText.color = new Color(0.6f, 0.6f, 0.6f, 0.5f);
+            placeholderText.alignment = TextAnchor.MiddleLeft;
+            placeholderText.text = "Ingresa tu nombre...";
+
+            inputField.textComponent = inputText;
+            inputField.placeholder = placeholderText;
+
+            // Botón de Confirmación (Aceptar)
+            GameObject confirmBtnObj = new GameObject("ConfirmButton", typeof(RectTransform));
+            RectTransform confirmBtnRect = confirmBtnObj.GetComponent<RectTransform>();
+            confirmBtnRect.SetParent(nameInputPanelRect, false);
+            confirmBtnRect.anchorMin = new Vector2(0.5f, 0f);
+            confirmBtnRect.anchorMax = new Vector2(0.5f, 0f);
+            confirmBtnRect.pivot = new Vector2(0.5f, 0f);
+            confirmBtnRect.anchoredPosition = new Vector2(0f, 35f); // Abajo en el panel
+            confirmBtnRect.sizeDelta = new Vector2(200f, 55f);
+
+            Image confirmBtnBg = confirmBtnObj.AddComponent<Image>();
+            confirmBtnBg.sprite = roundedBoxSprite;
+            confirmBtnBg.type = Image.Type.Sliced;
+            confirmBtnBg.color = new Color(0.15f, 0.45f, 0.15f, 1f); // Verde para el botón de aceptar
+
+            Shadow confirmBtnShadow = confirmBtnObj.AddComponent<Shadow>();
+            confirmBtnShadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+            confirmBtnShadow.effectDistance = new Vector2(2f, -2f);
+
+            // Texto del botón de confirmación
+            GameObject confirmBtnTextObj = new GameObject("Text", typeof(RectTransform));
+            RectTransform confirmBtnTextRect = confirmBtnTextObj.GetComponent<RectTransform>();
+            confirmBtnTextRect.SetParent(confirmBtnRect, false);
+            confirmBtnTextRect.anchorMin = Vector2.zero;
+            confirmBtnTextRect.anchorMax = Vector2.one;
+            confirmBtnTextRect.sizeDelta = Vector2.zero;
+            Text confirmBtnText = confirmBtnTextObj.AddComponent<Text>();
+            confirmBtnText.font = nameInputTitleText.font;
+            confirmBtnText.fontSize = 22;
+            confirmBtnText.color = Color.white;
+            confirmBtnText.alignment = TextAnchor.MiddleCenter;
+            confirmBtnText.text = "Aceptar";
+
+            Button confirmBtn = confirmBtnObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(confirmBtn.onClick, uiManager.ConfirmarNombreTienda);
+
+            // Importar e instanciar la imagen de la cuadrícula (tienda_fondo_grid.png)
+            EnsureIsSprite("Assets/sprites/UI/tienda_fondo_grid.png");
+            Sprite gridSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/tienda_fondo_grid.png");
+
+            GameObject gridObj = new GameObject("GridBackground", typeof(RectTransform));
+            RectTransform gridRect = gridObj.GetComponent<RectTransform>();
+            gridRect.SetParent(shopBoxRect, false);
+            gridRect.anchorMin = new Vector2(0.5f, 0.5f);
+            gridRect.anchorMax = new Vector2(0.5f, 0.5f);
+            gridRect.pivot = new Vector2(0.5f, 0.5f);
+            gridRect.anchoredPosition = new Vector2(0f, 0f); // Centrado completo
+            gridRect.sizeDelta = new Vector2(1480f, 1045f); // Elementos notablemente más grandes
+            Image gridImg = gridObj.AddComponent<Image>();
+            if (gridSprite != null)
+            {
+                gridImg.sprite = gridSprite;
+                gridImg.color = Color.white;
+            }
+            else
+            {
+                gridImg.color = new Color(0.1f, 0.1f, 0.1f, 1f);
+            }
+
+            // Botón de Cerrar (X) - Botón oficial con cruz roja en la esquina superior derecha del contenedor (estilo Mapa)
+            GameObject closeBtnObj = new GameObject("CloseButton", typeof(RectTransform));
+            RectTransform closeBtnRect = closeBtnObj.GetComponent<RectTransform>();
+            closeBtnRect.SetParent(shopBoxRect, false);
+            closeBtnRect.anchorMin = new Vector2(1f, 1f);
+            closeBtnRect.anchorMax = new Vector2(1f, 1f);
+            closeBtnRect.pivot = new Vector2(1f, 1f);
+            closeBtnRect.anchoredPosition = new Vector2(-20f, -20f); // Esquina derecha superior del contenedor
+            closeBtnRect.sizeDelta = new Vector2(85f, 85f); // Tamaño oficial (como el mapa)
+
+            Image closeBtnImg = closeBtnObj.AddComponent<Image>();
+            EnsureIsSprite("Assets/sprites/UI/boton_cerrar.png");
+            Sprite closeSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/boton_cerrar.png");
+            if (closeSprite != null)
+            {
+                closeBtnImg.sprite = closeSprite;
+                closeBtnImg.color = Color.white;
+            }
+            else
+            {
+                closeBtnImg.color = Color.red;
+            }
+            
+            Button closeBtn = closeBtnObj.AddComponent<Button>();
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(closeBtn.onClick, uiManager.CerrarTienda);
+
+            // Crear los 5 botones invisibles de compra y sus overlays
+            Button[] buyButtons = new Button[5];
+            GameObject[] maxOverlays = new GameObject[5];
+
+            // Coordenadas de los botones escaladas a la nueva resolución 1480 x 1045 (Factor 1.4453x)
+            float[] btnXPositions = { -425f, -122f, 185f, 490f, -426f };
+            float[] btnYPositions = { -49f, -48f, -49f, -47f, -417f };
+
+            for (int i = 0; i < 5; i++)
+            {
+                // Botón comprar
+                GameObject buyBtnObj = new GameObject("BuyButton_" + i, typeof(RectTransform));
+                RectTransform buyBtnRect = buyBtnObj.GetComponent<RectTransform>();
+                buyBtnRect.SetParent(gridRect, false);
+                buyBtnRect.anchoredPosition = new Vector2(btnXPositions[i], btnYPositions[i]);
+                buyBtnRect.sizeDelta = new Vector2(124f, 41f); // Escalado original de 92x30 a 124x41
+
+                // Hacemos que la imagen del botón sea invisible (color transparente) para ver el fondo original
+                Image buyBtnImg = buyBtnObj.AddComponent<Image>();
+                buyBtnImg.color = new Color(0f, 0f, 0f, 0f); // Totalmente transparente
+
+                Button buyBtn = buyBtnObj.AddComponent<Button>();
+                buyButtons[i] = buyBtn;
+
+                if (i == 0) UnityEditor.Events.UnityEventTools.AddPersistentListener(buyBtn.onClick, uiManager.ComprarMejoraMochila);
+                else if (i == 1) UnityEditor.Events.UnityEventTools.AddPersistentListener(buyBtn.onClick, uiManager.ComprarMejoraSuspension);
+                else if (i == 2) UnityEditor.Events.UnityEventTools.AddPersistentListener(buyBtn.onClick, uiManager.ComprarMejoraBicicleta);
+                else if (i == 3) UnityEditor.Events.UnityEventTools.AddPersistentListener(buyBtn.onClick, uiManager.ComprarMejoraVidasExtra);
+                else if (i == 4) UnityEditor.Events.UnityEventTools.AddPersistentListener(buyBtn.onClick, uiManager.ComprarMejoraPowerUp);
+
+                // Overlay de COMPRADO (Cubre el precio del lado izquierdo y el botón de comprar)
+                GameObject maxOverlayObj = new GameObject("MaxOverlay_" + i, typeof(RectTransform));
+                RectTransform maxOverlayRect = maxOverlayObj.GetComponent<RectTransform>();
+                maxOverlayRect.SetParent(gridRect, false);
+                maxOverlayRect.anchoredPosition = buyBtnRect.anchoredPosition + new Vector2(-57f, 0f);
+                maxOverlayRect.sizeDelta = new Vector2(255f, 45f); // Cubre precio y comprar perfectamente centrado
+                maxOverlayObj.SetActive(false); // Inicia desactivado
+
+                // Fondo gris pizarra/verdoso redondeado
+                Image overlayImg = maxOverlayObj.AddComponent<Image>();
+                Sprite roundedSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+                if (roundedSprite != null)
+                {
+                    overlayImg.sprite = roundedSprite;
+                    overlayImg.type = Image.Type.Sliced;
+                }
+                overlayImg.color = new Color(0.12f, 0.16f, 0.14f, 0.98f); // Gris pizarra verdoso premium
+
+                // Texto "✓ COMPRADO" con checkmark en verde
+                GameObject overlayTextObj = new GameObject("MaxText", typeof(RectTransform));
+                RectTransform overlayTextRect = overlayTextObj.GetComponent<RectTransform>();
+                overlayTextRect.SetParent(maxOverlayRect, false);
+                overlayTextRect.anchorMin = Vector2.zero;
+                overlayTextRect.anchorMax = Vector2.one;
+                overlayTextRect.sizeDelta = Vector2.zero;
+                Text overlayText = overlayTextObj.AddComponent<Text>();
+                overlayText.supportRichText = true;
+                overlayText.text = "<color=#4DFF4D><b>✓</b></color> COMPRADO";
+                overlayText.font = customFont;
+                if (overlayText.font == null) overlayText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                overlayText.fontSize = 17;
+                overlayText.fontStyle = FontStyle.Bold;
+                overlayText.color = Color.white; // Texto COMPRADO en blanco bold
+                overlayText.alignment = TextAnchor.MiddleCenter;
+
+                maxOverlays[i] = maxOverlayObj;
+            }
+
+            // Inyectar referencias por reflexión en AdministradorUI
+            var fieldShopPanel = typeof(AdministradorUI).GetField("shopPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldShopPanel != null) fieldShopPanel.SetValue(uiManager, shopPanelObj);
+
+            var fieldShopCoins = typeof(AdministradorUI).GetField("shopCoinsText", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldShopCoins != null) fieldShopCoins.SetValue(uiManager, coinsDisplayText);
+
+            var fieldShopNameInputPanel = typeof(AdministradorUI).GetField("shopNameInputPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldShopNameInputPanel != null) fieldShopNameInputPanel.SetValue(uiManager, nameInputPanel);
+
+            var fieldShopNameInputField = typeof(AdministradorUI).GetField("shopNameInputField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldShopNameInputField != null) fieldShopNameInputField.SetValue(uiManager, inputField);
+
+            var fieldShopNameConfirmButton = typeof(AdministradorUI).GetField("shopNameConfirmButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldShopNameConfirmButton != null) fieldShopNameConfirmButton.SetValue(uiManager, confirmBtn);
+
+            var fieldShopGridPanel = typeof(AdministradorUI).GetField("shopGridPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldShopGridPanel != null) fieldShopGridPanel.SetValue(uiManager, gridObj);
+
+            var fieldBuyBackpack = typeof(AdministradorUI).GetField("buyBackpackButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldBuyBackpack != null) fieldBuyBackpack.SetValue(uiManager, buyButtons[0]);
+
+            var fieldBuySuspension = typeof(AdministradorUI).GetField("buySuspensionButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldBuySuspension != null) fieldBuySuspension.SetValue(uiManager, buyButtons[1]);
+
+            var fieldBuyBicycle = typeof(AdministradorUI).GetField("buyBicycleButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldBuyBicycle != null) fieldBuyBicycle.SetValue(uiManager, buyButtons[2]);
+
+            var fieldBuyExtraLives = typeof(AdministradorUI).GetField("buyExtraLivesButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldBuyExtraLives != null) fieldBuyExtraLives.SetValue(uiManager, buyButtons[3]);
+
+            var fieldBuyPowerUp = typeof(AdministradorUI).GetField("buyPowerUpButton", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldBuyPowerUp != null) fieldBuyPowerUp.SetValue(uiManager, buyButtons[4]);
+
+            var fieldBackpackMax = typeof(AdministradorUI).GetField("backpackMaxOverlay", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldBackpackMax != null) fieldBackpackMax.SetValue(uiManager, maxOverlays[0]);
+
+            var fieldSuspensionMax = typeof(AdministradorUI).GetField("suspensionMaxOverlay", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldSuspensionMax != null) fieldSuspensionMax.SetValue(uiManager, maxOverlays[1]);
+
+            var fieldBicycleMax = typeof(AdministradorUI).GetField("bicycleMaxOverlay", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldBicycleMax != null) fieldBicycleMax.SetValue(uiManager, maxOverlays[2]);
+
+            var fieldExtraLivesMax = typeof(AdministradorUI).GetField("extraLivesMaxOverlay", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldExtraLivesMax != null) fieldExtraLivesMax.SetValue(uiManager, maxOverlays[3]);
+
+            var fieldPowerUpMax = typeof(AdministradorUI).GetField("powerUpMaxOverlay", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldPowerUpMax != null) fieldPowerUpMax.SetValue(uiManager, maxOverlays[4]);
+
+            // --- Panel de Mensaje de Compra Exitosa ---
+            GameObject successPanel = new GameObject("ShopSuccessPanel", typeof(RectTransform));
+            RectTransform successRect = successPanel.GetComponent<RectTransform>();
+            successRect.SetParent(shopBoxRect, false);
+            successRect.anchorMin = Vector2.zero;
+            successRect.anchorMax = Vector2.one;
+            successRect.sizeDelta = Vector2.zero;
+            successRect.anchoredPosition = Vector2.zero;
+
+            // Fondo semi-transparente oscuro que cubre todo el panel de la tienda
+            Image successBg = successPanel.AddComponent<Image>();
+            successBg.color = new Color(0f, 0f, 0f, 0.6f);
+
+            // Imagen PNG centrada de "¡Compra realizada con exito!"
+            EnsureIsSprite("Assets/sprites/UI/compra_exitosa.png");
+            Sprite compraExitosaSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/compra_exitosa.png");
+
+            GameObject successImgObj = new GameObject("SuccessImage", typeof(RectTransform));
+            RectTransform successImgRect = successImgObj.GetComponent<RectTransform>();
+            successImgRect.SetParent(successRect, false);
+            successImgRect.anchorMin = new Vector2(0.5f, 0.5f);
+            successImgRect.anchorMax = new Vector2(0.5f, 0.5f);
+            successImgRect.pivot = new Vector2(0.5f, 0.5f);
+            successImgRect.sizeDelta = new Vector2(960f, 540f);
+            successImgRect.anchoredPosition = Vector2.zero;
+
+            Image successImg = successImgObj.AddComponent<Image>();
+            if (compraExitosaSprite != null)
+            {
+                successImg.sprite = compraExitosaSprite;
+                successImg.preserveAspect = true;
+                successImg.color = Color.white;
+            }
+
+            successPanel.SetActive(false); // Empieza oculto
+
+            var fieldShopSuccessPanel = typeof(AdministradorUI).GetField("shopSuccessPanel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldShopSuccessPanel != null) fieldShopSuccessPanel.SetValue(uiManager, successPanel);
+
+            EditorUtility.SetDirty(uiManager);
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene());
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene());
+            Debug.Log("💾 Escena guardada automaticamente con la nueva configuracion de la tienda.");
         }
     }
 }

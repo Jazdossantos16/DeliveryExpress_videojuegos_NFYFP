@@ -1,0 +1,767 @@
+fileFormatVersion: 2
+guid: 5d47f0344d7612141b88a19566c95549
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8170864823737765562
+    second: tienda_fondo_grid_0
+  - first:
+      213: -2495484025093304720
+    second: tienda_fondo_grid_1
+  - first:
+      213: 4004032339593168485
+    second: tienda_fondo_grid_2
+  - first:
+      213: 2562910004144548619
+    second: tienda_fondo_grid_3
+  - first:
+      213: -7571482426785459829
+    second: tienda_fondo_grid_4
+  - first:
+      213: 4555593841789639188
+    second: tienda_fondo_grid_5
+  - first:
+      213: 4495273244016333106
+    second: tienda_fondo_grid_6
+  - first:
+      213: 6907252474944363662
+    second: tienda_fondo_grid_7
+  - first:
+      213: -3122501206079035205
+    second: tienda_fondo_grid_8
+  - first:
+      213: -4718692051506156026
+    second: tienda_fondo_grid_9
+  - first:
+      213: -2670887854014420558
+    second: tienda_fondo_grid_10
+  - first:
+      213: 1058198298233305140
+    second: tienda_fondo_grid_11
+  - first:
+      213: 4888539846480239833
+    second: tienda_fondo_grid_12
+  - first:
+      213: 2133847152529184989
+    second: tienda_fondo_grid_13
+  - first:
+      213: -8079016252080608859
+    second: tienda_fondo_grid_14
+  - first:
+      213: 3586236455721169817
+    second: tienda_fondo_grid_15
+  - first:
+      213: 3216644373714941970
+    second: tienda_fondo_grid_16
+  - first:
+      213: -7034427803130938883
+    second: tienda_fondo_grid_17
+  - first:
+      213: 4443590979229535299
+    second: tienda_fondo_grid_18
+  - first:
+      213: 3441318504951608780
+    second: tienda_fondo_grid_19
+  - first:
+      213: -7988420285766923654
+    second: tienda_fondo_grid_20
+  - first:
+      213: -2374643003109850809
+    second: tienda_fondo_grid_21
+  - first:
+      213: 622821257423790237
+    second: tienda_fondo_grid_22
+  - first:
+      213: -8420899193752271745
+    second: tienda_fondo_grid_23
+  - first:
+      213: -5515525827105576768
+    second: tienda_fondo_grid_24
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 181
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: tienda_fondo_grid_0
+      rect:
+        serializedVersion: 2
+        x: 341
+        y: 580
+        width: 25
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: abecf9e144eb46170800000000000000
+      internalID: 8170864823737765562
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_1
+      rect:
+        serializedVersion: 2
+        x: 367
+        y: 606
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07ec6a530824e5dd0800000000000000
+      internalID: -2495484025093304720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_2
+      rect:
+        serializedVersion: 2
+        x: 367
+        y: 580
+        width: 9
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56680a6d23e219730800000000000000
+      internalID: 4004032339593168485
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_3
+      rect:
+        serializedVersion: 2
+        x: 378
+        y: 579
+        width: 21
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0ba454e119419320800000000000000
+      internalID: 2562910004144548619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_4
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 580
+        width: 21
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b81175829d0bce690800000000000000
+      internalID: -7571482426785459829
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_5
+      rect:
+        serializedVersion: 2
+        x: 421
+        y: 579
+        width: 21
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41a14d86678b83f30800000000000000
+      internalID: 4555593841789639188
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_6
+      rect:
+        serializedVersion: 2
+        x: 443
+        y: 579
+        width: 21
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23159edc23b626e30800000000000000
+      internalID: 4495273244016333106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_7
+      rect:
+        serializedVersion: 2
+        x: 474
+        y: 579
+        width: 21
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8c1ffe978d7bdf50800000000000000
+      internalID: 6907252474944363662
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_8
+      rect:
+        serializedVersion: 2
+        x: 496
+        y: 579
+        width: 22
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb82ee062b5aaa4d0800000000000000
+      internalID: -3122501206079035205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_9
+      rect:
+        serializedVersion: 2
+        x: 528
+        y: 580
+        width: 32
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 60e24817496d38eb0800000000000000
+      internalID: -4718692051506156026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_10
+      rect:
+        serializedVersion: 2
+        x: 561
+        y: 579
+        width: 21
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b9a092d5a91fead0800000000000000
+      internalID: -2670887854014420558
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_11
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 570
+        width: 14
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4387e14eeb97fae00800000000000000
+      internalID: 1058198298233305140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_12
+      rect:
+        serializedVersion: 2
+        x: 583
+        y: 606
+        width: 10
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9dc1ccbf61597d340800000000000000
+      internalID: 4888539846480239833
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_13
+      rect:
+        serializedVersion: 2
+        x: 593
+        y: 579
+        width: 22
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd81b7bfda2fc9d10800000000000000
+      internalID: 2133847152529184989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_14
+      rect:
+        serializedVersion: 2
+        x: 616
+        y: 580
+        width: 15
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5a9a020f58191ef80800000000000000
+      internalID: -8079016252080608859
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_15
+      rect:
+        serializedVersion: 2
+        x: 630
+        y: 579
+        width: 21
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 993f0d74e0fd4c130800000000000000
+      internalID: 3586236455721169817
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_16
+      rect:
+        serializedVersion: 2
+        x: 651
+        y: 579
+        width: 20
+        height: 27
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 218b900f301d3ac20800000000000000
+      internalID: 3216644373714941970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_17
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 300
+        width: 190
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: df9bf3cde21b06e90800000000000000
+      internalID: -7034427803130938883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_18
+      rect:
+        serializedVersion: 2
+        x: 305
+        y: 300
+        width: 191
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 34c4b14d37ecaad30800000000000000
+      internalID: 4443590979229535299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_19
+      rect:
+        serializedVersion: 2
+        x: 516
+        y: 300
+        width: 190
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc57e9682f402cf20800000000000000
+      internalID: 3441318504951608780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_20
+      rect:
+        serializedVersion: 2
+        x: 726
+        y: 300
+        width: 191
+        height: 237
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7a8656131e632190800000000000000
+      internalID: -7988420285766923654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_21
+      rect:
+        serializedVersion: 2
+        x: 95
+        y: 45
+        width: 190
+        height: 238
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 741454325c29b0fd0800000000000000
+      internalID: -2374643003109850809
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_22
+      rect:
+        serializedVersion: 2
+        x: 305
+        y: 45
+        width: 191
+        height: 238
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d90ae4f32a4b4a800800000000000000
+      internalID: 622821257423790237
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_23
+      rect:
+        serializedVersion: 2
+        x: 516
+        y: 45
+        width: 190
+        height: 238
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f74c5039cc4f22b80800000000000000
+      internalID: -8420899193752271745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: tienda_fondo_grid_24
+      rect:
+        serializedVersion: 2
+        x: 726
+        y: 45
+        width: 191
+        height: 238
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0c821e59b7ae473b0800000000000000
+      internalID: -5515525827105576768
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      tienda_fondo_grid_0: 8170864823737765562
+      tienda_fondo_grid_1: -2495484025093304720
+      tienda_fondo_grid_10: -2670887854014420558
+      tienda_fondo_grid_11: 1058198298233305140
+      tienda_fondo_grid_12: 4888539846480239833
+      tienda_fondo_grid_13: 2133847152529184989
+      tienda_fondo_grid_14: -8079016252080608859
+      tienda_fondo_grid_15: 3586236455721169817
+      tienda_fondo_grid_16: 3216644373714941970
+      tienda_fondo_grid_17: -7034427803130938883
+      tienda_fondo_grid_18: 4443590979229535299
+      tienda_fondo_grid_19: 3441318504951608780
+      tienda_fondo_grid_2: 4004032339593168485
+      tienda_fondo_grid_20: -7988420285766923654
+      tienda_fondo_grid_21: -2374643003109850809
+      tienda_fondo_grid_22: 622821257423790237
+      tienda_fondo_grid_23: -8420899193752271745
+      tienda_fondo_grid_24: -5515525827105576768
+      tienda_fondo_grid_3: 2562910004144548619
+      tienda_fondo_grid_4: -7571482426785459829
+      tienda_fondo_grid_5: 4555593841789639188
+      tienda_fondo_grid_6: 4495273244016333106
+      tienda_fondo_grid_7: 6907252474944363662
+      tienda_fondo_grid_8: -3122501206079035205
+      tienda_fondo_grid_9: -4718692051506156026
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

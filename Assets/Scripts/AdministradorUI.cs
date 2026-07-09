@@ -15,6 +15,7 @@ namespace DeliveryExpress
                 [Header("UI de Vidas")]
         [SerializeField] private Image[] heartImages;
         [SerializeField] private Text livesText;
+        private Color[] originalHeartColors;
 
         [Header("UI de Equilibrio")]
         [SerializeField] private Slider balanceSlider;
@@ -94,6 +95,26 @@ namespace DeliveryExpress
         [SerializeField] private Sprite orderDetailsSpriteLevel1;
         [SerializeField] private Sprite orderDetailsSpriteLevel2;
 
+        [Header("UI de Tienda")]
+        [SerializeField] private GameObject shopPanel;
+        [SerializeField] private Text shopCoinsText;
+        [SerializeField] private Button buyBackpackButton;
+        [SerializeField] private Button buySuspensionButton;
+        [SerializeField] private Button buyBicycleButton;
+        [SerializeField] private Button buyExtraLivesButton;
+        [SerializeField] private Button buyPowerUpButton;
+        [SerializeField] private GameObject backpackMaxOverlay;
+        [SerializeField] private GameObject suspensionMaxOverlay;
+        [SerializeField] private GameObject bicycleMaxOverlay;
+        [SerializeField] private GameObject extraLivesMaxOverlay;
+        [SerializeField] private GameObject powerUpMaxOverlay;
+        [SerializeField] private GameObject shopNameInputPanel;
+        [SerializeField] private InputField shopNameInputField;
+        [SerializeField] private Button shopNameConfirmButton;
+        [SerializeField] private GameObject shopGridPanel;
+        [SerializeField] private GameObject shopSuccessPanel;
+        private Coroutine hideSuccessCoroutine;
+
         [Header("Iconos de Configuración")]
         [SerializeField] private Image musicIconImage;
         [SerializeField] private Image soundIconImage;
@@ -107,9 +128,108 @@ namespace DeliveryExpress
         private bool musicEnabled = true;
         private bool soundEnabled = true;
 
+        // Coordenadas originales de los botones en el GridBackground de 1480x1045
+        private readonly float[] btnOriginalX = { -425f, -122f, 185f, 490f, -426f };
+        private readonly float[] btnOriginalY = { -49f, -48f, -49f, -47f, -417f };
+
         private void Awake()
         {
             Instance = this;
+
+            // 3. Ajustar el tamaño y posicionamiento de los overlays a nivel de código en tiempo de ejecución
+            AjustarOverlaysTiendaRuntime();
+        }
+
+        private Transform FindDeepChild(Transform parent, string name)
+        {
+            if (parent == null) return null;
+            if (parent.name == name) return parent;
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                Transform child = parent.GetChild(i);
+                Transform found = FindDeepChild(child, name);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private void AjustarOverlaysTiendaRuntime()
+        {
+            Debug.Log("⚙️ [AUTOPREP] Ajustando posiciones y anclas de overlays en tiempo de ejecución...");
+            
+            // Buscar el GridBackground en toda la escena (incluso si está inactivo)
+            Transform gridPanel = null;
+            var rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
+            foreach (var root in rootObjects)
+            {
+                gridPanel = FindDeepChild(root.transform, "GridBackground");
+                if (gridPanel != null) break;
+            }
+            
+            if (gridPanel == null)
+            {
+                Debug.LogWarning("⚠️ [AUTOPREP] No se encontró el GridBackground en ningún objeto raíz de la escena.");
+                return;
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                Transform buttonTrans = FindDeepChild(gridPanel, "BuyButton_" + i);
+                Transform overlayTrans = FindDeepChild(gridPanel, "MaxOverlay_" + i);
+
+                if (buttonTrans == null || overlayTrans == null)
+                {
+                    Debug.LogWarning($"⚠️ [AUTOPREP] No se encontró BuyButton_{i} o MaxOverlay_{i} de forma recursiva.");
+                    continue;
+                }
+
+                RectTransform buyBtnRect = buttonTrans.GetComponent<RectTransform>();
+                RectTransform overlayRect = overlayTrans.GetComponent<RectTransform>();
+
+                if (buyBtnRect != null && overlayRect != null)
+                {
+                    // Asignar referencias dinámicamente a los campos locales si estaban vacíos
+                    Button btnComponent = buttonTrans.GetComponent<Button>();
+                    GameObject overlayObj = overlayTrans.gameObject;
+
+                    if (i == 0) { buyBackpackButton = btnComponent; backpackMaxOverlay = overlayObj; }
+                    else if (i == 1) { buySuspensionButton = btnComponent; suspensionMaxOverlay = overlayObj; }
+                    else if (i == 2) { buyBicycleButton = btnComponent; bicycleMaxOverlay = overlayObj; }
+                    else if (i == 3) { buyExtraLivesButton = btnComponent; extraLivesMaxOverlay = overlayObj; }
+                    else if (i == 4) { buyPowerUpButton = btnComponent; powerUpMaxOverlay = overlayObj; }
+
+                    // Forzar anclas y pivotes al centro para evitar que desfases del editor rompan la posición
+                    overlayRect.anchorMin = new Vector2(0.5f, 0.5f);
+                    overlayRect.anchorMax = new Vector2(0.5f, 0.5f);
+                    overlayRect.pivot = new Vector2(0.5f, 0.5f);
+
+                    // Posicionamiento horizontal perfectamente centrado usando las coordenadas originales e inmutables.
+                    // El offset es de -41f a la izquierda del botón de compra para quedar exactamente simétrico en la tarjeta.
+                    overlayRect.anchoredPosition = new Vector2(btnOriginalX[i] - 41f, btnOriginalY[i]);
+                    overlayRect.sizeDelta = new Vector2(255f, 45f); // Cubre precio y comprar de forma simétrica
+
+                    // Ajustar color de fondo
+                    Image overlayImg = overlayTrans.GetComponent<Image>();
+                    if (overlayImg != null)
+                    {
+                        overlayImg.color = new Color(0.12f, 0.16f, 0.14f, 0.98f);
+                    }
+
+                    // Ajustar texto
+                    Text txt = overlayTrans.GetComponentInChildren<Text>();
+                    if (txt != null)
+                    {
+                        txt.supportRichText = true;
+                        txt.text = "<color=#4DFF4D><b>✓</b></color> COMPRADO";
+                        txt.fontSize = 17;
+                        txt.fontStyle = FontStyle.Bold;
+                        txt.color = Color.white;
+                        txt.alignment = TextAnchor.MiddleCenter;
+                    }
+                    
+                    Debug.Log($"✅ [AUTOPREP] Row {i} alineado y enlazado: Pos={overlayRect.anchoredPosition}");
+                }
+            }
         }
 
         private void Start()
@@ -358,6 +478,23 @@ namespace DeliveryExpress
             }
 
 
+            // Efecto de pulso en el primer corazón si es dorado (vida extra activa)
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.CurrentLives > 3)
+            {
+                if (heartImages != null && heartImages.Length > 0 && heartImages[0] != null && heartImages[0].enabled)
+                {
+                    float pulse = 1f + Mathf.Sin(Time.time * 6f) * 0.12f;
+                    heartImages[0].transform.localScale = new Vector3(pulse, pulse, 1f);
+                }
+            }
+            else
+            {
+                if (heartImages != null && heartImages.Length > 0 && heartImages[0] != null)
+                {
+                    heartImages[0].transform.localScale = Vector3.one;
+                }
+            }
+
             // Actualizar barra de potenciador de velocidad (energía)
             ControladorJugador player = ControladorJugador.Instance;
             if (player != null && player.IsSpeedBoostActive)
@@ -382,6 +519,71 @@ namespace DeliveryExpress
                     if (spriteIndex < boosterSprites.Length && boosterSprites[spriteIndex] != null)
                     {
                         boosterImage.sprite = boosterSprites[spriteIndex];
+                    }
+
+                    // Tinte e inyección de texto según la mejora de Power Up
+                    bool isPowerUpUpgraded = (AdministradorMejoras.Instance != null && AdministradorMejoras.Instance.IsPowerUpEquipped());
+                    boosterImage.color = isPowerUpUpgraded ? new Color(1f, 0.7f, 0.1f, 1f) : Color.white;
+
+                    // Manejo del texto flotante Texto_Potenciador
+                    Transform txtTransform = boosterImage.transform.Find("Texto_Potenciador");
+                    Text boosterText = null;
+                    if (txtTransform == null)
+                    {
+                        GameObject txtObj = new GameObject("Texto_Potenciador");
+                        txtObj.transform.SetParent(boosterImage.transform, false);
+                        boosterText = txtObj.AddComponent<Text>();
+
+                        // Copiar fuente si está disponible
+                        if (livesText != null)
+                        {
+                            boosterText.font = livesText.font;
+                        }
+                        else
+                        {
+                            boosterText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                        }
+
+                        boosterText.fontSize = 12;
+                        boosterText.fontStyle = FontStyle.Bold;
+                        boosterText.alignment = TextAnchor.MiddleCenter;
+
+                        // Efecto Sombra
+                        Shadow sh = txtObj.AddComponent<Shadow>();
+                        sh.effectColor = Color.black;
+                        sh.effectDistance = new Vector2(1f, -1f);
+
+                        // Posicionamiento
+                        RectTransform rt = txtObj.GetComponent<RectTransform>();
+                        rt.anchorMin = new Vector2(0.5f, 1f);
+                        rt.anchorMax = new Vector2(0.5f, 1f);
+                        rt.pivot = new Vector2(0.5f, 0f);
+                        rt.anchoredPosition = new Vector2(0f, 6f);
+                        rt.sizeDelta = new Vector2(200f, 25f);
+                    }
+                    else
+                    {
+                        boosterText = txtTransform.GetComponent<Text>();
+                        if (!txtTransform.gameObject.activeSelf)
+                        {
+                            txtTransform.gameObject.SetActive(true);
+                        }
+                    }
+
+                    if (boosterText != null)
+                    {
+                        boosterText.enabled = true;
+                        if (isPowerUpUpgraded)
+                        {
+                            boosterText.text = "¡X1.5 DURACIÓN!";
+                            float alpha = 0.6f + Mathf.PingPong(Time.time * 3f, 0.4f);
+                            boosterText.color = new Color(1f, 0.85f, 0.1f, alpha);
+                        }
+                        else
+                        {
+                            boosterText.text = "TURBO";
+                            boosterText.color = Color.cyan;
+                        }
                     }
                 }
             }
@@ -808,11 +1010,38 @@ namespace DeliveryExpress
 
             if (heartImages != null && heartImages.Length > 0)
             {
+                // Guardar los colores originales si no se han guardado
+                if (originalHeartColors == null || originalHeartColors.Length != heartImages.Length)
+                {
+                    originalHeartColors = new Color[heartImages.Length];
+                    for (int i = 0; i < heartImages.Length; i++)
+                    {
+                        if (heartImages[i] != null)
+                        {
+                            originalHeartColors[i] = heartImages[i].color;
+                        }
+                    }
+                }
+
                 for (int i = 0; i < heartImages.Length; i++)
                 {
                     if (heartImages[i] != null)
                     {
                         heartImages[i].enabled = i < currentLives;
+
+                        // Si tiene vida extra activa (>3 vidas), pintamos el primer corazón de dorado/amarillo
+                        if (i == 0 && currentLives > 3)
+                        {
+                            heartImages[0].color = new Color(1f, 0.85f, 0.2f, 1f);
+                        }
+                        else
+                        {
+                            // Restablecemos el color original
+                            if (originalHeartColors != null && i < originalHeartColors.Length)
+                            {
+                                heartImages[i].color = originalHeartColors[i];
+                            }
+                        }
                     }
                 }
             }
@@ -1012,6 +1241,459 @@ namespace DeliveryExpress
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
+
+        #region Tienda de Mejoras
+        public void AbrirTienda()
+        {
+            PlayClickSound();
+            if (shopPanel != null)
+            {
+                shopPanel.SetActive(true);
+                
+                if (shopNameInputPanel != null)
+                {
+                    shopNameInputPanel.SetActive(true);
+                    if (shopNameInputField != null)
+                    {
+                        shopNameInputField.text = ""; // Siempre inicia vacío para completar
+                    }
+                }
+                
+                if (shopGridPanel != null)
+                {
+                    shopGridPanel.SetActive(false);
+                }
+                
+                if (shopCoinsText != null)
+                {
+                    shopCoinsText.transform.parent.gameObject.SetActive(false);
+                }
+                
+                ActualizarInterfazTienda();
+                Debug.Log("🛒 Tienda de mejoras abierta.");
+            }
+        }
+
+        public void ConfirmarNombreTienda()
+        {
+            PlayClickSound();
+            string nombre = "";
+            if (shopNameInputField != null)
+            {
+                nombre = shopNameInputField.text.Trim();
+            }
+            
+            if (!string.IsNullOrEmpty(nombre))
+            {
+                PlayerPrefs.SetString("PlayerName", nombre);
+                PlayerPrefs.Save();
+
+                // Cargar los puntos del leaderboard correspondientes a este nombre
+                LeaderboardData data = LoadLeaderboard();
+                HighScoreEntry entry = data.entries.Find(e => e.name.Equals(nombre, System.StringComparison.OrdinalIgnoreCase));
+                if (entry != null)
+                {
+                    if (AdministradorJuego.Instance != null)
+                    {
+                        AdministradorJuego.Instance.SetCoins(entry.score);
+                    }
+                }
+                else
+                {
+                    // Si el nombre no existe, registrarlo con las monedas actuales
+                    int currentCoins = (AdministradorJuego.Instance != null) ? AdministradorJuego.Instance.Coins : 0;
+                    data.entries.Add(new HighScoreEntry { name = nombre, score = currentCoins });
+                    SaveLeaderboard(data);
+                }
+            }
+            
+            if (shopNameInputPanel != null)
+            {
+                shopNameInputPanel.SetActive(false);
+            }
+            
+            if (shopGridPanel != null)
+            {
+                shopGridPanel.SetActive(true);
+            }
+            
+            if (shopCoinsText != null)
+            {
+                shopCoinsText.transform.parent.gameObject.SetActive(true);
+            }
+            
+            // Recargar las mejoras del jugador actual
+            if (AdministradorMejoras.Instance != null)
+            {
+                AdministradorMejoras.Instance.LoadUpgrades();
+            }
+            
+            AjustarOverlaysTiendaRuntime();
+            ActualizarInterfazTienda();
+        }
+
+        private void ActualizarPuntosLeaderboardConMonedas()
+        {
+            if (AdministradorJuego.Instance == null) return;
+            string currentName = PlayerPrefs.GetString("PlayerName", "").Trim();
+            if (string.IsNullOrEmpty(currentName)) return;
+
+            LeaderboardData data = LoadLeaderboard();
+            HighScoreEntry entry = data.entries.Find(e => e.name.Equals(currentName, System.StringComparison.OrdinalIgnoreCase));
+            if (entry != null)
+            {
+                entry.score = AdministradorJuego.Instance.Coins;
+                data.entries.Sort((a, b) => b.score.CompareTo(a.score));
+                SaveLeaderboard(data);
+            }
+        }
+
+        public void CerrarTienda()
+        {
+            PlayClickSound();
+            if (shopPanel != null)
+            {
+                shopPanel.SetActive(false);
+                Debug.Log("🛒 Tienda de mejoras cerrada.");
+            }
+        }
+
+        public void ActualizarInterfazTienda()
+        {
+            if (AdministradorJuego.Instance == null || AdministradorMejoras.Instance == null) return;
+
+            int coins = AdministradorJuego.Instance.Coins;
+            if (shopCoinsText != null)
+            {
+                shopCoinsText.text = coins.ToString();
+            }
+
+            // 1. Mochila Pro (Cost: 100)
+            int packLvl = AdministradorMejoras.Instance.GetBackpackLevel();
+            bool packEq = AdministradorMejoras.Instance.IsBackpackEquipped();
+            ActualizarFilaMejora(packLvl, packEq, 100, buyBackpackButton, backpackMaxOverlay, coins, btnOriginalX[0], btnOriginalY[0]);
+
+            // 2. Casco protector (Cost: 300)
+            int suspLvl = AdministradorMejoras.Instance.GetSuspensionLevel();
+            bool suspEq = AdministradorMejoras.Instance.IsSuspensionEquipped();
+            ActualizarFilaMejora(suspLvl, suspEq, 300, buySuspensionButton, suspensionMaxOverlay, coins, btnOriginalX[1], btnOriginalY[1]);
+
+            // 3. Moto de reparto (Cost: 1000)
+            int bikeLvl = AdministradorMejoras.Instance.GetBicycleLevel();
+            bool bikeEq = AdministradorMejoras.Instance.IsBicycleEquipped();
+            ActualizarFilaMejora(bikeLvl, bikeEq, 1000, buyBicycleButton, bicycleMaxOverlay, coins, btnOriginalX[2], btnOriginalY[2]);
+
+            // 4. Vidas Extra (Cost: 1500)
+            int livesLvl = AdministradorMejoras.Instance.GetExtraLivesLevel();
+            bool livesEq = AdministradorMejoras.Instance.IsExtraLivesEquipped();
+            ActualizarFilaMejora(livesLvl, livesEq, 1500, buyExtraLivesButton, extraLivesMaxOverlay, coins, btnOriginalX[3], btnOriginalY[3]);
+
+            // 5. Power up (Cost: 2000)
+            int powerLvl = AdministradorMejoras.Instance.GetPowerUpLevel();
+            bool powerEq = AdministradorMejoras.Instance.IsPowerUpEquipped();
+            ActualizarFilaMejora(powerLvl, powerEq, 2000, buyPowerUpButton, powerUpMaxOverlay, coins, btnOriginalX[4], btnOriginalY[4]);
+        }
+
+        private void ActualizarFilaMejora(int currentLevel, bool isEquipped, int cost, Button buyButton, GameObject maxOverlay, int coinCount, float origX, float origY)
+        {
+            bool isPurchased = (currentLevel > 0);
+
+            if (maxOverlay != null)
+            {
+                maxOverlay.SetActive(isPurchased);
+                
+                if (isPurchased)
+                {
+                    Image overlayImg = maxOverlay.GetComponent<Image>();
+                    if (overlayImg != null)
+                    {
+                        overlayImg.raycastTarget = false; // Permitir que los clics traspasen al botón invisible de abajo
+                    }
+
+                    Text txt = maxOverlay.GetComponentInChildren<Text>();
+                    if (txt != null)
+                    {
+                        txt.raycastTarget = false; // Permitir que los clics traspasen al botón invisible de abajo
+                    }
+                    
+                    if (isEquipped)
+                    {
+                        // Color gris pizarra/verdoso original (activo/equipado)
+                        if (overlayImg != null) overlayImg.color = new Color(0.12f, 0.16f, 0.14f, 0.98f);
+                        if (txt != null)
+                        {
+                            txt.supportRichText = true;
+                            txt.text = "<color=#4DFF4D><b>✓</b></color> EQUIPADO";
+                        }
+                    }
+                    else
+                    {
+                        // Color gris pizarra más claro y apagado (desactivado/sin equipar)
+                        if (overlayImg != null) overlayImg.color = new Color(0.26f, 0.3f, 0.28f, 0.98f);
+                        if (txt != null)
+                        {
+                            txt.supportRichText = true;
+                            txt.text = "<color=#A0A0A0><b>+</b></color> EQUIPAR";
+                        }
+                    }
+                }
+            }
+
+            if (buyButton != null)
+            {
+                // Mantenemos el botón activo para que sea interactivo después de comprar
+                buyButton.gameObject.SetActive(true);
+                RectTransform buyBtnRect = buyButton.GetComponent<RectTransform>();
+
+                if (isPurchased)
+                {
+                    buyButton.interactable = true;
+                    
+                    // Colocar el botón invisible exactamente sobre la cápsula de overlay para que haga clic en toda su superficie
+                    if (maxOverlay != null && buyBtnRect != null)
+                    {
+                        RectTransform overlayRect = maxOverlay.GetComponent<RectTransform>();
+                        if (overlayRect != null)
+                        {
+                            buyBtnRect.anchorMin = overlayRect.anchorMin;
+                            buyBtnRect.anchorMax = overlayRect.anchorMax;
+                            buyBtnRect.pivot = overlayRect.pivot;
+                            buyBtnRect.anchoredPosition = overlayRect.anchoredPosition;
+                            buyBtnRect.sizeDelta = overlayRect.sizeDelta;
+                        }
+                    }
+                }
+                else
+                {
+                    buyButton.interactable = (coinCount >= cost);
+                    if (buyBtnRect != null)
+                    {
+                        // Asegurar posición y tamaño de compra original e inalterado
+                        buyBtnRect.anchorMin = new Vector2(0.5f, 0.5f);
+                        buyBtnRect.anchorMax = new Vector2(0.5f, 0.5f);
+                        buyBtnRect.pivot = new Vector2(0.5f, 0.5f);
+                        buyBtnRect.anchoredPosition = new Vector2(origX, origY);
+                        buyBtnRect.sizeDelta = new Vector2(124f, 41f);
+                    }
+                }
+            }
+        }
+
+        public void ComprarMejoraBicicleta()
+        {
+            Debug.Log($"[TIENDA] ComprarMejoraBicicleta llamado. MejorasInst={AdministradorMejoras.Instance != null} JuegoInst={AdministradorJuego.Instance != null}");
+            if (AdministradorMejoras.Instance == null) return;
+
+            if (AdministradorMejoras.Instance.GetBicycleLevel() > 0)
+            {
+                Debug.Log("[TIENDA] Alternando estado de equipamiento para Bicicleta");
+                AdministradorMejoras.Instance.ToggleBicycleEquipped();
+                PlayClickSound();
+                if (ControladorJugador.Instance != null)
+                {
+                    AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+                }
+                ActualizarInterfazTienda();
+                return;
+            }
+
+            if (AdministradorJuego.Instance != null) Debug.Log($"[TIENDA] Monedas actuales: {AdministradorJuego.Instance.Coins}");
+            if (AdministradorMejoras.Instance.BuyUpgradeBicycleSpeed())
+            {
+                Debug.Log("[TIENDA] Compra de bicicleta EXITOSA");
+                PlayClickSound();
+                ActualizarPuntosLeaderboardConMonedas();
+                ActualizarInterfazTienda();
+                UpdateCoinsUI(AdministradorJuego.Instance.Coins);
+                if (ControladorJugador.Instance != null)
+                {
+                    AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+                }
+                MostrarMensajeExito();
+            }
+            else
+            {
+                Debug.Log("[TIENDA] Compra de bicicleta FALLIDA");
+            }
+        }
+
+        public void ComprarMejoraSuspension()
+        {
+            Debug.Log($"[TIENDA] ComprarMejoraSuspension llamado. MejorasInst={AdministradorMejoras.Instance != null} JuegoInst={AdministradorJuego.Instance != null}");
+            if (AdministradorMejoras.Instance == null) return;
+
+            if (AdministradorMejoras.Instance.GetSuspensionLevel() > 0)
+            {
+                Debug.Log("[TIENDA] Alternando estado de equipamiento para Suspension");
+                AdministradorMejoras.Instance.ToggleSuspensionEquipped();
+                PlayClickSound();
+                if (ControladorJugador.Instance != null)
+                {
+                    AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+                }
+                ActualizarInterfazTienda();
+                return;
+            }
+
+            if (AdministradorJuego.Instance != null) Debug.Log($"[TIENDA] Monedas actuales: {AdministradorJuego.Instance.Coins}");
+            if (AdministradorMejoras.Instance.BuyUpgradeSuspension())
+            {
+                Debug.Log("[TIENDA] Compra de suspension EXITOSA");
+                PlayClickSound();
+                ActualizarPuntosLeaderboardConMonedas();
+                ActualizarInterfazTienda();
+                UpdateCoinsUI(AdministradorJuego.Instance.Coins);
+                if (ControladorJugador.Instance != null)
+                {
+                    AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+                }
+                MostrarMensajeExito();
+            }
+            else
+            {
+                Debug.Log("[TIENDA] Compra de suspension FALLIDA");
+            }
+        }
+
+        public void ComprarMejoraMochila()
+        {
+            Debug.Log($"[TIENDA] ComprarMejoraMochila llamado. MejorasInst={AdministradorMejoras.Instance != null} JuegoInst={AdministradorJuego.Instance != null}");
+            if (AdministradorMejoras.Instance == null) return;
+
+            if (AdministradorMejoras.Instance.GetBackpackLevel() > 0)
+            {
+                Debug.Log("[TIENDA] Alternando estado de equipamiento para Mochila");
+                AdministradorMejoras.Instance.ToggleBackpackEquipped();
+                PlayClickSound();
+                if (ControladorJugador.Instance != null)
+                {
+                    AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+                }
+                ActualizarInterfazTienda();
+                return;
+            }
+
+            if (AdministradorJuego.Instance != null) Debug.Log($"[TIENDA] Monedas actuales: {AdministradorJuego.Instance.Coins}");
+            if (AdministradorMejoras.Instance.BuyUpgradeBackpack())
+            {
+                Debug.Log("[TIENDA] Compra de mochila EXITOSA");
+                PlayClickSound();
+                ActualizarPuntosLeaderboardConMonedas();
+                ActualizarInterfazTienda();
+                UpdateCoinsUI(AdministradorJuego.Instance.Coins);
+                if (ControladorJugador.Instance != null)
+                {
+                    AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+                }
+                MostrarMensajeExito();
+            }
+            else
+            {
+                Debug.Log("[TIENDA] Compra de mochila FALLIDA");
+            }
+        }
+
+        public void ComprarMejoraVidasExtra()
+        {
+            Debug.Log($"[TIENDA] ComprarMejoraVidasExtra llamado. MejorasInst={AdministradorMejoras.Instance != null} JuegoInst={AdministradorJuego.Instance != null}");
+            if (AdministradorMejoras.Instance == null) return;
+
+            if (AdministradorMejoras.Instance.GetExtraLivesLevel() > 0)
+            {
+                Debug.Log("[TIENDA] Alternando estado de equipamiento para Vidas Extra");
+                AdministradorMejoras.Instance.ToggleExtraLivesEquipped();
+                PlayClickSound();
+                if (ControladorJugador.Instance != null)
+                {
+                    AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+                }
+                ActualizarInterfazTienda();
+                return;
+            }
+
+            if (AdministradorJuego.Instance != null) Debug.Log($"[TIENDA] Monedas actuales: {AdministradorJuego.Instance.Coins}");
+            if (AdministradorMejoras.Instance.BuyUpgradeExtraLives())
+            {
+                Debug.Log("[TIENDA] Compra de vidas extra EXITOSA");
+                PlayClickSound();
+                ActualizarPuntosLeaderboardConMonedas();
+                ActualizarInterfazTienda();
+                UpdateCoinsUI(AdministradorJuego.Instance.Coins);
+                if (ControladorJugador.Instance != null)
+                {
+                    AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+                }
+                MostrarMensajeExito();
+            }
+            else
+            {
+                Debug.Log("[TIENDA] Compra de vidas extra FALLIDA");
+            }
+        }
+
+        public void ComprarMejoraPowerUp()
+        {
+            Debug.Log($"[TIENDA] ComprarMejoraPowerUp llamado. MejorasInst={AdministradorMejoras.Instance != null} JuegoInst={AdministradorJuego.Instance != null}");
+            if (AdministradorMejoras.Instance == null) return;
+
+            if (AdministradorMejoras.Instance.GetPowerUpLevel() > 0)
+            {
+                Debug.Log("[TIENDA] Alternando estado de equipamiento para Power Up");
+                AdministradorMejoras.Instance.TogglePowerUpEquipped();
+                PlayClickSound();
+                if (ControladorJugador.Instance != null)
+                {
+                    AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+                }
+                ActualizarInterfazTienda();
+                return;
+            }
+
+            if (AdministradorJuego.Instance != null) Debug.Log($"[TIENDA] Monedas actuales: {AdministradorJuego.Instance.Coins}");
+            if (AdministradorMejoras.Instance.BuyUpgradePowerUp())
+            {
+                Debug.Log("[TIENDA] Compra de power up EXITOSA");
+                PlayClickSound();
+                ActualizarPuntosLeaderboardConMonedas();
+                ActualizarInterfazTienda();
+                UpdateCoinsUI(AdministradorJuego.Instance.Coins);
+                if (ControladorJugador.Instance != null)
+                {
+                    AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+                }
+                MostrarMensajeExito();
+            }
+            else
+            {
+                Debug.Log("[TIENDA] Compra de power up FALLIDA");
+            }
+        }
+
+        public void ComprarMejoraTiempoExtra()
+        {
+        }
+
+        private void MostrarMensajeExito()
+        {
+            if (shopSuccessPanel == null) return;
+            if (hideSuccessCoroutine != null)
+            {
+                StopCoroutine(hideSuccessCoroutine);
+            }
+            shopSuccessPanel.SetActive(true);
+            hideSuccessCoroutine = StartCoroutine(OcultarMensajeExitoDespues(1.5f));
+        }
+
+        private IEnumerator OcultarMensajeExitoDespues(float segundos)
+        {
+            yield return new WaitForSecondsRealtime(segundos);
+            if (shopSuccessPanel != null)
+            {
+                shopSuccessPanel.SetActive(false);
+            }
+            hideSuccessCoroutine = null;
+        }
+        #endregion
 
         public void UpdateCoinsUI(int coins)
         {

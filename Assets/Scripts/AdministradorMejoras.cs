@@ -10,25 +10,40 @@ namespace DeliveryExpress
     {
         public static AdministradorMejoras Instance { get; private set; }
 
-        [System.Serializable]
-        public struct UpgradeTier
-        {
-            public int level;
-            public int cost;
-            public float modifierValue;
-        }
+        // Niveles actuales de compra (0 = no comprado, 1 = comprado)
+        private int currentBicycleLevel = 0;   // Moto de reparto
+        private int currentSuspensionLevel = 0; // Casco protector
+        private int currentBackpackLevel = 0;   // Mochila Pro
+        private int currentExtraLivesLevel = 0; // Vidas Extra
+        private int currentPowerUpLevel = 0;    // Power up
 
-        [Header("Configuraciones de Mejoras y Precios")]
-        [SerializeField] private UpgradeTier[] bicycleSpeedTiers;  // Bicicleta Mejorada (Giro)
-        [SerializeField] private UpgradeTier[] suspensionTiers;     // Mejor Suspensión (Estabilidad)
-        [SerializeField] private UpgradeTier[] backpackTiers;       // Mochila Liviana (Peso)
-        [SerializeField] private UpgradeTier[] extraTimeTiers;      // Tiempo Extra (Segundos)
+        // Estados de equipamiento (true = equipado, false = desequipado)
+        private bool isBicycleEquipped = true;
+        private bool isSuspensionEquipped = true;
+        private bool isBackpackEquipped = true;
+        private bool isExtraLivesEquipped = true;
+        private bool isPowerUpEquipped = true;
 
-        // Niveles actuales de compra
-        private int currentBicycleLevel = 0;
-        private int currentSuspensionLevel = 0;
-        private int currentBackpackLevel = 0;
-        private int currentExtraTimeLevel = 0;
+        // Métodos de consulta de nivel
+        public int GetBicycleLevel() => currentBicycleLevel;
+        public int GetSuspensionLevel() => currentSuspensionLevel;
+        public int GetBackpackLevel() => currentBackpackLevel;
+        public int GetExtraLivesLevel() => currentExtraLivesLevel;
+        public int GetPowerUpLevel() => currentPowerUpLevel;
+
+        // Métodos de consulta de equipamiento
+        public bool IsBicycleEquipped() => isBicycleEquipped;
+        public bool IsSuspensionEquipped() => isSuspensionEquipped;
+        public bool IsBackpackEquipped() => isBackpackEquipped;
+        public bool IsExtraLivesEquipped() => isExtraLivesEquipped;
+        public bool IsPowerUpEquipped() => isPowerUpEquipped;
+
+        // Métodos para equipar/desequipar (toggles)
+        public void ToggleBicycleEquipped() { if (currentBicycleLevel > 0) { isBicycleEquipped = !isBicycleEquipped; SaveUpgrades(); } }
+        public void ToggleSuspensionEquipped() { if (currentSuspensionLevel > 0) { isSuspensionEquipped = !isSuspensionEquipped; SaveUpgrades(); } }
+        public void ToggleBackpackEquipped() { if (currentBackpackLevel > 0) { isBackpackEquipped = !isBackpackEquipped; SaveUpgrades(); } }
+        public void ToggleExtraLivesEquipped() { if (currentExtraLivesLevel > 0) { isExtraLivesEquipped = !isExtraLivesEquipped; SaveUpgrades(); } }
+        public void TogglePowerUpEquipped() { if (currentPowerUpLevel > 0) { isPowerUpEquipped = !isPowerUpEquipped; SaveUpgrades(); } }
 
         private void Awake()
         {
@@ -51,32 +66,35 @@ namespace DeliveryExpress
         {
             if (player != null)
             {
-                // Bicicleta: Multiplicador de velocidad (Default: 1.0f)
-                player.speedUpgradeFactor = GetModifierValue(bicycleSpeedTiers, currentBicycleLevel, 1f);
+                // Moto de reparto: Velocidad lateral incrementada (Default: 1.0f -> 1.35f)
+                player.speedUpgradeFactor = (currentBicycleLevel > 0 && isBicycleEquipped) ? 1.35f : 1f;
 
-                // Suspensión: Factor reductor de amplitud de tambaleo (Default: 1.0f. Nivel máximo reduce la inestabilidad)
-                player.suspensionUpgradeFactor = GetModifierValue(suspensionTiers, currentSuspensionLevel, 1f);
+                // Casco protector: Estabilidad mejorada, reduce wobble (Default: 1.0f -> 0.3f)
+                player.suspensionUpgradeFactor = (currentSuspensionLevel > 0 && isSuspensionEquipped) ? 0.3f : 1f;
 
-                // Mochila: Factor reductor de penalización de peso (Default: 1.0f. Menor factor implica menor pena)
-                player.backpackUpgradeFactor = GetModifierValue(backpackTiers, currentBackpackLevel, 1f);
+                // Mochila Pro: Peso liviano, reduce penalización (Default: 1.0f -> 0.5f)
+                player.backpackUpgradeFactor = (currentBackpackLevel > 0 && isBackpackEquipped) ? 0.5f : 1f;
+
+                // Power up: Aumenta la duración de la energía (Default: 1.0f -> 1.5f)
+                player.powerUpDurationFactor = (currentPowerUpLevel > 0 && isPowerUpEquipped) ? 1.5f : 1f;
             }
 
             if (AdministradorJuego.Instance != null)
             {
-                // Tiempo extra sumado en segundos a la jornada
-                AdministradorJuego.Instance.extraTimeUpgrade = GetModifierValue(extraTimeTiers, currentExtraTimeLevel, 0f);
+                // Vidas Extra: Añade 1 vida extra de inicio
+                AdministradorJuego.Instance.extraLivesUpgrade = (currentExtraLivesLevel > 0 && isExtraLivesEquipped) ? 1 : 0;
             }
         }
 
         #region Métodos de Compra
         public bool BuyUpgradeBicycleSpeed()
         {
-            if (currentBicycleLevel >= bicycleSpeedTiers.Length) return false; // Nivel Max
+            if (currentBicycleLevel >= 1) return false; // Ya comprado
 
-            int cost = bicycleSpeedTiers[currentBicycleLevel].cost;
+            int cost = 1000;
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.SpendCoins(cost))
             {
-                currentBicycleLevel++;
+                currentBicycleLevel = 1;
                 SaveUpgrades();
                 return true;
             }
@@ -85,12 +103,12 @@ namespace DeliveryExpress
 
         public bool BuyUpgradeSuspension()
         {
-            if (currentSuspensionLevel >= suspensionTiers.Length) return false;
+            if (currentSuspensionLevel >= 1) return false; // Ya comprado
 
-            int cost = suspensionTiers[currentSuspensionLevel].cost;
+            int cost = 300;
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.SpendCoins(cost))
             {
-                currentSuspensionLevel++;
+                currentSuspensionLevel = 1;
                 SaveUpgrades();
                 return true;
             }
@@ -99,57 +117,106 @@ namespace DeliveryExpress
 
         public bool BuyUpgradeBackpack()
         {
-            if (currentBackpackLevel >= backpackTiers.Length) return false;
+            if (currentBackpackLevel >= 1) return false; // Ya comprado
 
-            int cost = backpackTiers[currentBackpackLevel].cost;
+            int cost = 100;
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.SpendCoins(cost))
             {
-                currentBackpackLevel++;
+                currentBackpackLevel = 1;
                 SaveUpgrades();
                 return true;
             }
             return false;
         }
 
-        public bool BuyUpgradeExtraTime()
+        public bool BuyUpgradeExtraLives()
         {
-            if (currentExtraTimeLevel >= extraTimeTiers.Length) return false;
+            if (currentExtraLivesLevel >= 1) return false; // Ya comprado
 
-            int cost = extraTimeTiers[currentExtraTimeLevel].cost;
+            int cost = 1500;
             if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.SpendCoins(cost))
             {
-                currentExtraTimeLevel++;
+                currentExtraLivesLevel = 1;
                 SaveUpgrades();
                 return true;
             }
+            return false;
+        }
+
+        public bool BuyUpgradePowerUp()
+        {
+            if (currentPowerUpLevel >= 1) return false; // Ya comprado
+
+            int cost = 2000;
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.SpendCoins(cost))
+            {
+                currentPowerUpLevel = 1;
+                SaveUpgrades();
+                return true;
+            }
+            return false;
+        }
+
+        // Mantener compatibilidad si hay referencias viejas
+        public bool BuyUpgradeExtraTime()
+        {
             return false;
         }
         #endregion
 
-        #region Helpers y Persistencia
-        private float GetModifierValue(UpgradeTier[] tiers, int currentLevel, float defaultValue)
+        #region Persistencia
+        private string GetCurrentPlayerName()
         {
-            if (tiers == null || tiers.Length == 0 || currentLevel == 0) return defaultValue;
-            
-            int index = Mathf.Clamp(currentLevel - 1, 0, tiers.Length - 1);
-            return tiers[index].modifierValue;
+            return PlayerPrefs.GetString("PlayerName", "").Trim();
         }
 
-        private void SaveUpgrades()
+        public void SaveUpgrades()
         {
-            PlayerPrefs.SetInt("BicycleSpeedLvl", currentBicycleLevel);
-            PlayerPrefs.SetInt("SuspensionLvl", currentSuspensionLevel);
-            PlayerPrefs.SetInt("BackpackLvl", currentBackpackLevel);
-            PlayerPrefs.SetInt("ExtraTimeLvl", currentExtraTimeLevel);
+            string playerName = GetCurrentPlayerName();
+            if (string.IsNullOrEmpty(playerName)) return;
+            PlayerPrefs.SetInt(playerName + "_BicycleSpeedLvl", currentBicycleLevel);
+            PlayerPrefs.SetInt(playerName + "_SuspensionLvl", currentSuspensionLevel);
+            PlayerPrefs.SetInt(playerName + "_BackpackLvl", currentBackpackLevel);
+            PlayerPrefs.SetInt(playerName + "_ExtraLivesLvl", currentExtraLivesLevel);
+            PlayerPrefs.SetInt(playerName + "_PowerUpUpgradeLvl", currentPowerUpLevel);
+            
+            PlayerPrefs.SetInt(playerName + "_BicycleSpeedEquipped", isBicycleEquipped ? 1 : 0);
+            PlayerPrefs.SetInt(playerName + "_SuspensionEquipped", isSuspensionEquipped ? 1 : 0);
+            PlayerPrefs.SetInt(playerName + "_BackpackEquipped", isBackpackEquipped ? 1 : 0);
+            PlayerPrefs.SetInt(playerName + "_ExtraLivesEquipped", isExtraLivesEquipped ? 1 : 0);
+            PlayerPrefs.SetInt(playerName + "_PowerUpUpgradeEquipped", isPowerUpEquipped ? 1 : 0);
             PlayerPrefs.Save();
         }
 
-        private void LoadUpgrades()
+        public void LoadUpgrades()
         {
-            currentBicycleLevel = PlayerPrefs.GetInt("BicycleSpeedLvl", 0);
-            currentSuspensionLevel = PlayerPrefs.GetInt("SuspensionLvl", 0);
-            currentBackpackLevel = PlayerPrefs.GetInt("BackpackLvl", 0);
-            currentExtraTimeLevel = PlayerPrefs.GetInt("ExtraTimeLvl", 0);
+            string playerName = GetCurrentPlayerName();
+            if (string.IsNullOrEmpty(playerName))
+            {
+                currentBicycleLevel = 0;
+                currentSuspensionLevel = 0;
+                currentBackpackLevel = 0;
+                currentExtraLivesLevel = 0;
+                currentPowerUpLevel = 0;
+                
+                isBicycleEquipped = true;
+                isSuspensionEquipped = true;
+                isBackpackEquipped = true;
+                isExtraLivesEquipped = true;
+                isPowerUpEquipped = true;
+                return;
+            }
+            currentBicycleLevel = PlayerPrefs.GetInt(playerName + "_BicycleSpeedLvl", 0);
+            currentSuspensionLevel = PlayerPrefs.GetInt(playerName + "_SuspensionLvl", 0);
+            currentBackpackLevel = PlayerPrefs.GetInt(playerName + "_BackpackLvl", 0);
+            currentExtraLivesLevel = PlayerPrefs.GetInt(playerName + "_ExtraLivesLvl", 0);
+            currentPowerUpLevel = PlayerPrefs.GetInt(playerName + "_PowerUpUpgradeLvl", 0);
+            
+            isBicycleEquipped = PlayerPrefs.GetInt(playerName + "_BicycleSpeedEquipped", 1) == 1;
+            isSuspensionEquipped = PlayerPrefs.GetInt(playerName + "_SuspensionEquipped", 1) == 1;
+            isBackpackEquipped = PlayerPrefs.GetInt(playerName + "_BackpackEquipped", 1) == 1;
+            isExtraLivesEquipped = PlayerPrefs.GetInt(playerName + "_ExtraLivesEquipped", 1) == 1;
+            isPowerUpEquipped = PlayerPrefs.GetInt(playerName + "_PowerUpUpgradeEquipped", 1) == 1;
         }
         #endregion
     }
