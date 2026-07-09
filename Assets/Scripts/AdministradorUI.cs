@@ -819,6 +819,27 @@ namespace DeliveryExpress
                     img.color = Color.white;
                 }
 
+                // Garantizar en runtime que el botón Jugar llame AvanzarSiguienteDia
+                Button btnSig = null;
+                foreach (Button b in victoryPanel.GetComponentsInChildren<Button>(true))
+                {
+                    if (b.gameObject.name == "BotonSiguiente")
+                    {
+                        btnSig = b;
+                        break;
+                    }
+                }
+                if (btnSig != null)
+                {
+                    btnSig.onClick.RemoveAllListeners();
+                    btnSig.onClick.AddListener(AvanzarSiguienteDia);
+                    Debug.Log("[ShowVictory] BotonSiguiente → AvanzarSiguienteDia ✅");
+                }
+                else
+                {
+                    Debug.LogWarning("[ShowVictory] No se encontró 'BotonSiguiente' dentro de victoryPanel.");
+                }
+
                 // Inicializar y limpiar el Leaderboard para Victoria
                 if (victoryNameInputField != null)
                 {
@@ -832,6 +853,7 @@ namespace DeliveryExpress
                 ActualizarLeaderboardTexto(victoryLeaderboardText);
             }
             Time.timeScale = 0f;
+            Debug.Log($"[ShowVictory] currentDay={AdministradorJuego.Instance?.CurrentDay} — pantalla victoria activa.");
         }
 
         private void SetHUDActive(bool active)
