@@ -104,6 +104,7 @@ namespace DeliveryExpress
 
         private void Start()
         {
+            Debug.Log($"[AdministradorUI.Start] skipStartPanel={skipStartPanel}, showDetailsOnLoad={showDetailsOnLoad}, currentDay={(AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : -1)}");
             // Cargar y aplicar configuraciones de audio al iniciar
             soundEnabled = PlayerPrefs.GetInt("SoundEnabled", 1) == 1;
             musicEnabled = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
@@ -869,6 +870,7 @@ namespace DeliveryExpress
         {
             PlayClickSound();
             int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+            Debug.Log($"[AdministradorUI.AvanzarSiguienteDia] currentDay={currentDay}");
             if (currentDay > 2)
             {
                 // Si ya completó el Nivel 2, simplemente reiniciar el Nivel 2 directamente
