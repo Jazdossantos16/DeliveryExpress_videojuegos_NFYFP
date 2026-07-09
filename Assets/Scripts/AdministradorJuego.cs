@@ -82,8 +82,9 @@ namespace DeliveryExpress
             isGameRunning = true;
             IsFinishLineReached = false;
 
-            // Restablecemos las vidas al iniciar el día
+            // Restablecemos las vidas y el clima al iniciar el día
             currentLives = startingLives;
+            ControladorClima.IntensidadClima = 0f;
             
             if (currentDay == 2)
             {

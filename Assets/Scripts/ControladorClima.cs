@@ -16,7 +16,7 @@ namespace DeliveryExpress
         /// Intensidad climática constante del nivel (1.0 cuando está activo).
         /// Afecta tanto la cantidad de lluvia visual como la fuerza física del viento en el jugador.
         /// </summary>
-        public static float IntensidadClima { get; private set; } = 0f;
+        public static float IntensidadClima { get; set; } = 0f;
 
         private void Start()
         {

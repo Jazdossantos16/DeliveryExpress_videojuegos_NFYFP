@@ -351,7 +351,6 @@ namespace DeliveryExpress
             if (AdministradorJuego.Instance != null)
             {
                 AdministradorJuego.Instance.ResetCoins();
-                AdministradorJuego.Instance.ConfigurarJornada(1); // Restablecer a Jornada 1 para evitar que la lluvia del Nivel 2 se filtre
             }
             skipStartPanel = false;
             Time.timeScale = 1f;
