@@ -113,6 +113,18 @@ namespace DeliveryExpress
                 AdministradorAudio.Instance.SetMusicEnabled(musicEnabled);
             }
 
+            // Asignar dinámicamente el listener correcto para el botón de ganar cheat en tiempo de ejecución
+            GameObject winBtnObj = GameObject.Find("Boton_Ganar");
+            if (winBtnObj != null)
+            {
+                Button winBtn = winBtnObj.GetComponent<Button>();
+                if (winBtn != null)
+                {
+                    winBtn.onClick.RemoveAllListeners();
+                    winBtn.onClick.AddListener(GanarJuegoCheat);
+                }
+            }
+
             if (skipStartPanel)
             {
                 skipStartPanel = false;
@@ -753,6 +765,17 @@ namespace DeliveryExpress
                     gameOverPanel.SetActive(false);
                 }
             }
+        }
+
+        public void GanarJuegoCheat()
+        {
+            PlayClickSound();
+            if (AdministradorJuego.Instance != null)
+            {
+                int nextDay = AdministradorJuego.Instance.CurrentDay + 1;
+                AdministradorJuego.Instance.ConfigurarJornada(nextDay);
+            }
+            ShowVictory();
         }
 
         public void ShowVictory()

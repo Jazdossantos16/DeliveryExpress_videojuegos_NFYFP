@@ -1324,7 +1324,7 @@ namespace DeliveryExpress.Editor
             }
 
             Button winBtn = winBtnObj.AddComponent<Button>();
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(winBtn.onClick, uiManager.ShowVictory);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(winBtn.onClick, uiManager.GanarJuegoCheat);
 
             // Inyectar los sprites y el botón mediante reflexión en el AdministradorUI
             var pauseSpriteField = typeof(AdministradorUI).GetField("pauseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
