@@ -792,6 +792,7 @@ namespace DeliveryExpress
 
         public void GanarJuegoCheat()
         {
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver) return;
             PlayClickSound();
             if (AdministradorJuego.Instance != null)
             {
