@@ -76,6 +76,7 @@ namespace DeliveryExpress
         {
             if (other.CompareTag("Player"))
             {
+                Debug.Log("🪙 [Moneda] Colisión detectada con Player. Intentando sumar moneda.");
                 if (AdministradorJuego.Instance != null)
                 {
                     AdministradorJuego.Instance.AddCoins(1);

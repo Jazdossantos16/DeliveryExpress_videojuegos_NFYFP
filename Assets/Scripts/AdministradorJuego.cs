@@ -83,6 +83,7 @@ namespace DeliveryExpress
         /// </summary>
         public void StartNewDay()
         {
+            Debug.Log($"[AdministradorJuego.StartNewDay] Inicializando día. Instance ID: {this.GetInstanceID()}, Static Instance ID: {(Instance != null ? Instance.GetInstanceID() : 0)}");
             isGameOver = false;
             isVictory = false;
             isGameRunning = true;
@@ -232,6 +233,7 @@ namespace DeliveryExpress
         public void AddCoins(int amount)
         {
             coinsAccumulated += amount;
+            Debug.Log($"[AdministradorJuego.AddCoins] Monedas sumadas: {amount}. Total acumulado: {coinsAccumulated}. Instance ID: {this.GetInstanceID()}, Static Instance ID: {(Instance != null ? Instance.GetInstanceID() : 0)}");
             OnCoinsChanged?.Invoke(coinsAccumulated);
         }
 
