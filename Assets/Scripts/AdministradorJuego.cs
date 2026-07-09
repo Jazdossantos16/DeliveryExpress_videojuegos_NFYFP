@@ -15,6 +15,7 @@ namespace DeliveryExpress
 
         [Header("Configuración de Vidas y Tiempo")]
         [SerializeField] private int startingLives = 3; // Cantidad de vidas iniciales
+        [HideInInspector] public int extraLivesUpgrade = 0; // Vidas extra compradas en la tienda
         [SerializeField] private float baseLevelDuration = 60f; // Duración base del nivel en segundos
 
         [Header("Configuración de Jornadas")]
@@ -82,8 +83,14 @@ namespace DeliveryExpress
             isGameRunning = true;
             IsFinishLineReached = false;
 
-            // Restablecemos las vidas al iniciar el día
-            currentLives = startingLives;
+            // Aplicar mejoras antes de inicializar vidas
+            if (AdministradorMejoras.Instance != null)
+            {
+                AdministradorMejoras.Instance.ApplyUpgradesToGameplay(ControladorJugador.Instance);
+            }
+
+            // Restablecemos las vidas al iniciar el día (sumando las compradas en la tienda)
+            currentLives = startingLives + extraLivesUpgrade;
             
             if (currentDay == 2)
             {
@@ -212,6 +219,15 @@ namespace DeliveryExpress
         public void AddCoins(int amount)
         {
             coinsAccumulated += amount;
+            OnCoinsChanged?.Invoke(coinsAccumulated);
+        }
+
+        /// <summary>
+        /// Setea las monedas acumuladas directamente (por ejemplo, desde el leaderboard al ingresar nombre)
+        /// </summary>
+        public void SetCoins(int amount)
+        {
+            coinsAccumulated = amount;
             OnCoinsChanged?.Invoke(coinsAccumulated);
         }
 

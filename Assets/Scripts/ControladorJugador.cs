@@ -88,11 +88,29 @@ namespace DeliveryExpress
         [HideInInspector] public float speedUpgradeFactor = 1f;       // Mejor Bicicleta
         [HideInInspector] public float suspensionUpgradeFactor = 1f;  // Mejor Suspensión (reduce wobble)
         [HideInInspector] public float backpackUpgradeFactor = 1f;    // Mochila Liviana (reduce penalización por peso)
+        [HideInInspector] public float powerUpDurationFactor = 1f;    // Factor de duración de power-ups
 
         // Referencias a componentes
         private Rigidbody2D rb2d;
         private SpriteRenderer spriteRenderer;
         private Animator animator;
+
+        [Header("Sprites de Mejoras")]
+        public Sprite[] spritesMochilaPro;
+        public Sprite[] spritesCasco;
+        public Sprite[] spritesMoto;
+        public Sprite[] spritesCascoMoto;
+        public Sprite[] spritesMochilaMoto;
+        public Sprite[] spritesMochilaYCasco;
+        public Sprite[] spritesMochilaCascoMoto;
+        
+        private System.Collections.Generic.Dictionary<string, Sprite> mochilaSpritesDict;
+        private System.Collections.Generic.Dictionary<string, Sprite> cascoSpritesDict;
+        private System.Collections.Generic.Dictionary<string, Sprite> motoSpritesDict;
+        private System.Collections.Generic.Dictionary<string, Sprite> cascoMotoSpritesDict;
+        private System.Collections.Generic.Dictionary<string, Sprite> mochilaMotoSpritesDict;
+        private System.Collections.Generic.Dictionary<string, Sprite> mochilaYCascoSpritesDict;
+        private System.Collections.Generic.Dictionary<string, Sprite> mochilaCascoMotoSpritesDict;
 
         // Estado del Gameplay
         private float currentHorizontalInput;
@@ -143,6 +161,153 @@ namespace DeliveryExpress
                 screenLimitX = 6f;
             }
 
+            // Inicializar el diccionario de sprites de mochila pro
+            if (spritesMochilaPro != null && spritesMochilaPro.Length > 0)
+            {
+                mochilaSpritesDict = new System.Collections.Generic.Dictionary<string, Sprite>();
+                foreach (var spr in spritesMochilaPro)
+                {
+                    if (spr != null)
+                    {
+                        int lastUnderscore = spr.name.LastIndexOf('_');
+                        if (lastUnderscore >= 0)
+                        {
+                            string suffix = spr.name.Substring(lastUnderscore);
+                            if (!mochilaSpritesDict.ContainsKey(suffix))
+                            {
+                                mochilaSpritesDict[suffix] = spr;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Inicializar el diccionario de sprites de casco
+            if (spritesCasco != null && spritesCasco.Length > 0)
+            {
+                cascoSpritesDict = new System.Collections.Generic.Dictionary<string, Sprite>();
+                foreach (var spr in spritesCasco)
+                {
+                    if (spr != null)
+                    {
+                        int lastUnderscore = spr.name.LastIndexOf('_');
+                        if (lastUnderscore >= 0)
+                        {
+                            string suffix = spr.name.Substring(lastUnderscore);
+                            if (!cascoSpritesDict.ContainsKey(suffix))
+                            {
+                                cascoSpritesDict[suffix] = spr;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Inicializar el diccionario de sprites combinados (mochila y casco)
+            if (spritesMochilaYCasco != null && spritesMochilaYCasco.Length > 0)
+            {
+                mochilaYCascoSpritesDict = new System.Collections.Generic.Dictionary<string, Sprite>();
+                foreach (var spr in spritesMochilaYCasco)
+                {
+                    if (spr != null)
+                    {
+                        int lastUnderscore = spr.name.LastIndexOf('_');
+                        if (lastUnderscore >= 0)
+                        {
+                            string suffix = spr.name.Substring(lastUnderscore);
+                            if (!mochilaYCascoSpritesDict.ContainsKey(suffix))
+                            {
+                                mochilaYCascoSpritesDict[suffix] = spr;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Inicializar el diccionario de sprites de moto
+            if (spritesMoto != null && spritesMoto.Length > 0)
+            {
+                motoSpritesDict = new System.Collections.Generic.Dictionary<string, Sprite>();
+                foreach (var spr in spritesMoto)
+                {
+                    if (spr != null)
+                    {
+                        int lastUnderscore = spr.name.LastIndexOf('_');
+                        if (lastUnderscore >= 0)
+                        {
+                            string suffix = spr.name.Substring(lastUnderscore);
+                            if (!motoSpritesDict.ContainsKey(suffix))
+                            {
+                                motoSpritesDict[suffix] = spr;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Inicializar el diccionario de sprites de casco + moto
+            if (spritesCascoMoto != null && spritesCascoMoto.Length > 0)
+            {
+                cascoMotoSpritesDict = new System.Collections.Generic.Dictionary<string, Sprite>();
+                foreach (var spr in spritesCascoMoto)
+                {
+                    if (spr != null)
+                    {
+                        int lastUnderscore = spr.name.LastIndexOf('_');
+                        if (lastUnderscore >= 0)
+                        {
+                            string suffix = spr.name.Substring(lastUnderscore);
+                            if (!cascoMotoSpritesDict.ContainsKey(suffix))
+                            {
+                                cascoMotoSpritesDict[suffix] = spr;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Inicializar el diccionario de sprites de mochila + moto
+            if (spritesMochilaMoto != null && spritesMochilaMoto.Length > 0)
+            {
+                mochilaMotoSpritesDict = new System.Collections.Generic.Dictionary<string, Sprite>();
+                foreach (var spr in spritesMochilaMoto)
+                {
+                    if (spr != null)
+                    {
+                        int lastUnderscore = spr.name.LastIndexOf('_');
+                        if (lastUnderscore >= 0)
+                        {
+                            string suffix = spr.name.Substring(lastUnderscore);
+                            if (!mochilaMotoSpritesDict.ContainsKey(suffix))
+                            {
+                                mochilaMotoSpritesDict[suffix] = spr;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Inicializar el diccionario de sprites de mochila + casco + moto
+            if (spritesMochilaCascoMoto != null && spritesMochilaCascoMoto.Length > 0)
+            {
+                mochilaCascoMotoSpritesDict = new System.Collections.Generic.Dictionary<string, Sprite>();
+                foreach (var spr in spritesMochilaCascoMoto)
+                {
+                    if (spr != null)
+                    {
+                        int lastUnderscore = spr.name.LastIndexOf('_');
+                        if (lastUnderscore >= 0)
+                        {
+                            string suffix = spr.name.Substring(lastUnderscore);
+                            if (!mochilaCascoMotoSpritesDict.ContainsKey(suffix))
+                            {
+                                mochilaCascoMotoSpritesDict[suffix] = spr;
+                            }
+                        }
+                    }
+                }
+            }
+
             // Asignamos una velocidad por defecto si el valor del Inspector no es válido
             if (laneTransitionSpeed < 1f)
             {
@@ -171,6 +336,7 @@ namespace DeliveryExpress
             if (speedUpgradeFactor < 0.1f) speedUpgradeFactor = 1f;
             if (backpackUpgradeFactor < 0.1f) backpackUpgradeFactor = 1f;
             if (suspensionUpgradeFactor < 0.1f) suspensionUpgradeFactor = 1f;
+            if (powerUpDurationFactor < 0.1f) powerUpDurationFactor = 1f;
 
             // Buscamos el carril inicial que se encuentra más cercano a la posición del jugador
             float minDistance = float.MaxValue;
@@ -185,6 +351,12 @@ namespace DeliveryExpress
             }
 
             originalScale = transform.localScale;
+
+            // Aplicar las mejoras guardadas al inicializar el jugador en la escena
+            if (AdministradorMejoras.Instance != null)
+            {
+                AdministradorMejoras.Instance.ApplyUpgradesToGameplay(this);
+            }
         }
 
         private void Update()
@@ -430,13 +602,17 @@ namespace DeliveryExpress
                 return;
             }
 
+            bool isMotoActive = AdministradorMejoras.Instance != null && 
+                               AdministradorMejoras.Instance.GetBicycleLevel() > 0 && 
+                               AdministradorMejoras.Instance.IsBicycleEquipped();
+
             if (currentOrders >= 4 || currentBalance < maxBalance * 0.5f)
             {
                 animator.SetInteger(StateHash, 3); // Estado "Inestable" (utilizamos los fotogramas de tambaleo)
             }
             else if (Mathf.Abs(currentHorizontalInput) > 0.1f)
             {
-                animator.SetInteger(StateHash, 1);
+                animator.SetInteger(StateHash, isMotoActive ? 0 : 1);
             }
             else
             {
@@ -582,13 +758,15 @@ namespace DeliveryExpress
         public void ActivarPotenciadorVelocidad(float duracion, float multiplicador)
         {
             isSpeedBoostActive = true;
-            speedBoostDurationMax = duracion;
-            speedBoostDurationRemaining = duracion;
+            float finalDuracion = duracion * powerUpDurationFactor;
+            speedBoostDurationMax = finalDuracion;
+            speedBoostDurationRemaining = finalDuracion;
             speedBoostMultiplier = multiplicador;
 
             if (spriteRenderer != null)
             {
-                spriteRenderer.color = new Color(0.3f, 0.8f, 1f, 1f);
+                bool isUpgraded = (AdministradorMejoras.Instance != null && AdministradorMejoras.Instance.IsPowerUpEquipped());
+                spriteRenderer.color = isUpgraded ? new Color(1f, 0.85f, 0.2f, 1f) : new Color(0.3f, 0.8f, 1f, 1f);
             }
 
             Debug.Log($"⚡ Potenciador de velocidad activado por {duracion} segundos con multiplicador {multiplicador}x!");
@@ -605,6 +783,118 @@ namespace DeliveryExpress
             }
 
             Debug.Log("⚡ Potenciador de velocidad terminado.");
+        }
+
+        private void LateUpdate()
+        {
+            if (AdministradorMejoras.Instance == null || spriteRenderer == null || spriteRenderer.sprite == null) return;
+
+            bool isBackpackActive = AdministradorMejoras.Instance.GetBackpackLevel() > 0 && AdministradorMejoras.Instance.IsBackpackEquipped();
+            bool isHelmetActive = AdministradorMejoras.Instance.GetSuspensionLevel() > 0 && AdministradorMejoras.Instance.IsSuspensionEquipped();
+            bool isMotoActive = AdministradorMejoras.Instance.GetBicycleLevel() > 0 && AdministradorMejoras.Instance.IsBicycleEquipped();
+
+            if (!isBackpackActive && !isHelmetActive && !isMotoActive) return;
+
+            string spriteName = spriteRenderer.sprite.name;
+            int lastUnderscore = spriteName.LastIndexOf('_');
+            if (lastUnderscore >= 0)
+            {
+                string suffix = spriteName.Substring(lastUnderscore);
+                
+                // Si la moto está activa, no debe pedalear (mapear fotogramas 0 a 7 al fotograma estático 6, donde tiene ambos pies arriba y encogidos)
+                if (isMotoActive)
+                {
+                    if (suffix == "_0" || suffix == "_1" || suffix == "_2" || suffix == "_3" ||
+                        suffix == "_4" || suffix == "_5" || suffix == "_6" || suffix == "_7")
+                    {
+                        suffix = "_6";
+                    }
+                }
+
+                Sprite newSprite = null;
+
+                // 1. Triple combinación: Mochila + Casco + Moto
+                if (isBackpackActive && isHelmetActive && isMotoActive)
+                {
+                    if (mochilaCascoMotoSpritesDict != null && mochilaCascoMotoSpritesDict.TryGetValue(suffix, out Sprite triple))
+                    {
+                        newSprite = triple;
+                    }
+                    else if (cascoMotoSpritesDict != null && cascoMotoSpritesDict.TryGetValue(suffix, out Sprite doubleHelm))
+                    {
+                        newSprite = doubleHelm;
+                    }
+                    else if (motoSpritesDict != null && motoSpritesDict.TryGetValue(suffix, out Sprite singleMoto))
+                    {
+                        newSprite = singleMoto;
+                    }
+                }
+                // 2. Doble combinación: Casco + Moto
+                else if (isHelmetActive && isMotoActive)
+                {
+                    if (cascoMotoSpritesDict != null && cascoMotoSpritesDict.TryGetValue(suffix, out Sprite doubleHelm))
+                    {
+                        newSprite = doubleHelm;
+                    }
+                    else if (motoSpritesDict != null && motoSpritesDict.TryGetValue(suffix, out Sprite singleMoto))
+                    {
+                        newSprite = singleMoto;
+                    }
+                }
+                // 3. Doble combinación: Mochila + Moto
+                else if (isBackpackActive && isMotoActive)
+                {
+                    if (mochilaMotoSpritesDict != null && mochilaMotoSpritesDict.TryGetValue(suffix, out Sprite doublePack))
+                    {
+                        newSprite = doublePack;
+                    }
+                    else if (motoSpritesDict != null && motoSpritesDict.TryGetValue(suffix, out Sprite singleMoto))
+                    {
+                        newSprite = singleMoto;
+                    }
+                }
+                // 4. Doble combinación: Mochila + Casco
+                else if (isBackpackActive && isHelmetActive)
+                {
+                    if (mochilaYCascoSpritesDict != null && mochilaYCascoSpritesDict.TryGetValue(suffix, out Sprite doublePackHelm))
+                    {
+                        newSprite = doublePackHelm;
+                    }
+                    else if (cascoSpritesDict != null && cascoSpritesDict.TryGetValue(suffix, out Sprite singleHelm))
+                    {
+                        newSprite = singleHelm;
+                    }
+                }
+                // 5. Individual: Moto
+                else if (isMotoActive)
+                {
+                    if (motoSpritesDict != null && motoSpritesDict.TryGetValue(suffix, out Sprite singleMoto))
+                    {
+                        newSprite = singleMoto;
+                    }
+                }
+                // 6. Individual: Casco
+                else if (isHelmetActive)
+                {
+                    if (cascoSpritesDict != null && cascoSpritesDict.TryGetValue(suffix, out Sprite singleHelm))
+                    {
+                        newSprite = singleHelm;
+                    }
+                }
+                // 7. Individual: Mochila
+                else if (isBackpackActive)
+                {
+                    if (mochilaSpritesDict != null && mochilaSpritesDict.TryGetValue(suffix, out Sprite singlePack))
+                    {
+                        newSprite = singlePack;
+                    }
+                }
+
+                if (newSprite != null)
+                {
+                    spriteRenderer.sprite = newSprite;
+                }
+            }
         }
 
         private IEnumerator JumpRoutine()
