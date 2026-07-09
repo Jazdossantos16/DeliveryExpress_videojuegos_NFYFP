@@ -50,6 +50,11 @@ namespace DeliveryExpress
         public bool IsVictory => isVictory;
         public int CurrentDay => currentDay;
         public float TimeRemaining => timeRemaining;
+
+        // Flags de transición entre escenas (persisten porque AdministradorJuego usa DontDestroyOnLoad)
+        public bool SkipStartPanel { get; set; } = false;
+        public bool ShowDetailsOnLoad { get; set; } = false;
+        public bool PlayVideoOnLoad { get; set; } = false;
         public int CurrentLives => currentLives;
         public int StartingLives => startingLives;
         public bool IsFinishLineReached { get; set; } = false;
@@ -91,6 +96,7 @@ namespace DeliveryExpress
 
             // Restablecemos las vidas al iniciar el día (sumando las compradas en la tienda)
             currentLives = startingLives + extraLivesUpgrade;
+            ControladorClima.IntensidadClima = 0f;
             
             if (currentDay == 2)
             {
@@ -328,6 +334,15 @@ namespace DeliveryExpress
         public void RestartCurrentDay()
         {
             StartNewDay();
+        }
+
+        /// <summary>
+        /// Detiene el loop de juego (timer) sin reiniciar el estado. Útil para transiciones entre niveles.
+        /// </summary>
+        public void StopGameLoop()
+        {
+            isGameRunning = false;
+            isGameOver = true;
         }
 
         /// <summary>

@@ -1555,7 +1555,7 @@ namespace DeliveryExpress.Editor
             }
 
             Button winBtn = winBtnObj.AddComponent<Button>();
-            UnityEditor.Events.UnityEventTools.AddPersistentListener(winBtn.onClick, uiManager.ShowVictory);
+            UnityEditor.Events.UnityEventTools.AddPersistentListener(winBtn.onClick, uiManager.GanarJuegoCheat);
 
             // Inyectar los sprites y el botón mediante reflexión en el AdministradorUI
             var pauseSpriteField = typeof(AdministradorUI).GetField("pauseSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -2377,8 +2377,8 @@ namespace DeliveryExpress.Editor
             GameObject btnCerrarInstObj = new GameObject("BotonCerrar", typeof(RectTransform));
             RectTransform btnCerrarInstRect = btnCerrarInstObj.GetComponent<RectTransform>();
             btnCerrarInstRect.SetParent(popupRect, false);
-            btnCerrarInstRect.anchorMin = new Vector2(0.7786f, 0.8102f); // Ancla proporcional X en el canvas base
-            btnCerrarInstRect.anchorMax = new Vector2(0.7786f, 0.8102f); // Ancla proporcional Y en el canvas base
+            btnCerrarInstRect.anchorMin = new Vector2(0.7948f, 0.8722f); // Centrado exacto en la esquina superior derecha del panel blanco
+            btnCerrarInstRect.anchorMax = new Vector2(0.7948f, 0.8722f);
             btnCerrarInstRect.pivot = new Vector2(0.5f, 0.5f);
             btnCerrarInstRect.anchoredPosition = Vector2.zero; // Posición exacta en el ancla proporcional
             btnCerrarInstRect.sizeDelta = new Vector2(85f, 85f); // Tamaño cuadrado

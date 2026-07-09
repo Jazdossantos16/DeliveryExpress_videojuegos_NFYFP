@@ -33,7 +33,18 @@ namespace DeliveryExpress
 
         [Header("Pantalla de Inicio")]
         [SerializeField] private GameObject startPanel;
-        private static bool skipStartPanel = false;
+
+        // Shortcuts para los flags de transición que viven en AdministradorJuego (DontDestroyOnLoad)
+        private bool skipStartPanel
+        {
+            get => AdministradorJuego.Instance != null && AdministradorJuego.Instance.SkipStartPanel;
+            set { if (AdministradorJuego.Instance != null) AdministradorJuego.Instance.SkipStartPanel = value; }
+        }
+        private bool showDetailsOnLoad
+        {
+            get => AdministradorJuego.Instance != null && AdministradorJuego.Instance.ShowDetailsOnLoad;
+            set { if (AdministradorJuego.Instance != null) AdministradorJuego.Instance.ShowDetailsOnLoad = value; }
+        }
 
         [Header("Pantalla de Victoria")]
         [SerializeField] private GameObject victoryPanel;
@@ -223,6 +234,7 @@ namespace DeliveryExpress
 
         private void Start()
         {
+            Debug.Log($"[AdministradorUI.Start] skipStartPanel={skipStartPanel}, showDetailsOnLoad={showDetailsOnLoad}, currentDay={(AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : -1)}");
             // Cargar y aplicar configuraciones de audio al iniciar
             soundEnabled = PlayerPrefs.GetInt("SoundEnabled", 1) == 1;
             musicEnabled = PlayerPrefs.GetInt("MusicEnabled", 1) == 1;
@@ -232,6 +244,55 @@ namespace DeliveryExpress
                 AdministradorAudio.Instance.SetMusicEnabled(musicEnabled);
             }
 
+            // Asignar dinámicamente el listener correcto para el botón de ganar cheat en tiempo de ejecución
+            GameObject winBtnObj = GameObject.Find("Boton_Ganar");
+            if (winBtnObj != null)
+            {
+                Button winBtn = winBtnObj.GetComponent<Button>();
+                if (winBtn != null)
+                {
+                    winBtn.onClick.RemoveAllListeners();
+                    winBtn.onClick.AddListener(GanarJuegoCheat);
+                }
+            }
+
+            // Si se debe reproducir el video de introducción tras la carga de escena
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.PlayVideoOnLoad)
+            {
+                AdministradorJuego.Instance.PlayVideoOnLoad = false;
+                skipStartPanel = false;
+                showDetailsOnLoad = false;
+
+                if (startPanel != null)
+                {
+                    startPanel.SetActive(false);
+                }
+                if (orderDetailsPanel != null)
+                {
+                    orderDetailsPanel.SetActive(false);
+                }
+                SetHUDActive(false);
+
+                // Configurar la jornada antes de reproducir el video
+                AdministradorJuego.Instance.StartNewDay();
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+                StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
+#else
+                string videoPath = System.IO.Path.Combine(Application.streamingAssetsPath, "videojuego_prueba_202606182214.mp4");
+                if (System.IO.File.Exists(videoPath))
+                {
+                    StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
+                }
+                else
+                {
+                    Debug.LogWarning("⚠️ No se encontró el video de intro en StreamingAssets: " + videoPath);
+                    ComenzarPartidaReal();
+                }
+#endif
+                return;
+            }
+
             if (skipStartPanel)
             {
                 skipStartPanel = false;
@@ -239,8 +300,27 @@ namespace DeliveryExpress
                 {
                     startPanel.SetActive(false);
                 }
-                Time.timeScale = 1f;
-                SetHUDActive(true);
+
+                // CRÍTICO: Reiniciar el estado del juego para la nueva jornada
+                if (AdministradorJuego.Instance != null)
+                {
+                    AdministradorJuego.Instance.StartNewDay();
+                }
+                
+                int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+                if (currentDay == 2 && showDetailsOnLoad)
+                {
+                    showDetailsOnLoad = false; // Restablecer
+                    Time.timeScale = 0f; // Pausado para ver los detalles
+                    SetHUDActive(false);
+                    AbrirDetallePedido();
+                }
+                else
+                {
+                    showDetailsOnLoad = false; // Restablecer
+                    Time.timeScale = 1f;
+                    SetHUDActive(true);
+                }
             }
             else
             {
@@ -524,6 +604,7 @@ namespace DeliveryExpress
                 AdministradorJuego.Instance.ResetCoins();
             }
             skipStartPanel = true;
+            showDetailsOnLoad = false; // No mostrar detalles al reiniciar
             Time.timeScale = 1f; // Asegura restablecer la escala de tiempo
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
@@ -551,6 +632,23 @@ namespace DeliveryExpress
             {
                 orderDetailsPanel.SetActive(false);
             }
+
+            int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+
+            if (currentDay >= 2)
+            {
+                // Para el Nivel 2+: recargar la escena directamente con el día ya configurado y reproducir el video de intro en la carga
+                if (AdministradorJuego.Instance != null)
+                {
+                    AdministradorJuego.Instance.PlayVideoOnLoad = true;
+                }
+                skipStartPanel = true;
+                showDetailsOnLoad = false;
+                Time.timeScale = 1f;
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                return;
+            }
+
 #if UNITY_WEBGL && !UNITY_EDITOR
             StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => PlayIntroVideo()));
 #else
@@ -962,6 +1060,19 @@ namespace DeliveryExpress
             }
         }
 
+        public void GanarJuegoCheat()
+        {
+            if (AdministradorJuego.Instance != null && AdministradorJuego.Instance.IsGameOver) return;
+            PlayClickSound();
+            if (AdministradorJuego.Instance != null)
+            {
+                int nextDay = AdministradorJuego.Instance.CurrentDay + 1;
+                AdministradorJuego.Instance.ConfigurarJornada(nextDay);
+                AdministradorJuego.Instance.StopGameLoop();
+            }
+            ShowVictory();
+        }
+
         public void ShowVictory()
         {
             SetHUDActive(false);
@@ -980,6 +1091,38 @@ namespace DeliveryExpress
                     img.color = Color.white;
                 }
 
+                // Conectar el botón según qué nivel se completó:
+                // Nivel 1 completado (currentDay==2) → mostrar tarjeta azul + video de Nivel 2
+                // Nivel 2 completado (currentDay>2)  → reiniciar Nivel 2 directo sin tarjeta ni video
+                int dayAtVictory = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+                Button btnSig = null;
+                foreach (Button b in victoryPanel.GetComponentsInChildren<Button>(true))
+                {
+                    if (b.gameObject.name == "BotonSiguiente")
+                    {
+                        btnSig = b;
+                        break;
+                    }
+                }
+                if (btnSig != null)
+                {
+                    btnSig.onClick.RemoveAllListeners();
+                    if (dayAtVictory > 2)
+                    {
+                        btnSig.onClick.AddListener(ReiniciarNivel2Directo);
+                        Debug.Log($"[ShowVictory] Nivel 2 completado (day={dayAtVictory}) → BotonSiguiente wired a ReiniciarNivel2Directo ✅");
+                    }
+                    else
+                    {
+                        btnSig.onClick.AddListener(AvanzarSiguienteDia);
+                        Debug.Log($"[ShowVictory] Nivel 1 completado (day={dayAtVictory}) → BotonSiguiente wired a AvanzarSiguienteDia ✅");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("[ShowVictory] No se encontró 'BotonSiguiente' dentro de victoryPanel.");
+                }
+
                 // Inicializar y limpiar el Leaderboard para Victoria
                 if (victoryNameInputField != null)
                 {
@@ -993,6 +1136,7 @@ namespace DeliveryExpress
                 ActualizarLeaderboardTexto(victoryLeaderboardText);
             }
             Time.timeScale = 0f;
+            Debug.Log($"[ShowVictory] currentDay={AdministradorJuego.Instance?.CurrentDay} — pantalla victoria activa.");
         }
 
         private void SetHUDActive(bool active)
@@ -1053,7 +1197,47 @@ namespace DeliveryExpress
         public void AvanzarSiguienteDia()
         {
             PlayClickSound();
+            int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+            Debug.Log($"[AdministradorUI.AvanzarSiguienteDia] currentDay={currentDay}");
+
+            // currentDay == 2 significa que se acaba de completar el Nivel 1 → pasar al Nivel 2 con tarjeta + video
+            // currentDay > 2 significa que se acaba de completar el Nivel 2 → reiniciar Nivel 2 directo (pero esto
+            // ya no se llega: ShowVictory() wire ReiniciarNivel2Directo() cuando currentDay > 2)
+            if (currentDay > 2)
+            {
+                // Fallback por si acaso: reiniciar Nivel 2 directamente
+                ReiniciarNivel2Directo();
+            }
+            else
+            {
+                // Pasar al Nivel 2 por primera vez: ocultar victoria y mostrar tarjeta azul.
+                if (AdministradorJuego.Instance != null)
+                {
+                    AdministradorJuego.Instance.StopGameLoop();
+                }
+                if (victoryPanel != null)
+                {
+                    victoryPanel.SetActive(false);
+                }
+                Time.timeScale = 0f;
+                AbrirDetallePedido();
+            }
+        }
+
+        /// <summary>
+        /// Reinicia el Nivel 2 directamente desde la pantalla de victoria, sin tarjeta azul ni video.
+        /// Se usa cuando el jugador ya completó el Nivel 2 y quiere volver a jugarlo.
+        /// </summary>
+        public void ReiniciarNivel2Directo()
+        {
+            PlayClickSound();
+            if (AdministradorJuego.Instance != null)
+            {
+                AdministradorJuego.Instance.ConfigurarJornada(2);
+                AdministradorJuego.Instance.PlayVideoOnLoad = false;
+            }
             skipStartPanel = true;
+            showDetailsOnLoad = false;
             Time.timeScale = 1f;
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
@@ -1612,6 +1796,17 @@ namespace DeliveryExpress
         public void AbrirDetallePedido()
         {
             PlayClickSound();
+
+            // Si venimos del menú principal (startPanel activo) y ya estamos en el Nivel 2+,
+            // iniciamos el juego directamente sin pasar por la tarjeta de detalles ni el video.
+            int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+            if (startPanel != null && startPanel.activeSelf && currentDay >= 2)
+            {
+                // Venimos del menú principal en Nivel 2: ir directo sin tarjeta ni video
+                IniciarJuego();
+                return;
+            }
+
             if (mapPanel != null)
             {
                 cameFromMap = mapPanel.activeSelf;
@@ -1630,7 +1825,7 @@ namespace DeliveryExpress
                     Image img = contentTrans.GetComponent<Image>();
                     if (img != null)
                     {
-                        int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+                        currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
                         if (currentDay == 2 && orderDetailsSpriteLevel2 != null)
                         {
                             img.sprite = orderDetailsSpriteLevel2;
