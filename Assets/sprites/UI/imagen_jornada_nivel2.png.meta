@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 801176117e0bb4cfd8357ff4c515a865
+guid: 52abb967244a4477f952e91879035cfa
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3415838821090404341
-    second: imagen_nivel2_0
+      213: -2057696595842436056
+    second: imagen_jornada_nivel2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,37 +96,11 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: iOS
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: imagen_nivel2_0
+      name: imagen_jornada_nivel2_0
       rect:
         serializedVersion: 2
         x: 0
@@ -141,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5f725155f4f776f20800000000000000
-      internalID: 3415838821090404341
+      spriteID: 824f74529d79173e0800000000000000
+      internalID: -2057696595842436056
       vertices: []
       indices: 
       edges: []
@@ -161,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      imagen_nivel2_0: 3415838821090404341
+      imagen_jornada_nivel2_0: -2057696595842436056
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

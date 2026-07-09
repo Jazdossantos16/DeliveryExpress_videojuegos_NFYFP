@@ -1639,6 +1639,26 @@ namespace DeliveryExpress
                         {
                             img.sprite = orderDetailsSpriteLevel1;
                         }
+
+                        // Reposicionar dinámicamente el botón Comenzar para adaptarlo al diseño de la tarjeta de nivel
+                        Transform comenzarTrans = contentTrans.Find("BotonComenzar");
+                        if (comenzarTrans != null)
+                        {
+                            RectTransform comenzarRect = comenzarTrans.GetComponent<RectTransform>();
+                            if (comenzarRect != null)
+                            {
+                                if (currentDay == 2)
+                                {
+                                    comenzarRect.anchoredPosition = new Vector2(0f, -250f); // Posición ligeramente adaptada para Nivel 2
+                                    comenzarRect.sizeDelta = new Vector2(390f, 136f); // Restaurar tamaño original grande
+                                }
+                                else
+                                {
+                                    comenzarRect.anchoredPosition = new Vector2(0f, -240f); // Posición original
+                                    comenzarRect.sizeDelta = new Vector2(390f, 136f); // Tamaño original
+                                }
+                            }
+                        }
                     }
                 }
 
