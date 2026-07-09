@@ -57,6 +57,7 @@ namespace DeliveryExpress
         private RenderTexture videoTexture;
         private RawImage videoRawImage;
         [SerializeField] private Text skipText;
+        private bool isHUDActive = false;
         private bool isPlayingVideo = false;
         public bool IsPlayingVideo => isPlayingVideo;
         private bool cameFromMap = false;
@@ -94,6 +95,20 @@ namespace DeliveryExpress
         [Header("Sprites de Detalle de Pedido")]
         [SerializeField] private Sprite orderDetailsSpriteLevel1;
         [SerializeField] private Sprite orderDetailsSpriteLevel2;
+        [SerializeField] private Sprite nuevosDesafiosSprite;
+        [Header("Sprites de Barra de Escudo")]
+        [SerializeField] private Sprite[] shieldBarSprites;
+        private Image shieldBarImage;
+
+        [Header("Sprites de Barra de Moneda X2")]
+        [SerializeField] private Sprite[] coinBarSprites;
+        private Image coinBarImage;
+
+        [Header("Carteles de Nivel")]
+        [SerializeField] private Sprite cartelNivel1Sprite;
+        [SerializeField] private Sprite cartelNivel2Sprite;
+        private Image cartelNivel1Image;
+        private Image cartelNivel2Image;
 
         [Header("UI de Tienda")]
         [SerializeField] private GameObject shopPanel;
@@ -448,6 +463,9 @@ namespace DeliveryExpress
                     SetHUDActive(true);
                 }
             }
+
+            // Verificar y crear las barras de estado dinámicas
+            VerificarYCrearBarrasDinamicas();
         }
 
         private void OnDestroy()
@@ -465,6 +483,8 @@ namespace DeliveryExpress
 
         private void Update()
         {
+            VerificarYCrearBarrasDinamicas();
+
             if (isPlayingVideo && !isTransitioning)
             {
                 if (Input.GetKeyDown(KeyCode.E))
@@ -514,9 +534,11 @@ namespace DeliveryExpress
                 }
             }
 
+            bool hudVisible = isHUDActive && (AdministradorJuego.Instance != null && !AdministradorJuego.Instance.IsGameOver);
+
             // Actualizar barra de potenciador de velocidad (energía)
             ControladorJugador player = ControladorJugador.Instance;
-            if (player != null && player.IsSpeedBoostActive)
+            if (hudVisible && player != null && player.IsSpeedBoostActive)
             {
                 if (boosterImage != null && boosterSprites != null && boosterSprites.Length >= 7)
                 {
@@ -611,6 +633,76 @@ namespace DeliveryExpress
                 if (boosterImage != null && boosterImage.gameObject.activeSelf)
                 {
                     boosterImage.gameObject.SetActive(false);
+                }
+            }
+
+            // Actualizar barra de escudo de inmunidad (solo a partir del nivel 2)
+            if (hudVisible && player != null && player.IsShieldActive)
+            {
+                if (shieldBarImage != null && shieldBarSprites != null && shieldBarSprites.Length >= 7)
+                {
+                    if (!shieldBarImage.gameObject.activeSelf)
+                    {
+                        shieldBarImage.gameObject.SetActive(true);
+                    }
+
+                    float fillPercentage = Mathf.Clamp01(player.ShieldDurationRemaining / player.ShieldDurationMax);
+                    
+                    int spriteIndex = 0; // vacío por defecto
+                    if (fillPercentage > 0.83f) spriteIndex = 6;       // 6 bloques (lleno)
+                    else if (fillPercentage > 0.66f) spriteIndex = 5;  // 5 bloques
+                    else if (fillPercentage > 0.50f) spriteIndex = 4;  // 4 bloques
+                    else if (fillPercentage > 0.33f) spriteIndex = 3;  // 3 bloques
+                    else if (fillPercentage > 0.16f) spriteIndex = 2;  // 2 bloques
+                    else if (fillPercentage > 0.0f) spriteIndex = 1;   // 1 bloque
+                    else spriteIndex = 0;                              // vacío
+
+                    if (spriteIndex < shieldBarSprites.Length && shieldBarSprites[spriteIndex] != null)
+                    {
+                        shieldBarImage.sprite = shieldBarSprites[spriteIndex];
+                    }
+                }
+            }
+            else
+            {
+                if (shieldBarImage != null && shieldBarImage.gameObject.activeSelf)
+                {
+                    shieldBarImage.gameObject.SetActive(false);
+                }
+            }
+
+            // Actualizar barra de moneda X2 (solo a partir del nivel 2)
+            if (hudVisible && player != null && player.IsDoubleCoinsActive)
+            {
+                if (coinBarImage != null && coinBarSprites != null && coinBarSprites.Length >= 7)
+                {
+                    if (!coinBarImage.gameObject.activeSelf)
+                    {
+                        coinBarImage.gameObject.SetActive(true);
+                    }
+
+                    float fillPercentage = Mathf.Clamp01(player.DoubleCoinsDurationRemaining / player.DoubleCoinsDurationMax);
+                    
+                    int spriteIndex = 0; // vacío por defecto
+                    if (fillPercentage > 0.83f) spriteIndex = 6;       // 6 bloques (lleno)
+                    else if (fillPercentage > 0.66f) spriteIndex = 5;  // 5 bloques
+                    else if (fillPercentage > 0.50f) spriteIndex = 4;  // 4 bloques
+                    else if (fillPercentage > 0.33f) spriteIndex = 3;  // 3 bloques
+                    else if (fillPercentage > 0.16f) spriteIndex = 2;  // 2 bloques
+                    else if (fillPercentage > 0.0f) spriteIndex = 1;   // 1 bloque
+                    else spriteIndex = 0;                              // vacío
+
+                    if (spriteIndex < coinBarSprites.Length && coinBarSprites[spriteIndex] != null)
+                    {
+                        coinBarImage.sprite = coinBarSprites[spriteIndex];
+                    }
+                }
+            }
+            else
+            {
+                if (coinBarImage != null && coinBarImage.gameObject.activeSelf)
+                {
+                    coinBarImage.gameObject.SetActive(false);
                 }
             }
         }
@@ -843,21 +935,119 @@ namespace DeliveryExpress
 
         private void ComenzarPartidaReal()
         {
-            Time.timeScale = 1f; // Reanuda el juego
-            if (startPanel != null)
+            ComprobarTutorialNivel2(() => {
+                Time.timeScale = 1f; // Reanuda el juego
+                if (startPanel != null)
+                {
+                    startPanel.SetActive(false); // Oculta la pantalla de inicio
+                }
+                if (orderDetailsPanel != null)
+                {
+                    orderDetailsPanel.SetActive(false);
+                }
+                if (pausePlayButtonImage != null && pauseSprite != null)
+                {
+                    pausePlayButtonImage.sprite = pauseSprite;
+                }
+                SetHUDActive(true);
+                Debug.Log("✅ Juego Iniciado.");
+            });
+        }
+
+        private void ComprobarTutorialNivel2(System.Action alTerminar)
+        {
+            int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+            bool hasShown = AdministradorJuego.Instance != null && AdministradorJuego.Instance.HasShownNivel2Tutorial;
+
+            if (currentDay == 2 && !hasShown && nuevosDesafiosSprite != null)
             {
-                startPanel.SetActive(false); // Oculta la pantalla de inicio
+                Debug.Log("🛡️ [Tutorial] Mostrando popup de Nuevos Desafíos para Nivel 2...");
+                Time.timeScale = 0f; // Pausar juego
+                SetHUDActive(false);
+
+                // Crear el panel de fondo oscuro
+                GameObject tutorialPanel = new GameObject("PanelNuevosDesafios", typeof(RectTransform));
+                tutorialPanel.layer = this.gameObject.layer;
+                tutorialPanel.transform.SetParent(this.transform, false);
+                tutorialPanel.transform.SetAsLastSibling();
+
+                RectTransform panelRect = tutorialPanel.GetComponent<RectTransform>();
+                panelRect.anchorMin = Vector2.zero;
+                panelRect.anchorMax = Vector2.one;
+                panelRect.anchoredPosition = Vector2.zero;
+                panelRect.sizeDelta = Vector2.zero;
+
+                // Añadir imagen de fondo oscuro
+                Image bgImg = tutorialPanel.AddComponent<Image>();
+                bgImg.color = new Color(0.1f, 0.1f, 0.1f, 0.98f); // Fondo oscuro uniforme que cubre toda la pantalla
+
+                // Crear la tarjeta con la imagen
+                GameObject cardObj = new GameObject("TarjetaTutorial", typeof(RectTransform));
+                cardObj.layer = this.gameObject.layer;
+                cardObj.transform.SetParent(tutorialPanel.transform, false);
+
+                RectTransform cardRect = cardObj.GetComponent<RectTransform>();
+                cardRect.anchorMin = new Vector2(0.5f, 0.5f);
+                cardRect.anchorMax = new Vector2(0.5f, 0.5f);
+                cardRect.pivot = new Vector2(0.5f, 0.5f);
+                cardRect.anchoredPosition = Vector2.zero;
+                cardRect.sizeDelta = new Vector2(1920f, 1080f); // Maximizar el tamaño del pop-up para mejor lectura
+
+                Image cardImg = cardObj.AddComponent<Image>();
+                cardImg.sprite = nuevosDesafiosSprite;
+                cardImg.preserveAspect = true;
+
+                // Crear el botón de cerrar transparente alineado con el botón de la imagen
+                // Centroid del botón de cerrar detectado en la imagen de 1024x576:
+                // Pixel X=836.4, Y=73.0 -> Relativo al centro de la tarjeta de 1920x1080:
+                // En 1024x576, el botón está a 324.4px a la derecha y 215px arriba.
+                // Multiplicado por la escala de la tarjeta (1920/1024 = 1.875):
+                // X = 324.4 * 1.875 = 608.28
+                // Y = 215 * 1.875 = 403.1
+                GameObject closeBtnObj = new GameObject("BotonCerrarTutorial", typeof(RectTransform));
+                closeBtnObj.layer = this.gameObject.layer;
+                closeBtnObj.transform.SetParent(cardObj.transform, false);
+
+                RectTransform closeBtnRect = closeBtnObj.GetComponent<RectTransform>();
+                closeBtnRect.anchorMin = new Vector2(0.8168f, 0.8732f); // Posicionamiento proporcional para que se adapte al escalado del Sprite
+                closeBtnRect.anchorMax = new Vector2(0.8168f, 0.8732f);
+                closeBtnRect.pivot = new Vector2(0.5f, 0.5f);
+                closeBtnRect.anchoredPosition = Vector2.zero;
+                closeBtnRect.sizeDelta = new Vector2(90f, 90f);
+
+                Image closeImg = closeBtnObj.AddComponent<Image>();
+                closeImg.color = new Color(1f, 1f, 1f, 0f); // Transparent
+
+                Button closeBtn = closeBtnObj.AddComponent<Button>();
+                closeBtn.transition = Selectable.Transition.ColorTint;
+                
+                Navigation nav = new Navigation();
+                nav.mode = Navigation.Mode.None;
+                closeBtn.navigation = nav;
+
+                ColorBlock colors = closeBtn.colors;
+                colors.normalColor = new Color(1f, 1f, 1f, 0f);
+                colors.highlightedColor = new Color(1f, 1f, 1f, 0.15f);
+                colors.pressedColor = new Color(1f, 1f, 1f, 0.3f);
+                colors.selectedColor = new Color(1f, 1f, 1f, 0f);
+                closeBtn.colors = colors;
+
+                closeBtn.onClick.AddListener(() => {
+                    PlayClickSound();
+                    if (AdministradorJuego.Instance != null)
+                    {
+                        AdministradorJuego.Instance.HasShownNivel2Tutorial = true;
+                    }
+                    Destroy(tutorialPanel);
+                    Time.timeScale = 1f; // Reanudar
+                    SetHUDActive(true);
+                    alTerminar?.Invoke();
+                });
             }
-            if (orderDetailsPanel != null)
+            else
             {
-                orderDetailsPanel.SetActive(false);
+                alTerminar?.Invoke();
             }
-            if (pausePlayButtonImage != null && pauseSprite != null)
-            {
-                pausePlayButtonImage.sprite = pauseSprite;
-            }
-            SetHUDActive(true);
-            Debug.Log("✅ Juego Iniciado.");
         }
 
         private IEnumerator FadeScreen(float startAlpha, float endAlpha, float duration, System.Action onComplete = null)
@@ -1160,6 +1350,11 @@ namespace DeliveryExpress
 
         private void SetHUDActive(bool active)
         {
+            isHUDActive = active;
+            if (active)
+            {
+                VerificarYCrearBarrasDinamicas();
+            }
             Transform hudLives = transform.Find("Marco_HUD");
             if (hudLives != null) hudLives.gameObject.SetActive(active);
 
@@ -1179,6 +1374,30 @@ namespace DeliveryExpress
             if (hudBooster != null)
             {
                 hudBooster.gameObject.SetActive(active && (ControladorJugador.Instance != null && ControladorJugador.Instance.IsSpeedBoostActive));
+            }
+
+            Transform hudShield = transform.Find("Barra_Escudo");
+            if (hudShield != null)
+            {
+                hudShield.gameObject.SetActive(active && (ControladorJugador.Instance != null && ControladorJugador.Instance.IsShieldActive));
+            }
+
+            Transform hudCoin = transform.Find("Barra_Moneda");
+            if (hudCoin != null)
+            {
+                hudCoin.gameObject.SetActive(active && (ControladorJugador.Instance != null && ControladorJugador.Instance.IsDoubleCoinsActive));
+            }
+
+            Transform hudCartel1 = transform.Find("Cartel_Nivel1");
+            if (hudCartel1 != null)
+            {
+                hudCartel1.gameObject.SetActive(active && (AdministradorJuego.Instance != null && AdministradorJuego.Instance.CurrentDay == 1));
+            }
+
+            Transform hudCartel2 = transform.Find("Cartel_Nivel2");
+            if (hudCartel2 != null)
+            {
+                hudCartel2.gameObject.SetActive(active && (AdministradorJuego.Instance != null && AdministradorJuego.Instance.CurrentDay == 2));
             }
 
             if (coinsText != null && coinsText.transform.parent == transform) 
@@ -2105,6 +2324,174 @@ namespace DeliveryExpress
             }
 
             textComponent.text = sb.ToString();
+        }
+
+        private void CrearBarraEscudoDinamica()
+        {
+            if (shieldBarImage != null) return;
+
+            Transform parentTrans = this.transform;
+            
+            GameObject shieldBarObj = new GameObject("Barra_Escudo", typeof(RectTransform));
+            shieldBarObj.layer = this.gameObject.layer;
+            shieldBarObj.transform.SetParent(parentTrans, false);
+            shieldBarObj.SetActive(false);
+
+            RectTransform rt = shieldBarObj.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0f, 0f);
+            rt.anchorMax = new Vector2(0f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(170f, 120f); // Posicionamiento justo arriba de la barra de turbo
+            rt.sizeDelta = new Vector2(276f, 69f);
+
+            shieldBarObj.AddComponent<CanvasRenderer>();
+            shieldBarImage = shieldBarObj.AddComponent<Image>();
+            if (shieldBarSprites != null && shieldBarSprites.Length > 0)
+            {
+                shieldBarImage.sprite = shieldBarSprites[0];
+            }
+            shieldBarImage.color = Color.white;
+            shieldBarImage.raycastTarget = false;
+        }
+
+        private void CrearBarraMonedaDinamica()
+        {
+            if (coinBarImage != null) return;
+
+            Transform parentTrans = this.transform;
+            
+            GameObject coinBarObj = new GameObject("Barra_Moneda", typeof(RectTransform));
+            coinBarObj.layer = this.gameObject.layer;
+            coinBarObj.transform.SetParent(parentTrans, false);
+            coinBarObj.SetActive(false);
+
+            RectTransform rt = coinBarObj.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0f, 0f);
+            rt.anchorMax = new Vector2(0f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(170f, 200f); // Posicionamiento justo arriba de la barra de escudo
+            rt.sizeDelta = new Vector2(276f, 69f);
+
+            coinBarObj.AddComponent<CanvasRenderer>();
+            coinBarImage = coinBarObj.AddComponent<Image>();
+            if (coinBarSprites != null && coinBarSprites.Length > 0)
+            {
+                coinBarImage.sprite = coinBarSprites[0];
+            }
+            coinBarImage.color = Color.white;
+            coinBarImage.raycastTarget = false;
+        }
+
+        private void VerificarYCrearBarrasDinamicas()
+        {
+            int dayVal = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+
+            #if UNITY_EDITOR
+            if (cartelNivel1Sprite == null)
+            {
+                cartelNivel1Sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/cartel_nivel1.png");
+            }
+            if (cartelNivel2Sprite == null)
+            {
+                cartelNivel2Sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/cartel_nivel2.png");
+            }
+            #endif
+
+            if (dayVal == 1)
+            {
+                if (cartelNivel1Image == null && cartelNivel1Sprite != null)
+                {
+                    CrearCartelNivel1Dinamico();
+                }
+            }
+            else if (dayVal >= 2)
+            {
+                #if UNITY_EDITOR
+                if (shieldBarSprites == null || shieldBarSprites.Length < 7 || (shieldBarSprites.Length >= 7 && shieldBarSprites[0] == null))
+                {
+                    Debug.Log("🛡️ shieldBarSprites no asignado. Cargando dinámicamente en el Editor...");
+                    shieldBarSprites = new Sprite[7];
+                    for (int i = 0; i <= 6; i++)
+                    {
+                        string path = $"Assets/sprites/UI/barra_escudo_{i}.png";
+                        shieldBarSprites[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                    }
+                }
+                if (coinBarSprites == null || coinBarSprites.Length < 7 || (coinBarSprites.Length >= 7 && coinBarSprites[0] == null))
+                {
+                    Debug.Log("💰 coinBarSprites no asignado. Cargando dinámicamente en el Editor...");
+                    coinBarSprites = new Sprite[7];
+                    for (int i = 0; i <= 6; i++)
+                    {
+                        string path = $"Assets/sprites/UI/barra_moneda_{i}.png";
+                        coinBarSprites[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                    }
+                }
+                #endif
+
+                if (shieldBarImage == null && shieldBarSprites != null && shieldBarSprites.Length >= 7)
+                {
+                    CrearBarraEscudoDinamica();
+                }
+                if (coinBarImage == null && coinBarSprites != null && coinBarSprites.Length >= 7)
+                {
+                    CrearBarraMonedaDinamica();
+                }
+                if (cartelNivel2Image == null && cartelNivel2Sprite != null)
+                {
+                    CrearCartelNivel2Dinamico();
+                }
+            }
+        }
+
+        private void CrearCartelNivel1Dinamico()
+        {
+            if (cartelNivel1Image != null) return;
+
+            Transform parentTrans = this.transform;
+
+            GameObject cartelObj = new GameObject("Cartel_Nivel1", typeof(RectTransform));
+            cartelObj.layer = this.gameObject.layer;
+            cartelObj.transform.SetParent(parentTrans, false);
+            cartelObj.SetActive(false);
+
+            RectTransform rt = cartelObj.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 1f);
+            rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -20f);
+            rt.sizeDelta = new Vector2(218f, 52f);
+
+            cartelObj.AddComponent<CanvasRenderer>();
+            cartelNivel1Image = cartelObj.AddComponent<Image>();
+            cartelNivel1Image.sprite = cartelNivel1Sprite;
+            cartelNivel1Image.color = Color.white;
+            cartelNivel1Image.raycastTarget = false;
+        }
+
+        private void CrearCartelNivel2Dinamico()
+        {
+            if (cartelNivel2Image != null) return;
+
+            Transform parentTrans = this.transform;
+
+            GameObject cartelObj = new GameObject("Cartel_Nivel2", typeof(RectTransform));
+            cartelObj.layer = this.gameObject.layer;
+            cartelObj.transform.SetParent(parentTrans, false);
+            cartelObj.SetActive(false);
+
+            RectTransform rt = cartelObj.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 1f);
+            rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -20f);
+            rt.sizeDelta = new Vector2(218f, 52f);
+
+            cartelObj.AddComponent<CanvasRenderer>();
+            cartelNivel2Image = cartelObj.AddComponent<Image>();
+            cartelNivel2Image.sprite = cartelNivel2Sprite;
+            cartelNivel2Image.color = Color.white;
+            cartelNivel2Image.raycastTarget = false;
         }
     }
 }

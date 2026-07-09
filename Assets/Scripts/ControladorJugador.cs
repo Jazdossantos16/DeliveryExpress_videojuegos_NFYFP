@@ -82,6 +82,24 @@ namespace DeliveryExpress
         public float SpeedBoostDurationMax => speedBoostDurationMax;
         public float SpeedBoostDurationRemaining => speedBoostDurationRemaining;
 
+        // Estado del escudo de inmunidad
+        private bool isShieldActive = false;
+        private float shieldDurationRemaining = 0f;
+        private float shieldDurationMax = 1f;
+
+        public bool IsShieldActive => isShieldActive;
+        public float ShieldDurationMax => shieldDurationMax;
+        public float ShieldDurationRemaining => shieldDurationRemaining;
+
+        // Estado del multiplicador de monedas X2
+        private bool isDoubleCoinsActive = false;
+        private float doubleCoinsDurationRemaining = 0f;
+        private float doubleCoinsDurationMax = 1f;
+
+        public bool IsDoubleCoinsActive => isDoubleCoinsActive;
+        public float DoubleCoinsDurationMax => doubleCoinsDurationMax;
+        public float DoubleCoinsDurationRemaining => doubleCoinsDurationRemaining;
+
         public static ControladorJugador Instance { get; private set; }
 
         // Variables de estado interno de mejoras (permanentemente actualizadas por el AdministradorMejoras)
@@ -374,6 +392,26 @@ namespace DeliveryExpress
                 if (speedBoostDurationRemaining <= 0f)
                 {
                     DesactivarPotenciadorVelocidad();
+                }
+            }
+
+            // Decrementar duración del escudo de inmunidad si está activo
+            if (isShieldActive)
+            {
+                shieldDurationRemaining -= Time.deltaTime;
+                if (shieldDurationRemaining <= 0f)
+                {
+                    DesactivarEscudoInmunidad();
+                }
+            }
+
+            // Decrementar duración del multiplicador de monedas si está activo
+            if (isDoubleCoinsActive)
+            {
+                doubleCoinsDurationRemaining -= Time.deltaTime;
+                if (doubleCoinsDurationRemaining <= 0f)
+                {
+                    DesactivarDoubleCoins();
                 }
             }
 
@@ -671,8 +709,8 @@ namespace DeliveryExpress
                 return;
             }
 
-            // Si el jugador está invulnerable o tiene el potenciador de velocidad activo, absorbe el impacto de cualquier colisión
-            if (isInvulnerable || isSpeedBoostActive) return;
+            // Si el jugador está invulnerable, tiene el potenciador de velocidad o el escudo activo, absorbe el impacto de cualquier colisión
+            if (isInvulnerable || isSpeedBoostActive || isShieldActive) return;
 
             if (collision.CompareTag("Obstaculo") || obs != null || isCar)
             {
@@ -769,6 +807,29 @@ namespace DeliveryExpress
             }
         }
 
+        private void ActualizarColorJugador()
+        {
+            if (spriteRenderer == null) return;
+
+            if (isShieldActive)
+            {
+                spriteRenderer.color = new Color(0.5f, 0.9f, 1f, 1f); // Celeste/Cyan para Escudo
+            }
+            else if (isDoubleCoinsActive)
+            {
+                spriteRenderer.color = new Color(0.5f, 1f, 0.5f, 1f); // Verde claro para Monedas X2
+            }
+            else if (isSpeedBoostActive)
+            {
+                bool isUpgraded = (AdministradorMejoras.Instance != null && AdministradorMejoras.Instance.IsPowerUpEquipped());
+                spriteRenderer.color = isUpgraded ? new Color(1f, 0.85f, 0.2f, 1f) : new Color(0.3f, 0.8f, 1f, 1f);
+            }
+            else
+            {
+                spriteRenderer.color = Color.white;
+            }
+        }
+
         public void ActivarPotenciadorVelocidad(float duracion, float multiplicador)
         {
             isSpeedBoostActive = true;
@@ -777,12 +838,7 @@ namespace DeliveryExpress
             speedBoostDurationRemaining = finalDuracion;
             speedBoostMultiplier = multiplicador;
 
-            if (spriteRenderer != null)
-            {
-                bool isUpgraded = (AdministradorMejoras.Instance != null && AdministradorMejoras.Instance.IsPowerUpEquipped());
-                spriteRenderer.color = isUpgraded ? new Color(1f, 0.85f, 0.2f, 1f) : new Color(0.3f, 0.8f, 1f, 1f);
-            }
-
+            ActualizarColorJugador();
             Debug.Log($"⚡ Potenciador de velocidad activado por {duracion} segundos con multiplicador {multiplicador}x!");
         }
 
@@ -791,12 +847,48 @@ namespace DeliveryExpress
             isSpeedBoostActive = false;
             speedBoostDurationRemaining = 0f;
 
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.color = Color.white;
-            }
-
+            ActualizarColorJugador();
             Debug.Log("⚡ Potenciador de velocidad terminado.");
+        }
+
+        public void ActivarEscudoInmunidad(float duracion)
+        {
+            isShieldActive = true;
+            float finalDuracion = duracion * powerUpDurationFactor;
+            shieldDurationMax = finalDuracion;
+            shieldDurationRemaining = finalDuracion;
+
+            ActualizarColorJugador();
+            Debug.Log($"🛡️ Escudo de inmunidad activado por {duracion} segundos!");
+        }
+
+        private void DesactivarEscudoInmunidad()
+        {
+            isShieldActive = false;
+            shieldDurationRemaining = 0f;
+
+            ActualizarColorJugador();
+            Debug.Log("🛡️ Escudo de inmunidad terminado.");
+        }
+
+        public void ActivarDoubleCoins(float duracion)
+        {
+            isDoubleCoinsActive = true;
+            float finalDuracion = duracion * powerUpDurationFactor;
+            doubleCoinsDurationMax = finalDuracion;
+            doubleCoinsDurationRemaining = finalDuracion;
+
+            ActualizarColorJugador();
+            Debug.Log($"💰 Multiplicador de Monedas X2 activado por {duracion} segundos!");
+        }
+
+        private void DesactivarDoubleCoins()
+        {
+            isDoubleCoinsActive = false;
+            doubleCoinsDurationRemaining = 0f;
+
+            ActualizarColorJugador();
+            Debug.Log("💰 Multiplicador de Monedas X2 terminado.");
         }
 
         private void LateUpdate()

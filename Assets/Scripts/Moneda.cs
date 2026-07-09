@@ -79,7 +79,12 @@ namespace DeliveryExpress
                 Debug.Log("🪙 [Moneda] Colisión detectada con Player. Intentando sumar moneda.");
                 if (AdministradorJuego.Instance != null)
                 {
-                    AdministradorJuego.Instance.AddCoins(1);
+                    int value = 1;
+                    if (ControladorJugador.Instance != null && ControladorJugador.Instance.IsDoubleCoinsActive)
+                    {
+                        value = 2;
+                    }
+                    AdministradorJuego.Instance.AddCoins(value);
                 }
                 if (AdministradorAudio.Instance != null)
                 {

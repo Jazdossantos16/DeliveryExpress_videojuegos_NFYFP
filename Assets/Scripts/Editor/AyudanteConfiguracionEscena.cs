@@ -2465,10 +2465,10 @@ namespace DeliveryExpress.Editor
             GameObject btnCerrarMapObj = new GameObject("BotonCerrar", typeof(RectTransform));
             RectTransform btnCerrarMapRect = btnCerrarMapObj.GetComponent<RectTransform>();
             btnCerrarMapRect.SetParent(mapPopupRect, false);
-            btnCerrarMapRect.anchorMin = new Vector2(0.7994f, 0.8630f);
-            btnCerrarMapRect.anchorMax = new Vector2(0.7994f, 0.8630f);
+            btnCerrarMapRect.anchorMin = new Vector2(0.5f, 0.5f);
+            btnCerrarMapRect.anchorMax = new Vector2(0.5f, 0.5f);
+            btnCerrarMapRect.anchoredPosition = new Vector2(608f, 403f);
             btnCerrarMapRect.pivot = new Vector2(0.5f, 0.5f);
-            btnCerrarMapRect.anchoredPosition = Vector2.zero;
             btnCerrarMapRect.sizeDelta = new Vector2(85f, 85f);
 
             EnsureIsSprite("Assets/sprites/UI/boton_cerrar.png");
@@ -2477,7 +2477,7 @@ namespace DeliveryExpress.Editor
             if (spriteCerrarMap != null)
             {
                 btnCerrarMapImg.sprite = spriteCerrarMap;
-                btnCerrarMapImg.color = Color.white;
+                btnCerrarMapImg.color = new Color(1f, 1f, 1f, 0f);
             }
             else
             {
@@ -2495,7 +2495,7 @@ namespace DeliveryExpress.Editor
             btnPedido1Rect.anchorMin = new Vector2(0.5f, 0.5f);
             btnPedido1Rect.anchorMax = new Vector2(0.5f, 0.5f);
             btnPedido1Rect.pivot = new Vector2(0.5f, 0.5f);
-            btnPedido1Rect.anchoredPosition = new Vector2(-370f, -30f);
+            btnPedido1Rect.anchoredPosition = new Vector2(-365f, -20f);
             btnPedido1Rect.sizeDelta = new Vector2(90f, 90f);
 
             EnsureIsSprite("Assets/sprites/UI/boton_nopedido.png");
@@ -2504,7 +2504,7 @@ namespace DeliveryExpress.Editor
             if (spriteNoPedido != null)
             {
                 btnPedido1Img.sprite = spriteNoPedido;
-                btnPedido1Img.color = Color.white;
+                btnPedido1Img.color = new Color(1f, 1f, 1f, 0f);
             }
             else
             {
@@ -2519,7 +2519,7 @@ namespace DeliveryExpress.Editor
             btnPedido2Rect.anchorMin = new Vector2(0.5f, 0.5f);
             btnPedido2Rect.anchorMax = new Vector2(0.5f, 0.5f);
             btnPedido2Rect.pivot = new Vector2(0.5f, 0.5f);
-            btnPedido2Rect.anchoredPosition = new Vector2(-60f, -60f);
+            btnPedido2Rect.anchoredPosition = new Vector2(-58f, -69f);
             btnPedido2Rect.sizeDelta = new Vector2(90f, 90f);
 
             EnsureIsSprite("Assets/sprites/UI/boton_pedido.png");
@@ -2528,7 +2528,7 @@ namespace DeliveryExpress.Editor
             if (spritePedido != null)
             {
                 btnPedido2Img.sprite = spritePedido;
-                btnPedido2Img.color = Color.white;
+                btnPedido2Img.color = new Color(1f, 1f, 1f, 0f);
             }
             else
             {
@@ -2544,14 +2544,14 @@ namespace DeliveryExpress.Editor
             btnPedido3Rect.anchorMin = new Vector2(0.5f, 0.5f);
             btnPedido3Rect.anchorMax = new Vector2(0.5f, 0.5f);
             btnPedido3Rect.pivot = new Vector2(0.5f, 0.5f);
-            btnPedido3Rect.anchoredPosition = new Vector2(190f, -60f);
+            btnPedido3Rect.anchoredPosition = new Vector2(186f, 69f);
             btnPedido3Rect.sizeDelta = new Vector2(90f, 90f);
 
             Image btnPedido3Img = btnPedido3Obj.AddComponent<Image>();
             if (spritePedido != null)
             {
                 btnPedido3Img.sprite = spritePedido;
-                btnPedido3Img.color = Color.white;
+                btnPedido3Img.color = new Color(1f, 1f, 1f, 0f);
             }
             else
             {
@@ -2699,6 +2699,38 @@ namespace DeliveryExpress.Editor
             if (fieldLvl2 != null && spriteDetailsLvl2 != null)
             {
                 fieldLvl2.SetValue(uiManager, spriteDetailsLvl2);
+            }
+
+            // Inyectar el sprite de nuevos desafíos para el nivel 2
+            EnsureIsSprite("Assets/sprites/UI/pantalla_nuevos_desafios.png");
+            Sprite spriteNuevosDesafios = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/pantalla_nuevos_desafios.png");
+            var fieldNuevosDesafios = typeof(AdministradorUI).GetField("nuevosDesafiosSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (fieldNuevosDesafios != null && spriteNuevosDesafios != null)
+            {
+                fieldNuevosDesafios.SetValue(uiManager, spriteNuevosDesafios);
+                EditorUtility.SetDirty(uiManager);
+                Debug.Log("✅ nuevosDesafiosSprite inyectado en AdministradorUI.");
+            }
+
+            // Inyectar los sprites de la barra de escudo
+            Sprite[] spritesEscudoBar = new Sprite[7];
+            bool hasAllShieldSprites = true;
+            for (int i = 0; i <= 6; i++)
+            {
+                string path = $"Assets/sprites/UI/barra_escudo_{i}.png";
+                EnsureIsSprite(path);
+                spritesEscudoBar[i] = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+                if (spritesEscudoBar[i] == null) hasAllShieldSprites = false;
+            }
+            if (hasAllShieldSprites)
+            {
+                var fieldShieldBar = typeof(AdministradorUI).GetField("shieldBarSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (fieldShieldBar != null)
+                {
+                    fieldShieldBar.SetValue(uiManager, spritesEscudoBar);
+                    EditorUtility.SetDirty(uiManager);
+                    Debug.Log("✅ shieldBarSprites inyectados en AdministradorUI.");
+                }
             }
 
 
@@ -3802,6 +3834,18 @@ namespace DeliveryExpress.Editor
                 potenciadorPrefabField.SetValue(spawner, potenciadorPrefab);
             }
 
+            // Asignar el sprite del escudo al spawner
+            var escudoSpriteField = typeof(GeneradorObstaculos).GetField("escudoSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (escudoSpriteField != null)
+            {
+                Sprite spriteEscudo = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Gameplay/escudo.png");
+                if (spriteEscudo != null)
+                {
+                    escudoSpriteField.SetValue(spawner, spriteEscudo);
+                    Debug.Log("🛡️ Asignado sprite de escudo al GeneradorObstaculos.");
+                }
+            }
+
             EditorUtility.SetDirty(spawner);
         }
 
@@ -4384,3 +4428,6 @@ namespace DeliveryExpress.Editor
         }
     }
 }
+
+
+

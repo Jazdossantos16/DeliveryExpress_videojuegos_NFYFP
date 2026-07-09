@@ -22,6 +22,8 @@ namespace DeliveryExpress
         [SerializeField] private AudioClip victorySound;
         [SerializeField] private AudioClip laneSwitchSound;
         [SerializeField] private AudioClip buttonClickSound;
+        [SerializeField] private AudioClip shieldSound;
+        [SerializeField] private AudioClip coinDoubleSound;
 
         private AudioSource bgmSource;
         private AudioSource sfxSource;
@@ -34,6 +36,41 @@ namespace DeliveryExpress
                 // Opcional para persistencia entre niveles si se agregan más escenas
                 DontDestroyOnLoad(gameObject);
                 InicializarComponentesAudio();
+
+                #if UNITY_EDITOR
+                if (shieldSound == null)
+                {
+                    Debug.Log("🔊 shieldSound no asignado en AdministradorAudio. Intentando cargar dinámicamente...");
+                    string[] extensions = new string[] { "wav", "mp3", "ogg" };
+                    foreach (string ext in extensions)
+                    {
+                        string path = $"Assets/Audio/escudo.{ext}";
+                        AudioClip clip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+                        if (clip != null)
+                        {
+                            shieldSound = clip;
+                            Debug.Log($"🔊 shieldSound cargado con éxito desde: {path}");
+                            break;
+                        }
+                    }
+                }
+                if (coinDoubleSound == null)
+                {
+                    Debug.Log("🔊 coinDoubleSound no asignado en AdministradorAudio. Intentando cargar dinámicamente...");
+                    string[] extensions = new string[] { "wav", "mp3", "ogg" };
+                    foreach (string ext in extensions)
+                    {
+                        string path = $"Assets/Audio/supermoneda.{ext}";
+                        AudioClip clip = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+                        if (clip != null)
+                        {
+                            coinDoubleSound = clip;
+                            Debug.Log($"🔊 coinDoubleSound cargado con éxito desde: {path}");
+                            break;
+                        }
+                    }
+                }
+                #endif
             }
             else
             {
@@ -172,6 +209,30 @@ namespace DeliveryExpress
         public void PlayButtonClickSound()
         {
             PlaySFX(buttonClickSound);
+        }
+
+        public void PlayShieldSound()
+        {
+            if (shieldSound != null)
+            {
+                PlaySFX(shieldSound);
+            }
+            else
+            {
+                PlayPowerUpSound();
+            }
+        }
+
+        public void PlayCoinDoubleSound()
+        {
+            if (coinDoubleSound != null)
+            {
+                PlaySFX(coinDoubleSound);
+            }
+            else
+            {
+                PlayPowerUpSound();
+            }
         }
 
         private void PlaySFX(AudioClip clip)
