@@ -119,8 +119,19 @@ namespace DeliveryExpress
                 {
                     startPanel.SetActive(false);
                 }
-                Time.timeScale = 1f;
-                SetHUDActive(true);
+                
+                int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+                if (currentDay == 2)
+                {
+                    Time.timeScale = 0f; // Pausado para ver los detalles
+                    SetHUDActive(false);
+                    AbrirDetallePedido();
+                }
+                else
+                {
+                    Time.timeScale = 1f;
+                    SetHUDActive(true);
+                }
             }
             else
             {
@@ -825,9 +836,19 @@ namespace DeliveryExpress
         public void AvanzarSiguienteDia()
         {
             PlayClickSound();
-            skipStartPanel = true;
-            Time.timeScale = 1f;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+            if (currentDay > 2)
+            {
+                // Si ya completó el Nivel 2 (no hay más niveles), volver al menú principal
+                CargarMenu();
+            }
+            else
+            {
+                // Si va a jugar el Nivel 2, recargar la escena y abrir la tarjeta de detalles directamente
+                skipStartPanel = true;
+                Time.timeScale = 0f; // Mantener pausado para el popup de detalles
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            }
         }
 
         public void UpdateCoinsUI(int coins)
