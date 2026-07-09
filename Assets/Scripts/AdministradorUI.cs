@@ -862,7 +862,10 @@ namespace DeliveryExpress
                     img.color = Color.white;
                 }
 
-                // Garantizar en runtime que el botón Jugar llame AvanzarSiguienteDia
+                // Conectar el botón según qué nivel se completó:
+                // Nivel 1 completado (currentDay==2) → mostrar tarjeta azul + video de Nivel 2
+                // Nivel 2 completado (currentDay>2)  → reiniciar Nivel 2 directo sin tarjeta ni video
+                int dayAtVictory = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
                 Button btnSig = null;
                 foreach (Button b in victoryPanel.GetComponentsInChildren<Button>(true))
                 {
@@ -875,8 +878,16 @@ namespace DeliveryExpress
                 if (btnSig != null)
                 {
                     btnSig.onClick.RemoveAllListeners();
-                    btnSig.onClick.AddListener(AvanzarSiguienteDia);
-                    Debug.Log("[ShowVictory] BotonSiguiente → AvanzarSiguienteDia ✅");
+                    if (dayAtVictory > 2)
+                    {
+                        btnSig.onClick.AddListener(ReiniciarNivel2Directo);
+                        Debug.Log($"[ShowVictory] Nivel 2 completado (day={dayAtVictory}) → BotonSiguiente wired a ReiniciarNivel2Directo ✅");
+                    }
+                    else
+                    {
+                        btnSig.onClick.AddListener(AvanzarSiguienteDia);
+                        Debug.Log($"[ShowVictory] Nivel 1 completado (day={dayAtVictory}) → BotonSiguiente wired a AvanzarSiguienteDia ✅");
+                    }
                 }
                 else
                 {
@@ -959,22 +970,18 @@ namespace DeliveryExpress
             PlayClickSound();
             int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
             Debug.Log($"[AdministradorUI.AvanzarSiguienteDia] currentDay={currentDay}");
+
+            // currentDay == 2 significa que se acaba de completar el Nivel 1 → pasar al Nivel 2 con tarjeta + video
+            // currentDay > 2 significa que se acaba de completar el Nivel 2 → reiniciar Nivel 2 directo (pero esto
+            // ya no se llega: ShowVictory() wire ReiniciarNivel2Directo() cuando currentDay > 2)
             if (currentDay > 2)
             {
-                // Si ya completó el Nivel 2, reiniciarlo directamente
-                if (AdministradorJuego.Instance != null)
-                {
-                    AdministradorJuego.Instance.ConfigurarJornada(2);
-                }
-                skipStartPanel = true;
-                showDetailsOnLoad = false;
-                Time.timeScale = 1f;
-                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                // Fallback por si acaso: reiniciar Nivel 2 directamente
+                ReiniciarNivel2Directo();
             }
             else
             {
-                // Pasar al Nivel 2: ocultar la pantalla de victoria y mostrar la tarjeta azul.
-                // Detener el game loop para que el timer no dispare TriggerVictory mientras se lee la tarjeta.
+                // Pasar al Nivel 2 por primera vez: ocultar victoria y mostrar tarjeta azul.
                 if (AdministradorJuego.Instance != null)
                 {
                     AdministradorJuego.Instance.StopGameLoop();
@@ -983,9 +990,27 @@ namespace DeliveryExpress
                 {
                     victoryPanel.SetActive(false);
                 }
-                Time.timeScale = 0f; // Pausado mientras el jugador lee la tarjeta
+                Time.timeScale = 0f;
                 AbrirDetallePedido();
             }
+        }
+
+        /// <summary>
+        /// Reinicia el Nivel 2 directamente desde la pantalla de victoria, sin tarjeta azul ni video.
+        /// Se usa cuando el jugador ya completó el Nivel 2 y quiere volver a jugarlo.
+        /// </summary>
+        public void ReiniciarNivel2Directo()
+        {
+            PlayClickSound();
+            if (AdministradorJuego.Instance != null)
+            {
+                AdministradorJuego.Instance.ConfigurarJornada(2);
+                AdministradorJuego.Instance.PlayVideoOnLoad = false;
+            }
+            skipStartPanel = true;
+            showDetailsOnLoad = false;
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
         public void UpdateCoinsUI(int coins)
@@ -1091,10 +1116,11 @@ namespace DeliveryExpress
             PlayClickSound();
 
             // Si venimos del menú principal (startPanel activo) y ya estamos en el Nivel 2+,
-            // iniciamos el juego directamente sin pasar por la tarjeta de detalles.
+            // iniciamos el juego directamente sin pasar por la tarjeta de detalles ni el video.
             int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
             if (startPanel != null && startPanel.activeSelf && currentDay >= 2)
             {
+                // Venimos del menú principal en Nivel 2: ir directo sin tarjeta ni video
                 IniciarJuego();
                 return;
             }
