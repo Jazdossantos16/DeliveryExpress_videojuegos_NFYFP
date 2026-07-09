@@ -1089,6 +1089,16 @@ namespace DeliveryExpress
         public void AbrirDetallePedido()
         {
             PlayClickSound();
+
+            // Si venimos del menú principal (startPanel activo) y ya estamos en el Nivel 2+,
+            // iniciamos el juego directamente sin pasar por la tarjeta de detalles.
+            int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+            if (startPanel != null && startPanel.activeSelf && currentDay >= 2)
+            {
+                IniciarJuego();
+                return;
+            }
+
             if (mapPanel != null)
             {
                 cameFromMap = mapPanel.activeSelf;
