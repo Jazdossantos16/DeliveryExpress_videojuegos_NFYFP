@@ -1007,22 +1007,19 @@ namespace DeliveryExpress
                 cardImg.preserveAspect = true;
 
                 // Crear el botón de cerrar transparente alineado con el botón de la imagen
-                // Centroid del botón de cerrar detectado en la imagen de 1024x576:
-                // Pixel X=836.4, Y=73.0 -> Relativo al centro de la tarjeta de 1920x1080:
-                // En 1024x576, el botón está a 324.4px a la derecha y 215px arriba.
-                // Multiplicado por la escala de la tarjeta (1920/1024 = 1.875):
-                // X = 324.4 * 1.875 = 608.28
-                // Y = 215 * 1.875 = 403.1
+                // Centroid real del botón de cerrar detectado en la imagen de 1024x576:
+                // Pixel X=806, Y=92 (desde arriba, lo que equivale a Y=484 desde abajo)
+                // Relación proporcional en coordenadas UV: X = 806/1024 = 0.7871, Y = 484/576 = 0.8403
                 GameObject closeBtnObj = new GameObject("BotonCerrarTutorial", typeof(RectTransform));
                 closeBtnObj.layer = this.gameObject.layer;
                 closeBtnObj.transform.SetParent(cardObj.transform, false);
 
                 RectTransform closeBtnRect = closeBtnObj.GetComponent<RectTransform>();
-                closeBtnRect.anchorMin = new Vector2(0.8168f, 0.8732f); // Posicionamiento proporcional para que se adapte al escalado del Sprite
-                closeBtnRect.anchorMax = new Vector2(0.8168f, 0.8732f);
+                closeBtnRect.anchorMin = new Vector2(0.7871f, 0.8403f); // Posicionamiento exacto alineado con el centro del botón rojo (806, 484)
+                closeBtnRect.anchorMax = new Vector2(0.7871f, 0.8403f);
                 closeBtnRect.pivot = new Vector2(0.5f, 0.5f);
                 closeBtnRect.anchoredPosition = Vector2.zero;
-                closeBtnRect.sizeDelta = new Vector2(90f, 90f);
+                closeBtnRect.sizeDelta = new Vector2(100f, 100f); // Área de click ampliada y cómoda
 
                 Image closeImg = closeBtnObj.AddComponent<Image>();
                 closeImg.color = new Color(1f, 1f, 1f, 0f); // Transparent
