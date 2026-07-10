@@ -2070,6 +2070,10 @@ namespace DeliveryExpress
             if (AdministradorJuego.Instance != null)
             {
                 AdministradorJuego.Instance.ConfigurarJornada(nivel);
+                if (nivel == 2)
+                {
+                    AdministradorJuego.Instance.HasShownNivel2Tutorial = false;
+                }
             }
             AbrirDetallePedido();
         }
