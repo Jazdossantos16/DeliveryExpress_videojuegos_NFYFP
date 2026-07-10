@@ -29,6 +29,13 @@ namespace DeliveryExpress
         private int activeOrders = 0;
         private int totalDeliveriesRequired = 0;
         private int currentDeliveriesCompleted = 0;
+        private int laneChangesThisDay = 0;
+        public int LaneChangesThisDay => laneChangesThisDay;
+        public void RegistrarCambioCarril()
+        {
+            laneChangesThisDay++;
+            Debug.Log($"[AdministradorJuego] Registro de cambio de carril. Total hoy: {laneChangesThisDay}");
+        }
 
         private bool isGameRunning = false;
         private bool isGameOver = false;
@@ -88,6 +95,7 @@ namespace DeliveryExpress
             isVictory = false;
             isGameRunning = true;
             IsFinishLineReached = false;
+            laneChangesThisDay = 0;
 
             // Aplicar mejoras antes de inicializar vidas
             if (AdministradorMejoras.Instance != null)

@@ -46,7 +46,8 @@ namespace DeliveryExpress
 
         [Header("Configuración de Carriles (Posiciones X)")]
         [SerializeField] private float[] lanePositionsX = new float[] { -4f, 0f, 4f }; // Izquierdo, Centro, Derecho
-        [SerializeField] private float spawnYPosition = 12f; // Posición de entrada superior en pantalla
+        public float[] LanePositionsX => lanePositionsX;
+        [SerializeField] private float spawnYPosition = 15f; // Posición de entrada superior en pantalla
 
         [Header("Configuración de Frecuencias de Spawn")]
         [SerializeField] private float minSpawnDelay = 1.8f;
@@ -652,7 +653,7 @@ namespace DeliveryExpress
             }
         }
 
-        private int GetLaneIndexFromX(float xPos)
+        public int GetLaneIndexFromX(float xPos)
         {
             if (lanePositionsX == null) return -1;
             for (int i = 0; i < lanePositionsX.Length; i++)

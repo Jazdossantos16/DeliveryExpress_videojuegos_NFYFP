@@ -6480,6 +6480,7 @@ MonoBehaviour:
   defeatSound: {fileID: 8300000, guid: 3d27c86625c408c4ab53cdab1d21b184, type: 3}
   victorySound: {fileID: 8300000, guid: b10e6a690ff281b4f8f475e74e7faa88, type: 3}
   laneSwitchSound: {fileID: 8300000, guid: 9f5608945a36dd342aa3b0132c8b1605, type: 3}
+  carTurnSignalSound: {fileID: 8300000, guid: 6fcd7d95af1204593979d1c3c293b480, type: 3}
   buttonClickSound: {fileID: 8300000, guid: fecafe69cfc19e64fa63dc80ba61cae6, type: 3}
 --- !u!4 &1216333767
 Transform:
