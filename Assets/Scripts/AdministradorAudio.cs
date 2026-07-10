@@ -21,6 +21,7 @@ namespace DeliveryExpress
         [SerializeField] private AudioClip defeatSound;
         [SerializeField] private AudioClip victorySound;
         [SerializeField] private AudioClip laneSwitchSound;
+        [SerializeField] private AudioClip carTurnSignalSound;
         [SerializeField] private AudioClip buttonClickSound;
         [SerializeField] private AudioClip shieldSound;
         [SerializeField] private AudioClip coinDoubleSound;
@@ -201,6 +202,14 @@ namespace DeliveryExpress
         public void PlayLaneSwitchSound()
         {
             PlaySFX(laneSwitchSound);
+        }
+
+        /// <summary>
+        /// Reproduce el efecto de sonido de la luz de giro cuando un auto de tráfico planea cambiar de carril.
+        /// </summary>
+        public void PlayCarTurnSignalSound()
+        {
+            PlaySFX(carTurnSignalSound);
         }
 
         /// <summary>
