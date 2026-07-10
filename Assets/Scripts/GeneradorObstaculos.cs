@@ -44,6 +44,20 @@ namespace DeliveryExpress
 
         private float tiempoParaSiguientePotenciador = 0f;
 
+        [Header("Escudo de Inmunidad")]
+        [SerializeField] private Sprite escudoSprite;
+        [SerializeField] private float minTiempoEntreEscudos = 15f;
+        [SerializeField] private float maxTiempoEntreEscudos = 30f;
+
+        private float tiempoParaSiguienteEscudo = 0f;
+
+        [Header("Súper Moneda X2")]
+        [SerializeField] private Sprite monedaDoubleSprite;
+        [SerializeField] private float minTiempoEntreMonedasDouble = 20f;
+        [SerializeField] private float maxTiempoEntreMonedasDouble = 35f;
+
+        private float tiempoParaSiguienteMonedaDouble = 0f;
+
         [Header("Configuración de Carriles (Posiciones X)")]
         [SerializeField] private float[] lanePositionsX = new float[] { -4f, 0f, 4f }; // Izquierdo, Centro, Derecho
         [SerializeField] private float spawnYPosition = 12f; // Posición de entrada superior en pantalla
@@ -64,6 +78,19 @@ namespace DeliveryExpress
 
         private void Start()
         {
+            #if UNITY_EDITOR
+            if (escudoSprite == null)
+            {
+                Debug.Log("🛡️ escudoSprite no asignado en GeneradorObstaculos. Cargando dinámicamente en el Editor...");
+                escudoSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Gameplay/escudo.png");
+            }
+            if (monedaDoubleSprite == null)
+            {
+                Debug.Log("💰 monedaDoubleSprite no asignado en GeneradorObstaculos. Cargando dinámicamente en el Editor...");
+                monedaDoubleSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Gameplay/moneda_x2.png");
+            }
+            #endif
+
             fondosCacheados = FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
 
             // Destruir cualquier hamburguesa power-up pre-colocada en la jerarquía de la escena al iniciar
@@ -82,6 +109,10 @@ namespace DeliveryExpress
             tiempoParaSiguienteMoneda = Random.Range(minTiempoEntreMonedas, maxTiempoEntreMonedas);
             // Primer potenciador de velocidad aparece entre 15 y 30 segundos desde el inicio
             tiempoParaSiguientePotenciador = Random.Range(minTiempoEntrePotenciadores, maxTiempoEntrePotenciadores);
+            // Primer escudo de inmunidad aparece entre 15 y 30 segundos desde el inicio
+            tiempoParaSiguienteEscudo = Random.Range(minTiempoEntreEscudos, maxTiempoEntreEscudos);
+            // Primer súper moneda X2 aparece entre 20 y 35 segundos desde el inicio
+            tiempoParaSiguienteMonedaDouble = Random.Range(minTiempoEntreMonedasDouble, maxTiempoEntreMonedasDouble);
             StartCoroutine(SpawnRoutine());
         }
 
@@ -198,6 +229,29 @@ namespace DeliveryExpress
                     {
                         SpawnPotenciadorEnergia();
                         tiempoParaSiguientePotenciador = Random.Range(minTiempoEntrePotenciadores, maxTiempoEntrePotenciadores);
+                    }
+                }
+
+                // Spawn de escudo de inmunidad (solo a partir de la Jornada 2)
+                int day = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
+                if (escudoSprite != null && day >= 2 && !AdministradorJuego.Instance.IsGameOver)
+                {
+                    tiempoParaSiguienteEscudo -= Time.deltaTime;
+                    if (tiempoParaSiguienteEscudo <= 0f)
+                    {
+                        SpawnEscudo();
+                        tiempoParaSiguienteEscudo = Random.Range(minTiempoEntreEscudos, maxTiempoEntreEscudos);
+                    }
+                }
+
+                // Spawn de súper moneda X2 (solo a partir de la Jornada 2)
+                if (monedaDoubleSprite != null && day >= 2 && !AdministradorJuego.Instance.IsGameOver)
+                {
+                    tiempoParaSiguienteMonedaDouble -= Time.deltaTime;
+                    if (tiempoParaSiguienteMonedaDouble <= 0f)
+                    {
+                        SpawnMonedaDouble();
+                        tiempoParaSiguienteMonedaDouble = Random.Range(minTiempoEntreMonedasDouble, maxTiempoEntreMonedasDouble);
                     }
                 }
             }
@@ -399,6 +453,8 @@ namespace DeliveryExpress
             Moneda[] activeCoins = FindObjectsByType<Moneda>(FindObjectsSortMode.None);
             PotenciadorEnergia[] activeBoosts = FindObjectsByType<PotenciadorEnergia>(FindObjectsSortMode.None);
             HamburguesaVida[] activeBurgers = FindObjectsByType<HamburguesaVida>(FindObjectsSortMode.None);
+            EscudoInmunidad[] activeShields = FindObjectsByType<EscudoInmunidad>(FindObjectsSortMode.None);
+            MonedaDouble[] activeDoubleCoins = FindObjectsByType<MonedaDouble>(FindObjectsSortMode.None);
 
             // Verificar obstáculos
             foreach (Obstaculo obs in activeObstacles)
@@ -455,6 +511,32 @@ namespace DeliveryExpress
                 }
             }
 
+            foreach (EscudoInmunidad shield in activeShields)
+            {
+                if (shield == null) continue;
+                if (shield.transform.position.y > 6.0f)
+                {
+                    int lane = GetLaneIndexFromX(shield.transform.position.x);
+                    if (lane != -1 && safeLanes.Contains(lane))
+                    {
+                        safeLanes.Remove(lane);
+                    }
+                }
+            }
+
+            foreach (MonedaDouble dc in activeDoubleCoins)
+            {
+                if (dc == null) continue;
+                if (dc.transform.position.y > 6.0f)
+                {
+                    int lane = GetLaneIndexFromX(dc.transform.position.x);
+                    if (lane != -1 && safeLanes.Contains(lane))
+                    {
+                        safeLanes.Remove(lane);
+                    }
+                }
+            }
+
             // Si hay carriles seguros, elegir uno al azar
             if (safeLanes.Count > 0)
             {
@@ -504,6 +586,24 @@ namespace DeliveryExpress
                     if (GetLaneIndexFromX(burger.transform.position.x) == i)
                     {
                         if (burger.transform.position.y > maxYInLane) maxYInLane = burger.transform.position.y;
+                    }
+                }
+
+                foreach (EscudoInmunidad shield in activeShields)
+                {
+                    if (shield == null) continue;
+                    if (GetLaneIndexFromX(shield.transform.position.x) == i)
+                    {
+                        if (shield.transform.position.y > maxYInLane) maxYInLane = shield.transform.position.y;
+                    }
+                }
+
+                foreach (MonedaDouble dc in activeDoubleCoins)
+                {
+                    if (dc == null) continue;
+                    if (GetLaneIndexFromX(dc.transform.position.x) == i)
+                    {
+                        if (dc.transform.position.y > maxYInLane) maxYInLane = dc.transform.position.y;
                     }
                 }
 
@@ -591,6 +691,63 @@ namespace DeliveryExpress
             }
 
             Debug.Log($"⚡ Potenciador de velocidad generado en carril {randomLane} (x={spawnX:F2})");
+        }
+
+        /// <summary>
+        /// Genera un escudo de inmunidad en un carril seguro libre de obstáculos.
+        /// </summary>
+        private void SpawnEscudo()
+        {
+            if (escudoSprite == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
+
+            // Elegir carril seguro
+            int randomLane = GetSafeLaneForPowerUp();
+            float spawnX = lanePositionsX[randomLane];
+
+            Vector3 spawnPos = new Vector3(spawnX, spawnYPosition, 0f);
+            GameObject shieldObj = new GameObject("Item_Escudo");
+            shieldObj.transform.position = spawnPos;
+            shieldObj.transform.localScale = new Vector3(1.3f, 1.3f, 1f); // Ajustar tamaño del escudo en la calle
+
+            SpriteRenderer sr = shieldObj.AddComponent<SpriteRenderer>();
+            sr.sprite = escudoSprite;
+            sr.sortingOrder = 9; // Por encima de los obstáculos (8) pero por debajo/igual al jugador (10)
+
+            BoxCollider2D col = shieldObj.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+            col.size = new Vector2(1.2f, 1.2f); // Ajustar el tamaño de colisión
+
+            EscudoInmunidad shieldComponent = shieldObj.AddComponent<EscudoInmunidad>();
+            shieldComponent.SetScrollSpeed(levelScrollSpeed);
+
+            Debug.Log($"🛡️ Escudo de inmunidad generado en carril {randomLane} (x={spawnX:F2})");
+        }
+
+        private void SpawnMonedaDouble()
+        {
+            if (monedaDoubleSprite == null || lanePositionsX == null || lanePositionsX.Length == 0) return;
+
+            // Elegir carril seguro
+            int randomLane = GetSafeLaneForPowerUp();
+            float spawnX = lanePositionsX[randomLane];
+
+            Vector3 spawnPos = new Vector3(spawnX, spawnYPosition, 0f);
+            GameObject coinObj = new GameObject("Item_MonedaX2");
+            coinObj.transform.position = spawnPos;
+            coinObj.transform.localScale = new Vector3(1.2f, 1.2f, 1f); // Ajustar tamaño de la súper moneda en la calle
+
+            SpriteRenderer sr = coinObj.AddComponent<SpriteRenderer>();
+            sr.sprite = monedaDoubleSprite;
+            sr.sortingOrder = 9; // Por encima de los obstáculos (8) pero por debajo/igual al jugador (10)
+
+            BoxCollider2D col = coinObj.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+            col.size = new Vector2(1.2f, 1.2f); // Ajustar el tamaño de colisión
+
+            MonedaDouble coinComponent = coinObj.AddComponent<MonedaDouble>();
+            coinComponent.SetScrollSpeed(levelScrollSpeed);
+
+            Debug.Log($"💰 Súper moneda X2 generada en carril {randomLane} (x={spawnX:F2})");
         }
 
         private void SpawnTrafficWave()

@@ -55,6 +55,7 @@ namespace DeliveryExpress
         public bool SkipStartPanel { get; set; } = false;
         public bool ShowDetailsOnLoad { get; set; } = false;
         public bool PlayVideoOnLoad { get; set; } = false;
+        public bool HasShownNivel2Tutorial { get; set; } = false;
         public int CurrentLives => currentLives;
         public int StartingLives => startingLives;
         public bool IsFinishLineReached { get; set; } = false;
