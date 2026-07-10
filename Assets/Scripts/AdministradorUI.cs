@@ -1044,8 +1044,8 @@ namespace DeliveryExpress
                 closeBtnObj.transform.SetParent(cardObj.transform, false);
 
                 RectTransform closeBtnRect = closeBtnObj.GetComponent<RectTransform>();
-                closeBtnRect.anchorMin = new Vector2(0.7871f, 0.8403f); // Posicionamiento exacto alineado con el centro del botón rojo (806, 484)
-                closeBtnRect.anchorMax = new Vector2(0.7871f, 0.8403f);
+                closeBtnRect.anchorMin = new Vector2(0.7874f, 0.8699f); // Posicionamiento alineado con el botón rojo en la imagen 1920x1080
+                closeBtnRect.anchorMax = new Vector2(0.7874f, 0.8699f);
                 closeBtnRect.pivot = new Vector2(0.5f, 0.5f);
                 closeBtnRect.anchoredPosition = Vector2.zero;
                 closeBtnRect.sizeDelta = new Vector2(100f, 100f); // Área de click ampliada y cómoda
