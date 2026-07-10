@@ -110,10 +110,10 @@ namespace DeliveryExpress
             tiempoParaSiguienteMoneda = Random.Range(minTiempoEntreMonedas, maxTiempoEntreMonedas);
             // Primer potenciador de velocidad aparece entre 15 y 30 segundos desde el inicio
             tiempoParaSiguientePotenciador = Random.Range(minTiempoEntrePotenciadores, maxTiempoEntrePotenciadores);
-            // Primer escudo de inmunidad aparece entre 15 y 30 segundos desde el inicio
-            tiempoParaSiguienteEscudo = Random.Range(minTiempoEntreEscudos, maxTiempoEntreEscudos);
-            // Primer súper moneda X2 aparece entre 20 y 35 segundos desde el inicio
-            tiempoParaSiguienteMonedaDouble = Random.Range(minTiempoEntreMonedasDouble, maxTiempoEntreMonedasDouble);
+            // Primer escudo de inmunidad aparece entre 4 y 8 segundos desde el inicio para ayudar a sobrevivir
+            tiempoParaSiguienteEscudo = Random.Range(4f, 8f);
+            // Primer súper moneda X2 aparece entre 6 y 12 segundos desde el inicio para verla rápido
+            tiempoParaSiguienteMonedaDouble = Random.Range(6f, 12f);
             StartCoroutine(SpawnRoutine());
         }
 
