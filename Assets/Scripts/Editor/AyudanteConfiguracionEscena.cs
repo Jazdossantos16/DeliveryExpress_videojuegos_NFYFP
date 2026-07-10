@@ -1167,6 +1167,42 @@ namespace DeliveryExpress.Editor
             var boosterSpritesField = typeof(AdministradorUI).GetField("boosterSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (boosterSpritesField != null) boosterSpritesField.SetValue(tempUiManager, boosterSprites);
 
+            // Cargar e inyectar sprites de la barra de progreso
+            Sprite progressSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/barra_progreso_llena.png");
+            var progressSpriteField = typeof(AdministradorUI).GetField("levelProgressSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (progressSpriteField != null) progressSpriteField.SetValue(tempUiManager, progressSprite);
+
+            Sprite progressBgSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/barra_progreso_vacia.png");
+            var progressBgSpriteField = typeof(AdministradorUI).GetField("levelProgressBackgroundSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (progressBgSpriteField != null) progressBgSpriteField.SetValue(tempUiManager, progressBgSprite);
+
+            // Cargar e inyectar carteles de nivel
+            Sprite cartel1Sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/cartel_nivel1.png");
+            var cartel1Field = typeof(AdministradorUI).GetField("cartelNivel1Sprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (cartel1Field != null) cartel1Field.SetValue(tempUiManager, cartel1Sprite);
+
+            Sprite cartel2Sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/cartel_nivel2.png");
+            var cartel2Field = typeof(AdministradorUI).GetField("cartelNivel2Sprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (cartel2Field != null) cartel2Field.SetValue(tempUiManager, cartel2Sprite);
+
+            // Cargar e inyectar sprites de barra de escudo (nivel 2)
+            Sprite[] shSprites = new Sprite[7];
+            for (int i = 0; i <= 6; i++)
+            {
+                shSprites[i] = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/sprites/UI/barra_escudo_{i}.png");
+            }
+            var shField = typeof(AdministradorUI).GetField("shieldBarSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (shField != null) shField.SetValue(tempUiManager, shSprites);
+
+            // Cargar e inyectar sprites de barra de moneda (nivel 2)
+            Sprite[] cnSprites = new Sprite[7];
+            for (int i = 0; i <= 6; i++)
+            {
+                cnSprites[i] = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/sprites/UI/barra_moneda_{i}.png");
+            }
+            var cnField = typeof(AdministradorUI).GetField("coinBarSprites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (cnField != null) cnField.SetValue(tempUiManager, cnSprites);
+
             Transform oldMarco = canvas.transform.Find("Marco_HUD");
             if (oldMarco != null)
             {
@@ -3843,6 +3879,18 @@ namespace DeliveryExpress.Editor
                 {
                     escudoSpriteField.SetValue(spawner, spriteEscudo);
                     Debug.Log("🛡️ Asignado sprite de escudo al GeneradorObstaculos.");
+                }
+            }
+
+            // Asignar el sprite de la moneda X2 al spawner
+            var doubleCoinSpriteField = typeof(GeneradorObstaculos).GetField("monedaDoubleSprite", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (doubleCoinSpriteField != null)
+            {
+                Sprite doubleCoinSprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/Gameplay/moneda_x2.png");
+                if (doubleCoinSprite != null)
+                {
+                    doubleCoinSpriteField.SetValue(spawner, doubleCoinSprite);
+                    Debug.Log("💰 Asignado sprite de moneda X2 al GeneradorObstaculos.");
                 }
             }
 
