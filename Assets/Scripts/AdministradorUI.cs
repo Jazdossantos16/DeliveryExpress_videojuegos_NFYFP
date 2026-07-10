@@ -64,6 +64,10 @@ namespace DeliveryExpress
         private RawImage fadeOverlay;
         private bool isTransitioning = false;
 
+        private float lastAvanzarSiguienteDiaTime = 0f;
+        private float orderDetailsPanelOpenTime = 0f;
+        private float videoPlayStartTime = 0f;
+
         [Header("UI de Monedas")]
         [SerializeField] private Text coinsText;
 
@@ -486,7 +490,7 @@ namespace DeliveryExpress
 
             if (isPlayingVideo && !isTransitioning)
             {
-                if (Input.GetKeyDown(KeyCode.E))
+                if (Time.unscaledTime - videoPlayStartTime > 0.6f && Input.GetKeyDown(KeyCode.E))
                 {
                     isTransitioning = true;
                     StartCoroutine(FadeScreen(0f, 1f, 0.5f, () => {
@@ -733,6 +737,11 @@ namespace DeliveryExpress
 
         public void IniciarJuego()
         {
+            if (Time.unscaledTime - orderDetailsPanelOpenTime < 0.25f)
+            {
+                Debug.LogWarning("[AdministradorUI.IniciarJuego] Click ignorado por cooldown (evita propagación rápida).");
+                return;
+            }
             PlayClickSound();
             if (mapPanel != null)
             {
@@ -778,6 +787,7 @@ namespace DeliveryExpress
         private void PlayIntroVideo()
         {
             isPlayingVideo = true;
+            videoPlayStartTime = Time.unscaledTime;
             Time.timeScale = 1f; // Set to 1f so VideoPlayer advances frames normally
             StartCoroutine(PlayVideoRoutine());
         }
@@ -1433,6 +1443,12 @@ namespace DeliveryExpress
 
         public void AvanzarSiguienteDia()
         {
+            if (Time.unscaledTime - lastAvanzarSiguienteDiaTime < 0.2f)
+            {
+                Debug.LogWarning("[AdministradorUI.AvanzarSiguienteDia] Llamada ignorada por protección contra doble click.");
+                return;
+            }
+            lastAvanzarSiguienteDiaTime = Time.unscaledTime;
             PlayClickSound();
             int currentDay = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
             Debug.Log($"[AdministradorUI.AvanzarSiguienteDia] currentDay={currentDay}");
@@ -2100,6 +2116,7 @@ namespace DeliveryExpress
                 }
 
                 orderDetailsPanel.SetActive(true);
+                orderDetailsPanelOpenTime = Time.unscaledTime;
                 Debug.Log("📦 Panel de detalle del pedido abierto. ¿Viene del mapa? " + cameFromMap);
             }
         }
