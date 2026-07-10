@@ -348,14 +348,13 @@ namespace DeliveryExpress
                         
                         // Copiar fuente de livesText si está disponible, o buscar cualquier texto (incluyendo inactivos)
                         Text anyText = GetComponentInChildren<Text>(true);
-                        if (anyText != null)
+                        if (anyText != null && anyText.font != null)
                         {
                             coinsText.font = anyText.font;
                         }
                         else
                         {
-                            coinsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                            if (coinsText.font == null) coinsText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                            coinsText.font = ObtenerFuentePorDefecto();
                         }
                         
                         coinsText.fontSize = 24;
@@ -576,13 +575,13 @@ namespace DeliveryExpress
                         boosterText = txtObj.AddComponent<Text>();
 
                         // Copiar fuente si está disponible
-                        if (livesText != null)
+                        if (livesText != null && livesText.font != null)
                         {
                             boosterText.font = livesText.font;
                         }
                         else
                         {
-                            boosterText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                            boosterText.font = ObtenerFuentePorDefecto();
                         }
 
                         boosterText.fontSize = 12;
@@ -2492,6 +2491,26 @@ namespace DeliveryExpress
             cartelNivel2Image.sprite = cartelNivel2Sprite;
             cartelNivel2Image.color = Color.white;
             cartelNivel2Image.raycastTarget = false;
+        }
+
+        private Font ObtenerFuentePorDefecto()
+        {
+            Font f = null;
+            try
+            {
+                f = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            }
+            catch {}
+
+            if (f == null)
+            {
+                try
+                {
+                    f = Resources.GetBuiltinResource<Font>("Arial.ttf");
+                }
+                catch {}
+            }
+            return f;
         }
     }
 }
