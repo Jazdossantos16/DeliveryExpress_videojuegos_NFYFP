@@ -59,7 +59,32 @@ namespace DeliveryExpress
         public int CurrentLives => currentLives;
         public int StartingLives => startingLives;
         public bool IsFinishLineReached { get; set; } = false;
-        public float LevelProgress => totalLevelDuration > 0f ? Mathf.Clamp01(1f - (timeRemaining / totalLevelDuration)) : 0f;
+        public float LevelProgress
+        {
+            get
+            {
+                float timeProgress = totalLevelDuration > 0f ? Mathf.Clamp01(1f - (timeRemaining / totalLevelDuration)) : 0f;
+                
+                // Fase 1: Mientras el temporizador de nivel está activo y restando
+                if (timeRemaining > 0f)
+                {
+                    return timeProgress * (8f / 9f);
+                }
+                
+                // Fase 2: Descenso de la calle final/casa
+                float scrollProgress = 0f;
+                CapaParallax[] capas = GameObject.FindObjectsByType<CapaParallax>(FindObjectsSortMode.None);
+                foreach (CapaParallax capa in capas)
+                {
+                    if (capa != null && (capa.gameObject.name.Contains("ScrollingBackground") || capa.gameObject.name.Contains("Calle")))
+                    {
+                        scrollProgress = capa.GetFinalStreetScrollProgress();
+                        break;
+                    }
+                }
+                return (8f / 9f) + (scrollProgress * (1f / 9f));
+            }
+        }
 
         private void Awake()
         {

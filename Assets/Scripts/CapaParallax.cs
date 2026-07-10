@@ -33,6 +33,7 @@ namespace DeliveryExpress
         private int currentChunkCount = 0;
         private bool finalStreetSpawned = false;
         private bool stopScrolling = false;
+        private float initialMetaDistance = 0f;
 
         public void SetupSequence(Sprite normal, Sprite crossroad, Sprite finalSpr)
         {
@@ -245,6 +246,11 @@ namespace DeliveryExpress
                 
                 finishLineObj.transform.localPosition = new Vector3(0, metaCenterY, 0);
 
+                // Calcular la distancia inicial a recorrer hasta detenerse en Y=1.5f
+                float initialWorldVanishing = metaCenterY - 0.063f * metaHeightLocal;
+                initialMetaDistance = initialWorldVanishing - 1.5f;
+                if (initialMetaDistance <= 0f) initialMetaDistance = 1f;
+
                 // Instanciamos la casa final sobre la vereda
                 if (finalHouseSprite != null)
                 {
@@ -271,6 +277,17 @@ namespace DeliveryExpress
             if (finishLineObj == null) return float.MaxValue;
             float metaHeight = finishLineObj.GetComponent<SpriteRenderer>().sprite.bounds.size.y * finishLineObj.transform.localScale.y;
             return finishLineObj.transform.position.y - 0.063f * metaHeight;
+        }
+
+        /// <summary>
+        /// Obtiene el porcentaje de avance (0 a 1) del descenso de la calle final/casa
+        /// </summary>
+        public float GetFinalStreetScrollProgress()
+        {
+            if (finishLineObj == null || initialMetaDistance <= 0f) return 0f;
+            float currentVanishing = GetWorldVanishingPointY();
+            float currentDistance = currentVanishing - 1.5f;
+            return 1f - Mathf.Clamp01(currentDistance / initialMetaDistance);
         }
 
         public bool IsCrossroadOverlapping(float yPosition)
