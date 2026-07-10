@@ -723,6 +723,17 @@ namespace DeliveryExpress
 
                 if (isCar)
                 {
+                    // Si el auto está cambiando de carril lateralmente, aplicar tolerancia de distancia
+                    if (obs != null && obs.IsChangingLane)
+                    {
+                        float horizontalDist = Mathf.Abs(transform.position.x - collision.transform.position.x);
+                        if (horizontalDist > 1.2f)
+                        {
+                            Debug.Log($"🛡️ [COLISIÓN TOLERADA] Evitado choque con auto {collision.gameObject.name} por distancia lateral de {horizontalDist:F2} unidades (umbral: 1.2).");
+                            return;
+                        }
+                    }
+
                     Debug.Log($"💥 [COLISIÓN VEHÍCULO] Choque con vehículo: {collision.gameObject.name}. Muerte instantánea.");
                     TakeDamage(true);
                 }
