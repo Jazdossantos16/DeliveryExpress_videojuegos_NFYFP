@@ -108,6 +108,11 @@ namespace DeliveryExpress
         [SerializeField] private Sprite[] coinBarSprites;
         private Image coinBarImage;
 
+        [Header("UI de Progreso de Nivel")]
+        [SerializeField] private Image levelProgressBar;
+        [SerializeField] private Sprite levelProgressSprite;
+        [SerializeField] private Sprite levelProgressBackgroundSprite;
+
         [Header("Carteles de Nivel")]
         [SerializeField] private Sprite cartelNivel1Sprite;
         [SerializeField] private Sprite cartelNivel2Sprite;
@@ -706,6 +711,30 @@ namespace DeliveryExpress
                 if (coinBarImage != null && coinBarImage.gameObject.activeSelf)
                 {
                     coinBarImage.gameObject.SetActive(false);
+                }
+            }
+
+            // Actualizar barra de progreso de nivel
+            if (hudVisible && levelProgressBar != null && AdministradorJuego.Instance != null)
+            {
+                GameObject parentObj = levelProgressBar.transform.parent.gameObject;
+                if (!parentObj.activeSelf)
+                {
+                    parentObj.SetActive(true);
+                }
+                float rawProgress = AdministradorJuego.Instance.LevelProgress;
+                int currentCasilleros = Mathf.FloorToInt(rawProgress * 9.0f);
+                levelProgressBar.fillAmount = (float)currentCasilleros / 9.0f;
+            }
+            else
+            {
+                if (levelProgressBar != null)
+                {
+                    GameObject parentObj = levelProgressBar.transform.parent.gameObject;
+                    if (parentObj.activeSelf)
+                    {
+                        parentObj.SetActive(false);
+                    }
                 }
             }
         }
@@ -2395,6 +2424,61 @@ namespace DeliveryExpress
             coinBarImage.raycastTarget = false;
         }
 
+        private void CrearBarraProgresoDinamica()
+        {
+            if (levelProgressBar != null) return;
+
+            Transform parentTrans = this.transform;
+            
+            // 1. Crear el objeto Padre (Fondo de barra vacía)
+            GameObject progressBarObj = new GameObject("Barra_ProgresoNivel", typeof(RectTransform));
+            progressBarObj.layer = this.gameObject.layer;
+            progressBarObj.transform.SetParent(parentTrans, false);
+
+            RectTransform rt = progressBarObj.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(1f, 0.5f); // Derecha media
+            rt.anchorMax = new Vector2(1f, 0.5f);
+            rt.pivot = new Vector2(1f, 0.5f);
+            rt.anchoredPosition = new Vector2(-45f, 0f); // 45px del borde derecho, centrado
+            rt.sizeDelta = new Vector2(60f, 364f); // Duplicado del tamaño original (60x364)
+
+            progressBarObj.AddComponent<CanvasRenderer>();
+            Image bgImage = progressBarObj.AddComponent<Image>();
+            if (levelProgressBackgroundSprite != null)
+            {
+                bgImage.sprite = levelProgressBackgroundSprite;
+            }
+            bgImage.type = Image.Type.Simple;
+            bgImage.color = Color.white;
+            bgImage.raycastTarget = false;
+
+            // 2. Crear el objeto Hijo (Relleno de barra llena)
+            GameObject fillObj = new GameObject("Relleno", typeof(RectTransform));
+            fillObj.layer = this.gameObject.layer;
+            fillObj.transform.SetParent(progressBarObj.transform, false);
+
+            RectTransform rtFill = fillObj.GetComponent<RectTransform>();
+            rtFill.anchorMin = new Vector2(0f, 0f); // Stretch total sobre el padre
+            rtFill.anchorMax = new Vector2(1f, 1f);
+            rtFill.pivot = new Vector2(0.5f, 0.5f);
+            rtFill.anchoredPosition = Vector2.zero;
+            rtFill.sizeDelta = Vector2.zero;
+
+            fillObj.AddComponent<CanvasRenderer>();
+            levelProgressBar = fillObj.AddComponent<Image>();
+            if (levelProgressSprite != null)
+            {
+                levelProgressBar.sprite = levelProgressSprite;
+            }
+            levelProgressBar.type = Image.Type.Filled;
+            levelProgressBar.fillMethod = Image.FillMethod.Vertical;
+            levelProgressBar.fillOrigin = (int)Image.OriginVertical.Bottom;
+            levelProgressBar.color = Color.white;
+            levelProgressBar.raycastTarget = false;
+            
+            Debug.Log("[AdministradorUI] Barra de Progreso de Nivel Dinámica Creada con Éxito (Dos Capas).");
+        }
+
         private void VerificarYCrearBarrasDinamicas()
         {
             int dayVal = AdministradorJuego.Instance != null ? AdministradorJuego.Instance.CurrentDay : 1;
@@ -2408,7 +2492,20 @@ namespace DeliveryExpress
             {
                 cartelNivel2Sprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/cartel_nivel2.png");
             }
+            if (levelProgressSprite == null)
+            {
+                levelProgressSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/barra_progreso_llena.png");
+            }
+            if (levelProgressBackgroundSprite == null)
+            {
+                levelProgressBackgroundSprite = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/sprites/UI/barra_progreso_vacia.png");
+            }
             #endif
+
+            if (levelProgressBar == null && levelProgressSprite != null && levelProgressBackgroundSprite != null)
+            {
+                CrearBarraProgresoDinamica();
+            }
 
             if (dayVal == 1)
             {
